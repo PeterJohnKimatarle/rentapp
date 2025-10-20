@@ -1,13 +1,17 @@
 'use client';
 
-import { Home, Search, Heart, User, Phone } from 'lucide-react';
+import Image from 'next/image';
+import { Home, Search, Heart, User } from 'lucide-react';
 
 export default function Navigation() {
   return (
     <nav className="p-4 lg:p-6">
       {/* Logo */}
-      <div className="mb-6 lg:mb-8">
-        <h1 className="text-xl lg:text-2xl font-bold text-booking-blue">Rentapp</h1>
+      <div className="mb-4 lg:mb-6">
+        <div className="flex items-center gap-0">
+          <Image src="/icon.png" alt="Rentapp Logo" width={32} height={32} />
+          <h1 className="text-xl lg:text-2xl font-bold text-booking-blue">Rentapp</h1>
+        </div>
         <p className="text-xs lg:text-sm text-gray-600 mt-1">Tanzania&apos;s #1 Renting Platform</p>
       </div>
 

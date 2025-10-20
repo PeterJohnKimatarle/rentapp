@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
+import NextImage from 'next/image';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import { Menu, X } from 'lucide-react';
@@ -15,14 +16,25 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       {/* Mobile Header */}
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-booking-blue">Rentapp</h1>
+      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-0">
+          <NextImage src="/icon.png" alt="Rentapp Logo" width={32} height={32} />
+          <h1 className="text-xl font-bold text-booking-blue">Rentapp</h1>
+        </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-gray-600 hover:text-booking-blue transition-colors"
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-20">
+        <div className="flex items-center gap-0">
+          <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
+          <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row min-w-0">

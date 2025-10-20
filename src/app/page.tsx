@@ -12,7 +12,7 @@ export default function Home() {
             <PropertyCard key={property.id} property={property} />
           ))}
         </div>
-      </div>
+    </div>
     </Layout>
   );
 }
