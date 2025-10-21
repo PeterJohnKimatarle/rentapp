@@ -208,7 +208,7 @@ export default function ImageLightbox({
                        />
                      </div>
                      
-                     <div className="text-blue-200 text-lg mb-8">Image not available</div>
+                     <div className="text-blue-200 text-lg mb-8">Sorry, image not available</div>
                      
                      {/* Call to Action */}
                      <button 
