@@ -210,7 +210,7 @@ export default function ImageLightbox({
                      
                      <div className="text-blue-200 mb-8">
                        <div className="text-2xl font-semibold mb-2">Sorry!</div>
-                       <div className="text-lg">image not available</div>
+                       <div className="text-lg">image {currentIndex + 1} is not available</div>
                      </div>
                      
                      {/* Call to Action */}
