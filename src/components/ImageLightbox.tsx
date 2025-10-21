@@ -206,7 +206,6 @@ export default function ImageLightbox({
                        />
                      </div>
                      
-                     <div className="text-white text-4xl font-bold mb-3">Rentapp</div>
                      <div className="text-blue-200 text-lg mb-8">Image not available</div>
                      
                      {/* Call to Action */}

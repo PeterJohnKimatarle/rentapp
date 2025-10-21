@@ -63,14 +63,13 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden" onClick={handleImageClick}>
                 {/* Main Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 mb-4 shadow-lg">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 shadow-lg">
                     <img
                       src="/icon.png"
                       alt="Rentapp Logo"
                       className="w-16 h-16 rounded-lg"
                     />
                   </div>
-                  <div className="text-white text-lg font-bold">Rentapp</div>
                 </div>
                 
                 {/* Decorative Elements */}
