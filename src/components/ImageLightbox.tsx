@@ -210,7 +210,10 @@ export default function ImageLightbox({
                      
                      {/* Call to Action */}
                      <button 
-                       onClick={() => window.location.href = '/'}
+                       onClick={() => {
+                         onClose();
+                         window.location.replace('/');
+                       }}
                        className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20 hover:bg-white/20 transition-colors cursor-pointer"
                      >
                        <div className="text-white text-sm">Explore more properties</div>
