@@ -1,43 +1,35 @@
-# Property Images
+# Property Images - SIMPLIFIED
 
-## How to Add Your Own Images
+## 🎯 Simple Setup (7 Properties, 2-3 Images Each)
 
-1. **Add your property images to this folder** (`public/images/properties/`)
-2. **Name them descriptively**: 
-   - `property-4-image-1.jpg`
-   - `property-4-image-2.jpg`
-   - `property-4-image-3.jpg`
-   - etc.
+### Current Properties:
+1. **Modern Apartment** (Dar es Salaam) - 2 images: house-1.jpg, house-2.jpg
+2. **Cozy House** (Arusha) - 2 images: house-3.jpg, house-4.jpg  
+3. **Luxury Villa** (Zanzibar) - 3 images: house-5.jpg, house-6.jpg, house-7.jpg
+4. **Studio Apartment** (Mwanza) - 2 images: house-8.jpg, house-9.jpg
+5. **Family House** (Dodoma) - 2 images: house-10.jpg, house-11.jpg
+6. **Penthouse** (Dar es Salaam) - 3 images: house-12.jpg, house-13.jpg, house-14.jpg
+7. **Executive House** (Dar es Salaam) - 2 images: house-15.jpg, house-16.jpg
 
-3. **Supported formats**: JPG, PNG, WebP
-4. **Recommended size**: 800x600 pixels or similar aspect ratio
-5. **File size**: Keep under 500KB per image for fast loading
+## 📸 How to Add Your Real Images
 
-## Current Image Structure
+1. **Take photos of your properties**
+2. **Save them with these exact names**:
+   - house-1.jpg, house-2.jpg, house-3.jpg, etc.
+3. **Replace the placeholder files** in this folder
+4. **Keep the same filenames!**
 
-Each property should have 3 images:
-- Property #4 (Studio Mwanza): property-4-image-1.jpg, property-4-image-2.jpg, property-4-image-3.jpg
-- Property #5 (Modern Family Home): property-5-image-1.jpg, property-5-image-2.jpg, property-5-image-3.jpg
-- Property #6 (Luxury Villa): property-6-image-1.jpg, property-6-image-2.jpg, property-6-image-3.jpg
-- Property #7 (Cozy Bungalow): property-7-image-1.jpg, property-7-image-2.jpg, property-7-image-3.jpg
-- Property #8 (Executive Townhouse): property-8-image-1.jpg, property-8-image-2.jpg, property-8-image-3.jpg
-- Property #9 (Penthouse): property-9-image-1.jpg, property-9-image-2.jpg, property-9-image-3.jpg
-- Property #10 (Apartment Morogoro): property-10-image-1.jpg, property-10-image-2.jpg, property-10-image-3.jpg
-- Property #11 (Executive House): property-11-image-1.jpg, property-11-image-2.jpg, property-11-image-3.jpg
+## ✅ Benefits
 
-## Benefits of Local Images
+- **🚫 Never break** - No external dependencies
+- **⚡ Fast loading** - Hosted locally
+- **🎯 Simple** - Only 16 images total
+- **🔒 Reliable** - You control everything
+- **💰 Free** - No hosting costs
 
-✅ **Never break** - Images are hosted on your own server
-✅ **Fast loading** - No external dependencies
-✅ **Full control** - You own the images
-✅ **Reliable** - No rate limiting or service outages
-✅ **SEO friendly** - Better for search engines
-✅ **Offline capable** - Works without internet
+## 📋 Quick Checklist
 
-## Quick Setup
-
-1. Take photos of your properties
-2. Resize them to 800x600 pixels
-3. Save them as JPG files (smaller file size)
-4. Upload them to this folder with the naming convention above
-5. The app will automatically use them!
+- [ ] Take photos of your 7 properties
+- [ ] Save as house-1.jpg through house-16.jpg
+- [ ] Replace the placeholder files
+- [ ] Done! Your app will work perfectly
