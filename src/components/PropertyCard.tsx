@@ -61,11 +61,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
             {imageError || !property.images[0] ? (
               <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden" onClick={handleImageClick}>
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
-                </div>
-                
                 {/* Main Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center text-center">
                   <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 mb-4 shadow-lg">
@@ -83,6 +78,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 <div className="absolute top-4 right-4 w-8 h-8 border-2 border-white/30 rounded-full"></div>
                 <div className="absolute bottom-4 left-4 w-6 h-6 border-2 border-white/20 rounded-full"></div>
                 <div className="absolute top-1/2 left-4 w-4 h-4 bg-white/20 rounded-full"></div>
+                <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-white/15 rounded-full"></div>
+                <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-white/10 rounded-full"></div>
               </div>
             ) : (
               <img
