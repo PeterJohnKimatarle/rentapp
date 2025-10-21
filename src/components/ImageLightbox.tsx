@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ImageLightboxProps {
   images: string[];
@@ -20,6 +21,7 @@ export default function ImageLightbox({
   const [imageError, setImageError] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
   const preloadedImagesRef = useRef<Set<number>>(new Set());
+  const router = useRouter();
 
   const goToPrevious = useCallback(() => {
     const newIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
@@ -212,7 +214,7 @@ export default function ImageLightbox({
                      <button 
                        onClick={() => {
                          onClose();
-                         window.location.replace('/');
+                         router.push('/');
                        }}
                        className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20 hover:bg-white/20 transition-colors cursor-pointer"
                      >
