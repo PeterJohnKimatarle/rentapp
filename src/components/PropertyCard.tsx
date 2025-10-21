@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Bed, Bath, Square, Image } from 'lucide-react';
 import { Property } from '@/data/properties';
 import ImageLightbox from './ImageLightbox';
@@ -12,6 +12,22 @@ interface PropertyCardProps {
 export default function PropertyCard({ property }: PropertyCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const preloadedImagesRef = useRef<Set<number>>(new Set());
+
+  // Preload the first image when component mounts
+  useEffect(() => {
+    if (!preloadedImagesRef.current.has(0)) {
+      const img = new window.Image();
+      img.onload = () => {
+        preloadedImagesRef.current.add(0);
+        setIsImageLoaded(true);
+      };
+      img.src = property.images[0];
+    } else {
+      setIsImageLoaded(true);
+    }
+  }, [property.images]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-TZ', {
@@ -31,21 +47,30 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
         <div className="flex flex-row min-w-0">
           {/* Property Image */}
-          <div className="w-32 sm:w-40 md:w-56 lg:w-80 h-32 sm:h-40 md:h-56 lg:h-64 flex-shrink-0 relative">
+          <div className="w-36 sm:w-44 md:w-56 lg:w-80 h-36 sm:h-44 md:h-56 lg:h-64 flex-shrink-0 relative">
+            {!isImageLoaded && (
+              <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                <div className="text-gray-500 text-sm">Loading...</div>
+              </div>
+            )}
             <img
               src={property.images[0]}
               alt={property.title}
               className="w-full h-full object-cover cursor-pointer"
               onClick={handleImageClick}
+              style={{ 
+                opacity: isImageLoaded ? 1 : 0,
+                transition: 'opacity 0.3s ease-in-out'
+              }}
             />
-            <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center space-x-1">
+                   <div className="absolute bottom-1 left-1 text-white text-xs px-2 py-1 rounded flex items-center space-x-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
               <Image size={12} />
               <span>{property.images.length}</span>
             </div>
           </div>
 
           {/* Property Details */}
-          <div className="flex-1 p-2 sm:p-3 md:p-4 lg:p-6 min-w-0">
+          <div className="flex-1 p-1.5 sm:p-3 md:p-4 lg:p-6 min-w-0">
             <div className="flex flex-col mb-2">
               <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-gray-900 mb-1 truncate">
                 {property.title}

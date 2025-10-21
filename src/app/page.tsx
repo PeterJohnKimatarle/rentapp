@@ -5,14 +5,14 @@ import { properties } from '@/data/properties';
 export default function Home() {
   return (
     <Layout>
-      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
+      <div className="w-full max-w-6xl mx-auto px-1 sm:px-2 lg:px-4">
         {/* Properties Grid */}
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <div className="space-y-2 sm:space-y-3 lg:space-y-6">
           {properties.map((property) => (
             <PropertyCard key={property.id} property={property} />
           ))}
         </div>
-    </div>
+      </div>
     </Layout>
   );
 }
