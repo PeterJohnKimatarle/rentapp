@@ -18,8 +18,11 @@ export const properties: Property[] = [
     description: "Beautiful modern apartment with stunning ocean views. Perfect for professionals working in the city center.",
     price: 1200000,
     images: [
-      "/images/properties/house-1.jpg",
-      "/images/properties/house-2.jpg"
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-5e3c8b3b3b3b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-6e3c8b3b3b3b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-7e3c8b3b3b3b?w=800&h=600&fit=crop"
     ],
     bedrooms: 2,
     bathrooms: 2,
@@ -32,8 +35,10 @@ export const properties: Property[] = [
     description: "Charming family house with garden space. Close to schools and shopping centers.",
     price: 800000,
     images: [
-      "/images/properties/house-3.jpg",
-      "/images/properties/house-4.jpg"
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop"
     ],
     bedrooms: 3,
     bathrooms: 2,
@@ -46,9 +51,12 @@ export const properties: Property[] = [
     description: "Exclusive beachfront villa with private pool and direct beach access.",
     price: 2500000,
     images: [
-      "/images/properties/house-5.jpg",
-      "/images/properties/house-6.jpg",
-      "/images/properties/house-7.jpg"
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -61,8 +69,9 @@ export const properties: Property[] = [
     description: "Compact studio perfect for students or young professionals. Fully furnished.",
     price: 450000,
     images: [
-      "/images/properties/house-8.jpg",
-      "/images/properties/house-9.jpg"
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop"
     ],
     bedrooms: 1,
     bathrooms: 1,
@@ -75,8 +84,11 @@ export const properties: Property[] = [
     description: "Spacious family home with large backyard. Ideal for families with children.",
     price: 950000,
     images: [
-      "/images/properties/house-10.jpg",
-      "/images/properties/house-11.jpg"
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -89,9 +101,13 @@ export const properties: Property[] = [
     description: "Luxurious penthouse with panoramic city and ocean views. Premium location.",
     price: 1800000,
     images: [
-      "/images/properties/house-12.jpg",
-      "/images/properties/house-13.jpg",
-      "/images/properties/house-14.jpg"
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
     ],
     bedrooms: 3,
     bathrooms: 3,
@@ -99,13 +115,67 @@ export const properties: Property[] = [
   },
   {
     id: "7",
+    title: "Townhouse in Arusha",
+    location: "Sakina, Arusha",
+    description: "Modern townhouse with garage and small garden. Close to Mount Meru.",
+    price: 1100000,
+    images: [
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop"
+    ],
+    bedrooms: 3,
+    bathrooms: 2,
+    area: 140
+  },
+  {
+    id: "8",
+    title: "Beach House in Tanga",
+    location: "Pangani, Tanga",
+    description: "Charming beach house with direct beach access. Perfect for weekend getaways.",
+    price: 1500000,
+    images: [
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop"
+    ],
+    bedrooms: 2,
+    bathrooms: 2,
+    area: 100
+  },
+  {
+    id: "9",
+    title: "Apartment in Morogoro",
+    location: "Mazimbu, Morogoro",
+    description: "Comfortable apartment near university. Great for students and young professionals.",
+    price: 600000,
+    images: [
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60"
+    ],
+    bedrooms: 2,
+    bathrooms: 1,
+    area: 80
+  },
+  {
+    id: "10",
     title: "Executive House in Dar es Salaam",
     location: "Msasani, Dar es Salaam",
     description: "Executive family house with modern amenities. Gated community with security.",
     price: 2000000,
     images: [
-      "/images/properties/house-15.jpg",
-      "/images/properties/house-16.jpg"
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop"
     ],
     bedrooms: 5,
     bathrooms: 4,

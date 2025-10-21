@@ -16,14 +16,13 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
       {/* Navigation Links */}
       <div className={`space-y-2 lg:space-y-2 ${variant === 'popup' ? 'flex flex-col items-start space-y-0 pt-0 pb-0 -space-y-1' : ''}`}>
         <a 
-          href="#" 
+          href="/" 
           onClick={(e) => {
             e.preventDefault();
+            window.location.href = '/';
             if (variant === 'popup' && onItemClick) {
               onItemClick();
             }
-            // Force page reload to get fresh data
-            window.location.href = '/';
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
