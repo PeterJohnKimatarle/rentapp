@@ -199,7 +199,7 @@ export default function ImageLightbox({
                {imageError || !images[currentIndex] ? (
                  <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 flex flex-col items-center justify-center min-h-[80vh] relative overflow-hidden">
                    {/* Main Content */}
-                   <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md mx-auto px-8">
+                   <div className="flex flex-col items-center justify-center text-center px-8">
                      <div className="bg-white/20 backdrop-blur-md rounded-full p-8 mb-8 shadow-2xl border border-white/30">
                        <img
                          src="/icon.png"
@@ -209,7 +209,7 @@ export default function ImageLightbox({
                      </div>
                      
                      <div className="text-blue-200 mb-8">
-                       <div className="text-2xl font-semibold mb-2">Sorry</div>
+                       <div className="text-2xl font-semibold mb-2">Sorry!</div>
                        <div className="text-lg">image not available</div>
                      </div>
                      
@@ -224,16 +224,6 @@ export default function ImageLightbox({
                        <div className="text-white text-sm">Explore more properties</div>
                      </button>
                    </div>
-                   
-                   {/* Decorative Elements */}
-                   <div className="absolute top-8 right-8 w-16 h-16 border-2 border-white/30 rounded-full"></div>
-                   <div className="absolute bottom-8 left-8 w-12 h-12 border-2 border-white/20 rounded-full"></div>
-                   <div className="absolute top-1/3 left-8 w-8 h-8 bg-white/20 rounded-full"></div>
-                   <div className="absolute bottom-1/3 right-12 w-6 h-6 bg-white/15 rounded-full"></div>
-                   <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/10 rounded-full"></div>
-                   <div className="absolute bottom-1/4 left-1/4 w-3 h-3 bg-white/15 rounded-full"></div>
-                   <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-white/20 rounded-full"></div>
-                   <div className="absolute bottom-1/2 left-1/3 w-5 h-5 border border-white/15 rounded-full"></div>
                  </div>
                ) : (
                  <img
