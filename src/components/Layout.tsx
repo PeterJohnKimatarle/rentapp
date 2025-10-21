@@ -2,8 +2,6 @@
 
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import { Menu, X, Search } from 'lucide-react';
@@ -15,7 +13,6 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   const handleLogoClick = () => {
     // Force page reload to get fresh data

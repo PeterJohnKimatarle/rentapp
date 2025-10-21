@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Link from 'next/link';
 import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User } from 'lucide-react';
 
 interface NavigationProps {
@@ -15,11 +15,9 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
 
       {/* Navigation Links */}
       <div className={`space-y-2 lg:space-y-2 ${variant === 'popup' ? 'flex flex-col items-start space-y-0 pt-0 pb-0 -space-y-1' : ''}`}>
-        <a 
+        <Link 
           href="/" 
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = '/';
+          onClick={() => {
             if (variant === 'popup' && onItemClick) {
               onItemClick();
             }
@@ -32,7 +30,7 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
         >
           <Home size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Home</span>
-        </a>
+        </Link>
         
         <a 
           href="#" 
