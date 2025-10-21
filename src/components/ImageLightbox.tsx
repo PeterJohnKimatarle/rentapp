@@ -187,19 +187,49 @@ export default function ImageLightbox({
                </button>
 
                {isLoading && !isCurrentImagePreloaded && (
-                 <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="text-white text-lg">Loading...</div>
+                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                   <div className="flex flex-col items-center">
+                     <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4"></div>
+                     <div className="text-white text-lg font-medium">Loading image...</div>
+                   </div>
                  </div>
                )}
                {imageError || !images[currentIndex] ? (
-                 <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center min-h-[400px]">
-                   <img
-                     src="/icon.png"
-                     alt="Rentapp Logo"
-                     className="w-24 h-24 mb-4 opacity-60"
-                   />
-                   <div className="text-blue-600 text-lg font-medium">Rentapp</div>
-                   <div className="text-blue-500 text-sm mt-2">Image not available</div>
+                 <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 flex flex-col items-center justify-center min-h-[80vh] relative overflow-hidden">
+                   {/* Animated Background Pattern */}
+                   <div className="absolute inset-0 opacity-20">
+                     <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="50" cy="50" r="3"/%3E%3Ccircle cx="20" cy="20" r="2"/%3E%3Ccircle cx="80" cy="20" r="2"/%3E%3Ccircle cx="20" cy="80" r="2"/%3E%3Ccircle cx="80" cy="80" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] animate-pulse"></div>
+                   </div>
+                   
+                   {/* Main Content */}
+                   <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md mx-auto px-8">
+                     <div className="bg-white/20 backdrop-blur-md rounded-full p-8 mb-8 shadow-2xl border border-white/30">
+                       <img
+                         src="/icon.png"
+                         alt="Rentapp Logo"
+                         className="w-24 h-24"
+                       />
+                     </div>
+                     
+                     <div className="text-white text-4xl font-bold mb-3">Rentapp</div>
+                     <div className="text-blue-100 text-xl mb-6">Premium Properties</div>
+                     <div className="text-blue-200 text-lg mb-8">Image not available</div>
+                     
+                     {/* Call to Action */}
+                     <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20">
+                       <div className="text-white text-sm">Explore more properties</div>
+                     </div>
+                   </div>
+                   
+                   {/* Decorative Elements */}
+                   <div className="absolute top-8 right-8 w-16 h-16 border-2 border-white/30 rounded-full animate-pulse"></div>
+                   <div className="absolute bottom-8 left-8 w-12 h-12 border-2 border-white/20 rounded-full animate-pulse delay-1000"></div>
+                   <div className="absolute top-1/3 left-8 w-8 h-8 bg-white/20 rounded-full animate-bounce"></div>
+                   <div className="absolute bottom-1/3 right-12 w-6 h-6 bg-white/15 rounded-full animate-bounce delay-500"></div>
+                   
+                   {/* Floating Elements */}
+                   <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/10 rounded-full animate-ping"></div>
+                   <div className="absolute bottom-1/4 left-1/4 w-3 h-3 bg-white/15 rounded-full animate-ping delay-700"></div>
                  </div>
                ) : (
                  <img
