@@ -13,6 +13,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
 
   // Preload the first image when component mounts
@@ -21,6 +22,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       const img = new window.Image();
       img.onload = () => {
         preloadedImagesRef.current.add(0);
+        setIsImageLoaded(true);
+        setImageError(false);
+      };
+      img.onerror = () => {
+        setImageError(true);
         setIsImageLoaded(true);
       };
       img.src = property.images[0];
@@ -53,17 +59,29 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 <div className="text-gray-500 text-sm">Loading...</div>
               </div>
             )}
-            <img
-              src={property.images[0]}
-              alt={property.title}
-              className="w-full h-full object-cover cursor-pointer"
-              onClick={handleImageClick}
-              style={{ 
-                opacity: isImageLoaded ? 1 : 0,
-                transition: 'opacity 0.3s ease-in-out'
-              }}
-            />
-                   <div className="absolute bottom-1 left-1 text-white text-xs px-2 py-1 rounded flex items-center space-x-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            {imageError || !property.images[0] ? (
+              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center cursor-pointer" onClick={handleImageClick}>
+                <img
+                  src="/icon.png"
+                  alt="Rentapp Logo"
+                  className="w-12 h-12 mb-2 opacity-60"
+                />
+                <div className="text-blue-600 text-xs font-medium">Rentapp</div>
+              </div>
+            ) : (
+              <img
+                src={property.images[0]}
+                alt={property.title}
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={handleImageClick}
+                onError={() => setImageError(true)}
+                style={{ 
+                  opacity: isImageLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+              />
+            )}
+            <div className="absolute bottom-1 left-1 text-white text-xs px-2 py-1 rounded flex items-center space-x-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
               <Image size={12} />
               <span>{property.images.length}</span>
             </div>

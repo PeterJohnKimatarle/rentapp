@@ -17,6 +17,7 @@ export default function ImageLightbox({
   onImageChange 
 }: ImageLightboxProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
   const preloadedImagesRef = useRef<Set<number>>(new Set());
 
@@ -39,11 +40,20 @@ export default function ImageLightbox({
       preloadedImagesRef.current.add(index);
       setPreloadedImages(new Set(preloadedImagesRef.current));
     };
+    img.onerror = () => {
+      // Still mark as "loaded" but we'll handle the error in the display
+      preloadedImagesRef.current.add(index);
+      setPreloadedImages(new Set(preloadedImagesRef.current));
+    };
     img.src = images[index];
   }, [images]);
 
   // Preload current and adjacent images
   useEffect(() => {
+    // Reset loading and error states when image changes
+    setIsLoading(true);
+    setImageError(false);
+    
     // Preload current image
     preloadImage(currentIndex);
     
@@ -81,6 +91,12 @@ export default function ImageLightbox({
 
   const handleImageLoad = () => {
     setIsLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    setIsLoading(false);
+    setImageError(true);
   };
 
   // Check if current image is preloaded
@@ -175,16 +191,29 @@ export default function ImageLightbox({
                    <div className="text-white text-lg">Loading...</div>
                  </div>
                )}
-               <img
-                 src={images[currentIndex]}
-                 alt={`Property image ${currentIndex + 1}`}
-                 className="max-w-full max-h-full object-contain"
-                 onLoad={handleImageLoad}
-                 style={{ 
-                   opacity: isCurrentImagePreloaded ? 1 : 0.7,
-                   transition: 'opacity 0.3s ease-in-out'
-                 }}
-               />
+               {imageError || !images[currentIndex] ? (
+                 <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center min-h-[400px]">
+                   <img
+                     src="/icon.png"
+                     alt="Rentapp Logo"
+                     className="w-24 h-24 mb-4 opacity-60"
+                   />
+                   <div className="text-blue-600 text-lg font-medium">Rentapp</div>
+                   <div className="text-blue-500 text-sm mt-2">Image not available</div>
+                 </div>
+               ) : (
+                 <img
+                   src={images[currentIndex]}
+                   alt={`Property image ${currentIndex + 1}`}
+                   className="max-w-full max-h-full object-contain"
+                   onLoad={handleImageLoad}
+                   onError={handleImageError}
+                   style={{ 
+                     opacity: isCurrentImagePreloaded ? 1 : 0.7,
+                     transition: 'opacity 0.3s ease-in-out'
+                   }}
+                 />
+               )}
         
                {/* Image Counter */}
                {images.length > 1 && (
