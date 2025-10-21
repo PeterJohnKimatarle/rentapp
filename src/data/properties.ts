@@ -18,10 +18,9 @@ export const properties: Property[] = [
     description: "Compact studio perfect for students or young professionals. Fully furnished.",
     price: 450000,
     images: [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60"
+      "/images/properties/property-4-image-1.jpg",
+      "/images/properties/property-4-image-2.jpg",
+      "/images/properties/property-4-image-3.jpg"
     ],
     bedrooms: 1,
     bathrooms: 1,
@@ -34,9 +33,9 @@ export const properties: Property[] = [
     description: "Beautiful modern family home with spacious living areas and a private garden. Perfect for families seeking comfort and style.",
     price: 1350000,
     images: [
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
+      "/images/properties/property-5-image-1.jpg",
+      "/images/properties/property-5-image-2.jpg",
+      "/images/properties/property-5-image-3.jpg"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -49,9 +48,9 @@ export const properties: Property[] = [
     description: "Stunning luxury villa with mountain views and premium amenities. Ideal for executives and high-end living.",
     price: 2200000,
     images: [
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop"
+      "/images/properties/property-6-image-1.jpg",
+      "/images/properties/property-6-image-2.jpg",
+      "/images/properties/property-6-image-3.jpg"
     ],
     bedrooms: 5,
     bathrooms: 4,
@@ -64,9 +63,9 @@ export const properties: Property[] = [
     description: "Charming bungalow with lake views and a peaceful atmosphere. Perfect for those seeking tranquility by the water.",
     price: 750000,
     images: [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop"
+      "/images/properties/property-7-image-1.jpg",
+      "/images/properties/property-7-image-2.jpg",
+      "/images/properties/property-7-image-3.jpg"
     ],
     bedrooms: 3,
     bathrooms: 2,
@@ -79,9 +78,9 @@ export const properties: Property[] = [
     description: "Modern executive townhouse with contemporary design and premium finishes. Located in a prestigious neighborhood.",
     price: 1650000,
     images: [
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60"
+      "/images/properties/property-8-image-1.jpg",
+      "/images/properties/property-8-image-2.jpg",
+      "/images/properties/property-8-image-3.jpg"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -94,12 +93,9 @@ export const properties: Property[] = [
     description: "Luxurious penthouse with panoramic city and ocean views. Premium location.",
     price: 1800000,
     images: [
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
+      "/images/properties/property-9-image-1.jpg",
+      "/images/properties/property-9-image-2.jpg",
+      "/images/properties/property-9-image-3.jpg"
     ],
     bedrooms: 3,
     bathrooms: 3,
@@ -112,11 +108,9 @@ export const properties: Property[] = [
     description: "Comfortable apartment near university. Great for students and young professionals.",
     price: 600000,
     images: [
-      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop"
+      "/images/properties/property-10-image-1.jpg",
+      "/images/properties/property-10-image-2.jpg",
+      "/images/properties/property-10-image-3.jpg"
     ],
     bedrooms: 2,
     bathrooms: 1,
@@ -129,12 +123,9 @@ export const properties: Property[] = [
     description: "Executive family house with modern amenities. Gated community with security.",
     price: 2000000,
     images: [
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
+      "/images/properties/property-11-image-1.jpg",
+      "/images/properties/property-11-image-2.jpg",
+      "/images/properties/property-11-image-3.jpg"
     ],
     bedrooms: 5,
     bathrooms: 4,
