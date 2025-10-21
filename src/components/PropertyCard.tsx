@@ -67,11 +67,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                     <img
                       src="/icon.png"
                       alt="Rentapp Logo"
-                      className="w-16 h-16"
+                      className="w-16 h-16 rounded-lg"
                     />
                   </div>
-                  <div className="text-white text-lg font-bold mb-1">Rentapp</div>
-                  <div className="text-blue-100 text-sm">Rentapps</div>
+                  <div className="text-white text-lg font-bold">Rentapp</div>
                 </div>
                 
                 {/* Decorative Elements */}

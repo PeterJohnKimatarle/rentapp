@@ -202,12 +202,11 @@ export default function ImageLightbox({
                        <img
                          src="/icon.png"
                          alt="Rentapp Logo"
-                         className="w-24 h-24"
+                         className="w-24 h-24 rounded-lg"
                        />
                      </div>
                      
                      <div className="text-white text-4xl font-bold mb-3">Rentapp</div>
-                     <div className="text-blue-100 text-xl mb-6">Rentapps</div>
                      <div className="text-blue-200 text-lg mb-8">Image not available</div>
                      
                      {/* Call to Action */}
@@ -220,16 +219,14 @@ export default function ImageLightbox({
                    </div>
                    
                    {/* Decorative Elements */}
-                   <div className="absolute top-8 right-8 w-16 h-16 border-2 border-white/30 rounded-full animate-pulse"></div>
-                   <div className="absolute bottom-8 left-8 w-12 h-12 border-2 border-white/20 rounded-full animate-pulse delay-1000"></div>
-                   <div className="absolute top-1/3 left-8 w-8 h-8 bg-white/20 rounded-full animate-bounce"></div>
-                   <div className="absolute bottom-1/3 right-12 w-6 h-6 bg-white/15 rounded-full animate-bounce delay-500"></div>
-                   
-                   {/* Floating Elements */}
-                   <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/10 rounded-full animate-ping"></div>
-                   <div className="absolute bottom-1/4 left-1/4 w-3 h-3 bg-white/15 rounded-full animate-ping delay-700"></div>
-                   <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-white/20 rounded-full animate-ping delay-300"></div>
-                   <div className="absolute bottom-1/2 left-1/3 w-5 h-5 border border-white/15 rounded-full animate-pulse delay-500"></div>
+                   <div className="absolute top-8 right-8 w-16 h-16 border-2 border-white/30 rounded-full"></div>
+                   <div className="absolute bottom-8 left-8 w-12 h-12 border-2 border-white/20 rounded-full"></div>
+                   <div className="absolute top-1/3 left-8 w-8 h-8 bg-white/20 rounded-full"></div>
+                   <div className="absolute bottom-1/3 right-12 w-6 h-6 bg-white/15 rounded-full"></div>
+                   <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/10 rounded-full"></div>
+                   <div className="absolute bottom-1/4 left-1/4 w-3 h-3 bg-white/15 rounded-full"></div>
+                   <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-white/20 rounded-full"></div>
+                   <div className="absolute bottom-1/2 left-1/3 w-5 h-5 border border-white/15 rounded-full"></div>
                  </div>
                ) : (
                  <img
