@@ -12,28 +12,16 @@ export interface Property {
 
 export const properties: Property[] = [
   {
-    id: "1",
-    title: "Luxury Condo in Kilimanjaro Heights",
-    location: "Moshi, Kilimanjaro",
-    description: "Premium mountain-view condominium with modern amenities and breathtaking views of Mount Kilimanjaro. Perfect for nature lovers and adventure enthusiasts.",
-    price: 1500000,
-    images: [
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop"
-    ],
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 180
-  },
-  {
     id: "2",
     title: "Cozy House in Arusha",
     location: "Njiro, Arusha",
     description: "Charming family house with garden space. Close to schools and shopping centers.",
     price: 800000,
     images: [
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop"
     ],
     bedrooms: 3,
     bathrooms: 2,
@@ -46,7 +34,11 @@ export const properties: Property[] = [
     description: "Exclusive beachfront villa with private pool and direct beach access.",
     price: 2500000,
     images: [
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -59,7 +51,10 @@ export const properties: Property[] = [
     description: "Compact studio perfect for students or young professionals. Fully furnished.",
     price: 450000,
     images: [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60"
     ],
     bedrooms: 1,
     bathrooms: 1,
@@ -72,7 +67,11 @@ export const properties: Property[] = [
     description: "Spacious family home with large backyard. Ideal for families with children.",
     price: 950000,
     images: [
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop"
     ],
     bedrooms: 4,
     bathrooms: 3,
@@ -85,7 +84,12 @@ export const properties: Property[] = [
     description: "Luxurious penthouse with panoramic city and ocean views. Premium location.",
     price: 1800000,
     images: [
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
     ],
     bedrooms: 3,
     bathrooms: 3,
@@ -98,7 +102,11 @@ export const properties: Property[] = [
     description: "Modern townhouse with garage and small garden. Close to Mount Meru.",
     price: 1100000,
     images: [
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
     ],
     bedrooms: 3,
     bathrooms: 2,
@@ -111,7 +119,11 @@ export const properties: Property[] = [
     description: "Charming beach house with direct beach access. Perfect for weekend getaways.",
     price: 1500000,
     images: [
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop"
     ],
     bedrooms: 2,
     bathrooms: 2,
@@ -126,7 +138,9 @@ export const properties: Property[] = [
     images: [
       "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=60",
       "https://images.unsplash.com/photo-1521782462922-9318be1d0af0?auto=format&fit=crop&w=800&q=60",
-      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60"
+      "https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop"
     ],
     bedrooms: 2,
     bathrooms: 1,
@@ -139,7 +153,12 @@ export const properties: Property[] = [
     description: "Executive family house with modern amenities. Gated community with security.",
     price: 2000000,
     images: [
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
     ],
     bedrooms: 5,
     bathrooms: 4,
