@@ -71,7 +71,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                     />
                   </div>
                   <div className="text-white text-lg font-bold mb-1">Rentapp</div>
-                  <div className="text-blue-100 text-sm">Premium Properties</div>
+                  <div className="text-blue-100 text-sm">Rentapps</div>
                 </div>
                 
                 {/* Decorative Elements */}

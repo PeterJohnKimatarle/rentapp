@@ -207,13 +207,16 @@ export default function ImageLightbox({
                      </div>
                      
                      <div className="text-white text-4xl font-bold mb-3">Rentapp</div>
-                     <div className="text-blue-100 text-xl mb-6">Premium Properties</div>
+                     <div className="text-blue-100 text-xl mb-6">Rentapps</div>
                      <div className="text-blue-200 text-lg mb-8">Image not available</div>
                      
                      {/* Call to Action */}
-                     <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20">
+                     <button 
+                       onClick={() => window.location.href = '/'}
+                       className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20 hover:bg-white/20 transition-colors cursor-pointer"
+                     >
                        <div className="text-white text-sm">Explore more properties</div>
-                     </div>
+                     </button>
                    </div>
                    
                    {/* Decorative Elements */}
