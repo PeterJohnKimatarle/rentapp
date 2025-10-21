@@ -13,17 +13,18 @@ export interface Property {
 export const properties: Property[] = [
   {
     id: "1",
-    title: "Modern Apartment in Dar es Salaam",
-    location: "Masaki, Dar es Salaam",
-    description: "Beautiful modern apartment with stunning ocean views. Perfect for professionals working in the city center.",
-    price: 1200000,
+    title: "Luxury Condo in Kilimanjaro Heights",
+    location: "Moshi, Kilimanjaro",
+    description: "Premium mountain-view condominium with modern amenities and breathtaking views of Mount Kilimanjaro. Perfect for nature lovers and adventure enthusiasts.",
+    price: 1500000,
     images: [
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop"
     ],
-    bedrooms: 2,
+    bedrooms: 3,
     bathrooms: 2,
-    area: 120
+    area: 180
   },
   {
     id: "2",
