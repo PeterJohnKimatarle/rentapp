@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ImageLightboxProps {
@@ -9,13 +9,15 @@ interface ImageLightboxProps {
   currentIndex: number;
   onClose: () => void;
   onImageChange: (index: number) => void;
+  onViewDetails?: () => void;
 }
 
 export default function ImageLightbox({ 
   images, 
   currentIndex, 
   onClose, 
-  onImageChange 
+  onImageChange,
+  onViewDetails
 }: ImageLightboxProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -182,11 +184,35 @@ export default function ImageLightbox({
                {/* Close Button - Inside Image at Top Edge */}
                 <button
                   onClick={onClose}
-                  className="absolute top-2 right-2 text-white hover:text-red-500 transition-colors z-20 rounded-lg p-2 cursor-pointer"
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  className="absolute top-2 right-2 text-white transition-colors z-20 rounded-lg p-2 cursor-pointer"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    '--hover-bg': 'rgba(239, 68, 68, 1)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                 >
                  <X size={24} />
                </button>
+
+               {/* View Details Button - Bottom Center */}
+               {onViewDetails && (
+                   <button
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       onViewDetails();
+                     }}
+                     className="absolute bottom-1 lg:bottom-3 left-1/2 transform -translate-x-1/2 text-white transition-colors z-20 rounded-lg px-4 py-2 cursor-pointer flex items-center justify-center"
+                     style={{ 
+                       backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                       '--hover-bg': 'rgba(59, 130, 246, 1)'
+                     }}
+                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 1)'}
+                     onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                   >
+                     <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Show details</span>
+                   </button>
+               )}
 
                {isLoading && !isCurrentImagePreloaded && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -241,7 +267,7 @@ export default function ImageLightbox({
         
                {/* Image Counter */}
                {images.length > 1 && (
-                  <div className="absolute bottom-1 left-1 lg:bottom-1 lg:left-1 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center border border-gray-600" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                  <div className="absolute bottom-1 left-1 lg:bottom-3 lg:left-1 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                    <span className="font-medium">{currentIndex + 1} / {images.length}</span>
                  </div>
                )}
