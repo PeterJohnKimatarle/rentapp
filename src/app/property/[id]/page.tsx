@@ -8,12 +8,12 @@ import { properties } from '@/data/properties';
 export default function PropertyDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const [property, setProperty] = useState<any>(null);
+  const [property, setProperty] = useState<typeof properties[0] | null>(null);
 
   useEffect(() => {
     const propertyId = params.id;
     const foundProperty = properties.find(p => p.id === propertyId);
-    setProperty(foundProperty);
+    setProperty(foundProperty || null);
   }, [params.id]);
 
   const formatPrice = (price: number) => {
@@ -30,7 +30,7 @@ export default function PropertyDetailsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-2xl font-semibold text-gray-900 mb-2">Property Not Found</div>
-          <div className="text-gray-600 mb-4">The property you're looking for doesn't exist.</div>
+          <div className="text-gray-600 mb-4">The property you&apos;re looking for doesn&apos;t exist.</div>
           <button
             onClick={() => router.push('/')}
             className="bg-booking-blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ImageLightboxProps {
@@ -186,11 +186,10 @@ export default function ImageLightbox({
                   onClick={onClose}
                   className="absolute top-2 right-2 text-white transition-colors z-20 rounded-lg p-2 cursor-pointer"
                   style={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    '--hover-bg': 'rgba(239, 68, 68, 1)'
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
                   }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                 >
                  <X size={24} />
                </button>
@@ -204,11 +203,10 @@ export default function ImageLightbox({
                      }}
                      className="absolute bottom-1 lg:bottom-3 left-1/2 transform -translate-x-1/2 text-white transition-colors z-20 rounded-lg px-4 py-2 cursor-pointer flex items-center justify-center"
                      style={{ 
-                       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                       '--hover-bg': 'rgba(59, 130, 246, 1)'
+                       backgroundColor: 'rgba(0, 0, 0, 0.5)'
                      }}
-                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 1)'}
-                     onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                     onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
+                     onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                    >
                      <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Show details</span>
                    </button>

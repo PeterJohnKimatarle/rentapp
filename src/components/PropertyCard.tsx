@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Bed, Bath, Square, Image, X, Phone, Mail, Calendar, Eye, Clock, Share2, Bookmark } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Image, X, Calendar, Clock, Bookmark } from 'lucide-react';
 import { Property } from '@/data/properties';
 import ImageLightbox from './ImageLightbox';
 
@@ -78,7 +78,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     setIsViewed(true);
   };
 
-  const handleDetailsClick = (e) => {
+  const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Coming from homescreen - reset to first image and clear scroll position
     setIsFromHomescreen(true);
@@ -89,7 +89,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     setIsViewed(true);
   };
 
-  const handleShareClick = (e) => {
+  const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsShareSpinning(true);
     // Reset spinning instantly
@@ -203,6 +203,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               {property.status === 'available' ? 'Available' : 'Occupied'}
             </div>
             <div className="absolute bottom-1 left-1 px-2 py-1 rounded-md flex items-center space-x-0.5 text-white text-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image size={16} className="w-4 h-4" />
               <span>{property.images.length}</span>
             </div>
@@ -273,7 +274,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
            <div 
              className="rounded-lg max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col"
              style={{ backgroundColor: '#0071c2' }}
-             onClick={(e) => e.stopPropagation()}
+             onClick={(e: React.MouseEvent) => e.stopPropagation()}
            >
              {/* Header */}
              <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0 relative" style={{ backgroundColor: '#0071c2' }}>
@@ -282,11 +283,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                  onClick={() => setIsDetailsOpen(false)}
                  className="absolute right-2 text-white transition-colors rounded-lg p-2 cursor-pointer"
                  style={{ 
-                   backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                   '--hover-bg': 'rgba(239, 68, 68, 1)'
+                   backgroundColor: 'rgba(0, 0, 0, 0.5)'
                  }}
-                 onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                >
                  <X size={20} />
                </button>
@@ -482,11 +482,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                  }}
                  className="text-white transition-colors rounded-lg px-4 py-2 cursor-pointer flex items-center justify-center"
                  style={{ 
-                   backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                   '--hover-bg': 'rgba(59, 130, 246, 1)'
+                   backgroundColor: 'rgba(0, 0, 0, 0.5)'
                  }}
-                 onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 1)'}
-                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
+                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                >
                  <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Show images</span>
                </button>
@@ -505,7 +504,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <div 
             className="rounded-lg max-w-sm w-full p-6 shadow-lg"
             style={{ backgroundColor: '#0071c2' }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <div className="text-center">
               <div className="mb-4">
