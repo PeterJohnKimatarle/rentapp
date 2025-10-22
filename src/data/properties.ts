@@ -8,6 +8,9 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   area: number;
+  plan: '3+' | '6+';
+  updatedAt: string;
+  status: 'available' | 'occupied';
 }
 
 export const properties: Property[] = [
@@ -26,7 +29,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 2,
     bathrooms: 2,
-    area: 120
+    area: 120,
+    plan: '3+',
+    updatedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
+    status: 'available'
   },
   {
     id: "2",
@@ -42,7 +48,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 3,
     bathrooms: 2,
-    area: 150
+    area: 150,
+    plan: '6+',
+    updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+    status: 'occupied'
   },
   {
     id: "3",
@@ -60,7 +69,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 4,
     bathrooms: 3,
-    area: 300
+    area: 300,
+    plan: '6+',
+    updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+    status: 'available'
   },
   {
     id: "4",
@@ -75,7 +87,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 1,
     bathrooms: 1,
-    area: 45
+    area: 45,
+    plan: '3+',
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    status: 'occupied'
   },
   {
     id: "5",
@@ -92,7 +107,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 4,
     bathrooms: 3,
-    area: 200
+    area: 200,
+    plan: '6+',
+    updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+    status: 'available'
   },
   {
     id: "6",
@@ -111,7 +129,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 3,
     bathrooms: 3,
-    area: 180
+    area: 180,
+    plan: '6+',
+    updatedAt: new Date(Date.now() - 2 * 30 * 24 * 60 * 60 * 1000).toISOString(), // 2 months ago
+    status: 'occupied'
   },
   {
     id: "7",
@@ -127,7 +148,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 3,
     bathrooms: 2,
-    area: 140
+    area: 140,
+    plan: '3+',
+    updatedAt: new Date(Date.now() - 1 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ago
+    status: 'available'
   },
   {
     id: "8",
@@ -144,7 +168,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 2,
     bathrooms: 2,
-    area: 100
+    area: 100,
+    plan: '3+',
+    updatedAt: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 2 years ago
+    status: 'occupied'
   },
   {
     id: "9",
@@ -159,7 +186,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 2,
     bathrooms: 1,
-    area: 80
+    area: 80,
+    plan: '3+',
+    updatedAt: new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 3 years ago
+    status: 'available'
   },
   {
     id: "10",
@@ -179,7 +209,10 @@ export const properties: Property[] = [
     ],
     bedrooms: 5,
     bathrooms: 4,
-    area: 250
+    area: 250,
+    plan: '6+',
+    updatedAt: new Date(Date.now() - 4 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 4 years ago (will show as 3+ years)
+    status: 'occupied'
   }
 ];
 

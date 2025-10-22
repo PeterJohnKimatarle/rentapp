@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Bed, Bath, Square, Image, X, Phone, Mail, Calendar, Eye } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Image, X, Phone, Mail, Calendar, Eye, Clock, Share2, Bookmark } from 'lucide-react';
 import { Property } from '@/data/properties';
 import ImageLightbox from './ImageLightbox';
 
@@ -18,6 +18,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isShareSpinning, setIsShareSpinning] = useState(false);
+  const [isViewed, setIsViewed] = useState(false);
+  const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
 
   // Restore scroll position when popup opens
@@ -65,12 +68,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       style: 'currency',
       currency: 'TZS',
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(price).replace('TZS', 'Tshs');
   };
 
   const handleImageClick = () => {
     setIsLightboxOpen(true);
     setCurrentImageIndex(0);
+    // Mark as viewed when image is clicked
+    setIsViewed(true);
   };
 
   const handleDetailsClick = (e) => {
@@ -80,11 +85,74 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     setCurrentImageIndex(0);
     setSavedScrollPosition(0); // Reset scroll position to top
     setIsDetailsOpen(true);
+    // Mark as viewed when details are opened
+    setIsViewed(true);
+  };
+
+  const handleShareClick = (e) => {
+    e.stopPropagation();
+    setIsShareSpinning(true);
+    // Reset spinning instantly
+    setTimeout(() => {
+      setIsShareSpinning(false);
+    }, 100);
+  };
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowBookmarkPopup(true);
+    // Prevent page scrolling
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleSaveProperty = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Add save functionality here
+    setShowBookmarkPopup(false);
+    // Restore page scrolling
+    document.body.style.overflow = 'unset';
+  };
+
+  const handleCancelBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowBookmarkPopup(false);
+    // Restore page scrolling
+    document.body.style.overflow = 'unset';
+  };
+
+  const getRelativeTime = (dateString: string) => {
+    const now = new Date();
+    const updatedAt = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
+
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    } else if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days === 1 ? '' : 's'} ago`;
+    } else if (diffInSeconds < 31536000) {
+      const months = Math.floor(diffInSeconds / 2592000);
+      return `${months} month${months === 1 ? '' : 's'} ago`;
+    } else {
+      const years = Math.floor(diffInSeconds / 31536000);
+      if (years >= 3) {
+        return '3+ years ago';
+      }
+      return `${years} year${years === 1 ? '' : 's'} ago`;
+    }
   };
 
   return (
     <>
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+      <div className={`bg-white rounded-lg transition-shadow duration-200 overflow-hidden ${
+        isViewed 
+          ? 'border-[3px] border-blue-300 shadow-md' 
+          : 'border border-gray-200 shadow-sm hover:shadow-md'
+      }`}>
         <div className="flex flex-row min-w-0">
           {/* Property Image */}
           <div className="w-36 sm:w-44 md:w-56 lg:w-80 h-36 sm:h-44 md:h-56 lg:h-64 flex-shrink-0 relative">
@@ -126,49 +194,55 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 }}
               />
             )}
-            <div className="absolute bottom-1 left-1 text-white text-xs sm:text-base px-2 py-1 rounded flex items-baseline justify-center space-x-0.5" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-              <Image size={14} className="flex-shrink-0 sm:w-5 sm:h-5" style={{ transform: 'translateY(2px)' }} />
-              <span className="flex-shrink-0 font-medium sm:transform sm:translate-y-[-1.5px]">{property.images.length}</span>
+            {/* Status Banner */}
+            <div className={`absolute top-1 left-1 px-2 py-0.5 rounded text-xs font-medium border-[1.5px] border-black ${
+              property.status === 'available' 
+                ? 'bg-green-400 text-black' 
+                : 'bg-red-400 text-white'
+            }`}>
+              {property.status === 'available' ? 'Available' : 'Occupied'}
+            </div>
+            <div className="absolute bottom-1 left-1 px-2 py-1 rounded-md flex items-center space-x-0.5 text-white text-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+              <Image size={16} className="w-4 h-4" />
+              <span>{property.images.length}</span>
+            </div>
+            <div 
+              className="absolute bottom-1 right-1 px-2 py-1.5 rounded-md flex items-center justify-center text-white text-sm cursor-pointer" 
+              style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+              onClick={handleBookmarkClick}
+            >
+              <Bookmark size={16} className="w-4 h-4" />
             </div>
           </div>
 
           {/* Property Details */}
-          <div className="flex-1 p-1.5 sm:p-3 md:p-4 lg:p-6 min-w-0 cursor-pointer hover:bg-gray-50 transition-colors duration-200" onClick={handleDetailsClick}>
+          <div className="flex-1 p-1.5 sm:p-3 md:p-4 lg:p-6 min-w-0 cursor-pointer" onClick={handleDetailsClick}>
             <div className="flex flex-col mb-2">
-              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-gray-900 mb-1 truncate">
-                {property.title}
+              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-0 truncate">
+                {property.bedrooms} Bdrm apartment
               </h3>
-              <div className="text-left">
-                <div className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-booking-blue">
-                  {formatPrice(property.price)}
+                <div className="text-sm text-gray-600 mb-0">
+                  <span className="font-bold">Price:</span> {formatPrice(property.price)}/month
                 </div>
-                <div className="text-xs text-gray-500">per month</div>
+              <div className="text-sm text-gray-600 mb-0">
+                <span className="font-bold">Plan:</span> {property.plan} Months
               </div>
             </div>
 
-            <div className="flex items-center text-gray-600 mb-1">
-              <MapPin size={12} className="mr-1 flex-shrink-0" />
-              <span className="text-xs truncate">{property.location}</span>
+            <div className="text-xs text-gray-900 mb-0.5 bg-yellow-200 px-1 py-0 rounded w-fit -mt-1 flex items-center justify-center border border-black">
+              <MapPin size={10} className="mr-1 flex-shrink-0" />
+              <span className="truncate">{property.location}</span>
             </div>
-
-            <p className="text-gray-700 mb-2 text-xs overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical'}}>
-              {property.description}
-            </p>
-
-            <div className="flex items-center space-x-2 text-xs text-gray-600">
-              <div className="flex items-center">
-                <Bed size={12} className="mr-1" />
-                <span>{property.bedrooms}</span>
-              </div>
-              <div className="flex items-center">
-                <Bath size={12} className="mr-1" />
-                <span>{property.bathrooms}</span>
-              </div>
-              <div className="flex items-center">
-                <Square size={12} className="mr-1" />
-                <span>{property.area}m²</span>
-              </div>
+            <div className="text-xs text-gray-500 mb-1 flex items-baseline ml-1">
+              <Clock size={10} className="mr-0.5 flex-shrink-0" style={{ transform: 'translateY(0.25px)' }} />
+              <span>Updated: {getRelativeTime(property.updatedAt)}</span>
             </div>
+            <button
+              onClick={handleShareClick}
+              className={`bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded ml-0.5 ${isShareSpinning ? 'rotate-[10deg]' : ''}`}
+            >
+              Share this property
+            </button>
           </div>
         </div>
       </div>
@@ -197,15 +271,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           onClick={() => setIsDetailsOpen(false)}
         >
            <div 
-             className="bg-blue-100 rounded-lg max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] border-2 sm:border-2 border-3 border-yellow-500 shadow-lg flex flex-col"
+             className="rounded-lg max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col"
+             style={{ backgroundColor: '#0071c2' }}
              onClick={(e) => e.stopPropagation()}
            >
              {/* Header */}
-             <div className="sticky top-0 bg-blue-100 flex items-center justify-between p-2 border-b-2 sm:border-b-2 border-b-3 border-yellow-500 z-10 flex-shrink-0">
-               <h2 className="text-xl font-semibold text-gray-900">Property Details</h2>
+             <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0 relative" style={{ backgroundColor: '#0071c2' }}>
+               <h2 className="text-xl font-semibold text-white px-4" style={{ borderBottom: '2px solid #eab308' }}>Property Details</h2>
                <button
                  onClick={() => setIsDetailsOpen(false)}
-                 className="text-white transition-colors rounded-lg p-2 cursor-pointer"
+                 className="absolute right-2 text-white transition-colors rounded-lg p-2 cursor-pointer"
                  style={{ 
                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
                    '--hover-bg': 'rgba(239, 68, 68, 1)'
@@ -222,42 +297,42 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                <div className="space-y-6">
                  {/* Property Description */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                   <p className="text-gray-700 leading-relaxed">{property.description}</p>
-                   <p className="text-gray-700 leading-relaxed mt-3">
+                   <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
+                   <p className="text-white/90 leading-relaxed">{property.description}</p>
+                   <p className="text-white/90 leading-relaxed mt-3">
                      This beautiful property offers modern living with contemporary design elements. The spacious layout provides excellent natural lighting throughout the day, creating a warm and inviting atmosphere. Perfect for families, professionals, or anyone seeking comfort and convenience in a prime location.
                    </p>
                  </div>
 
                  {/* Property Features */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Property Features</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Property Features</h3>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div className="space-y-3">
                        <div className="flex items-center space-x-3">
-                         <Bed size={18} className="text-booking-blue" />
-                         <span className="text-gray-700">{property.bedrooms} Bedrooms</span>
+                         <Bed size={18} className="text-white" />
+                         <span className="text-white/90">{property.bedrooms} Bedrooms</span>
                        </div>
                        <div className="flex items-center space-x-3">
-                         <Bath size={18} className="text-booking-blue" />
-                         <span className="text-gray-700">{property.bathrooms} Bathrooms</span>
+                         <Bath size={18} className="text-white" />
+                         <span className="text-white/90">{property.bathrooms} Bathrooms</span>
                        </div>
                        <div className="flex items-center space-x-3">
-                         <Square size={18} className="text-booking-blue" />
-                         <span className="text-gray-700">{property.area} m²</span>
+                         <Square size={18} className="text-white" />
+                         <span className="text-white/90">{property.area} m²</span>
                        </div>
                      </div>
                      <div className="space-y-3">
                        <div className="flex items-center space-x-3">
-                         <MapPin size={18} className="text-booking-blue" />
-                         <span className="text-gray-700">{property.location}</span>
+                         <MapPin size={18} className="text-white" />
+                         <span className="text-white/90">{property.location}</span>
                        </div>
                        <div className="flex items-center space-x-3">
-                         <Calendar size={18} className="text-booking-blue" />
-                         <span className="text-gray-700">Available Now</span>
+                         <Calendar size={18} className="text-white" />
+                         <span className="text-white/90">Available Now</span>
                        </div>
                        <div className="flex items-center space-x-3">
-                         <span className="text-gray-700">Property Type: Apartment</span>
+                         <span className="text-white/90">Property Type: Apartment</span>
                        </div>
                      </div>
                    </div>
@@ -265,47 +340,47 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
                  {/* Amenities */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Amenities & Features</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Amenities & Features</h3>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div className="space-y-2">
-                       <div className="text-gray-700">✓ Air Conditioning</div>
-                       <div className="text-gray-700">✓ Parking Space</div>
-                       <div className="text-gray-700">✓ Security System</div>
-                       <div className="text-gray-700">✓ Internet Ready</div>
-                       <div className="text-gray-700">✓ Balcony</div>
-                       <div className="text-gray-700">✓ Elevator</div>
+                       <div className="text-white/90">✓ Air Conditioning</div>
+                       <div className="text-white/90">✓ Parking Space</div>
+                       <div className="text-white/90">✓ Security System</div>
+                       <div className="text-white/90">✓ Internet Ready</div>
+                       <div className="text-white/90">✓ Balcony</div>
+                       <div className="text-white/90">✓ Elevator</div>
                      </div>
                      <div className="space-y-2">
-                       <div className="text-gray-700">✓ Swimming Pool</div>
-                       <div className="text-gray-700">✓ Gym</div>
-                       <div className="text-gray-700">✓ Garden</div>
-                       <div className="text-gray-700">✓ Pet Friendly</div>
-                       <div className="text-gray-700">✓ Laundry Room</div>
-                       <div className="text-gray-700">✓ Storage Space</div>
+                       <div className="text-white/90">✓ Swimming Pool</div>
+                       <div className="text-white/90">✓ Gym</div>
+                       <div className="text-white/90">✓ Garden</div>
+                       <div className="text-white/90">✓ Pet Friendly</div>
+                       <div className="text-white/90">✓ Laundry Room</div>
+                       <div className="text-white/90">✓ Storage Space</div>
                      </div>
                    </div>
                  </div>
 
                  {/* Location Details */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Location & Transportation</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Location & Transportation</h3>
                    <div className="space-y-3">
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Distance to City Center:</strong> 5 minutes drive
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Nearest Bus Stop:</strong> 200 meters
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Nearest Shopping Mall:</strong> 1.2 km
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Nearest Hospital:</strong> 3.5 km
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Nearest School:</strong> 800 meters
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Nearest Airport:</strong> 25 km
                      </div>
                    </div>
@@ -313,24 +388,24 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
                  {/* Rental Terms */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Rental Terms & Conditions</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Rental Terms & Conditions</h3>
                    <div className="space-y-3">
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Minimum Lease:</strong> 12 months
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Security Deposit:</strong> 2 months rent
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Utilities:</strong> Not included in rent
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Pet Policy:</strong> Small pets allowed with additional deposit
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Maintenance:</strong> Landlord responsible for major repairs
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Notice Period:</strong> 30 days for lease termination
                      </div>
                    </div>
@@ -338,21 +413,21 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
                  {/* Contact Information */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Contact Information</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Contact Information</h3>
                    <div className="space-y-3">
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Property Manager:</strong> John Smith
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Phone:</strong> +255 123 456 789
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Email:</strong> john.smith@rentapp.com
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Office Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Emergency Contact:</strong> +255 987 654 321
                      </div>
                    </div>
@@ -360,24 +435,24 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
                  {/* Additional Information */}
                  <div>
-                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Additional Information</h3>
+                   <h3 className="text-lg font-semibold text-white mb-3">Additional Information</h3>
                    <div className="space-y-3">
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Year Built:</strong> 2020
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Floor:</strong> 3rd Floor
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Orientation:</strong> South-facing
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Heating:</strong> Central heating system
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Cooling:</strong> Air conditioning in all rooms
                      </div>
-                     <div className="text-gray-700">
+                     <div className="text-white/90">
                        <strong>Parking:</strong> 1 covered parking space included
                      </div>
                    </div>
@@ -387,7 +462,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
              </div>
 
              {/* Show Images Button - Fixed at Bottom */}
-             <div className="flex justify-center items-center pt-1 pb-2 px-4 border-t-2 sm:border-t-2 border-t-3 border-yellow-500 flex-shrink-0">
+             <div className="flex justify-center items-center pt-1 pb-2 px-4 flex-shrink-0">
+               <div className="w-3/4 h-0.5 bg-yellow-500 mb-2"></div>
+             </div>
+             <div className="flex justify-center items-center pb-2 px-4 flex-shrink-0">
                <button
                  onClick={() => {
                    // Save current scroll position before closing popup
@@ -414,6 +492,44 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                </button>
              </div>
            </div>
+        </div>
+      )}
+
+      {/* Bookmark Popup */}
+      {showBookmarkPopup && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+          style={{ overflow: 'hidden' }}
+          onClick={handleCancelBookmark}
+        >
+          <div 
+            className="rounded-lg max-w-sm w-full p-6 shadow-lg"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="mb-4">
+                <Bookmark size={48} className="mx-auto text-white mb-2" />
+                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Save Property</h3>
+                <p className="text-white/80 text-sm">Do you want to save this property to your bookmarks?</p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCancelBookmark}
+                  className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  No
+                </button>
+                <button
+                  onClick={handleSaveProperty}
+                  className="flex-1 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>
