@@ -23,7 +23,13 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleBackClick = () => {
-    router.push('/');
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback to home page if no history
+      router.push('/');
+    }
   };
 
   const getPageTitle = () => {
@@ -63,13 +69,20 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Header */}
       <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
         {shouldShowBackButton() ? (
-          <button 
-            onClick={handleBackClick}
-            className="flex items-center gap-1 cursor-pointer"
-          >
-            <ArrowLeft size={24} className="text-booking-blue" />
-            <h1 className="text-xl font-bold text-booking-blue">{getPageTitle()}</h1>
-          </button>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={handleBackClick}
+              className="cursor-pointer"
+            >
+              <ArrowLeft size={24} className="text-booking-blue" />
+            </button>
+            <button 
+              onClick={handleBackClick}
+              className="cursor-pointer"
+            >
+              <h1 className="text-xl font-bold text-booking-blue">{getPageTitle()}</h1>
+            </button>
+          </div>
         ) : (
           <button 
             onClick={handleLogoClick}
