@@ -25,8 +25,8 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleBackClick = () => {
-    // Use browser history for the listing page and services page
-    if (pathname === '/list-property' || pathname === '/services') {
+    // Use browser history for the listing page, services page, and new pages
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile') {
       // Check if there's history to go back to
       if (window.history.length > 1) {
         router.back();
@@ -54,6 +54,12 @@ export default function Layout({ children }: LayoutProps) {
         return 'Listing...';
       case '/services':
         return 'Our Services';
+      case '/contact':
+        return 'Contact Info';
+      case '/about':
+        return 'About Us';
+      case '/profile':
+        return 'Profile';
       default:
         return 'Rentapp';
     }
@@ -161,7 +167,10 @@ export default function Layout({ children }: LayoutProps) {
             <div className="relative">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-2 right-2 text-white hover:text-white transition-colors border-2 border-white/80 hover:border-red-600 rounded-lg z-10 cursor-pointer h-10 w-10 flex items-center justify-center"
+                className="absolute top-4 right-4 text-white transition-colors rounded-lg p-2 cursor-pointer"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
               >
                 <X size={20} />
               </button>
@@ -171,14 +180,12 @@ export default function Layout({ children }: LayoutProps) {
               <div className="px-4 pb-4">
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full text-white transition-colors rounded-lg py-2 cursor-pointer flex items-center justify-center"
-                  style={{ 
-                    backgroundColor: 'rgba(239, 68, 68, 0.8)'
-                  }}
+                  className="w-full px-4 py-2 text-white rounded-lg font-medium transition-colors text-center"
+                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
                   onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                   onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
                 >
-                  <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
+                  Close
                 </button>
               </div>
             </div>
@@ -194,7 +201,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Center Panel - Main Content */}
         <div className="flex-1 bg-gray-50 min-w-0 xl:ml-64 xl:mr-80">
-          <main className="p-2 sm:p-4 lg:p-6">
+          <main>
             {children}
           </main>
         </div>

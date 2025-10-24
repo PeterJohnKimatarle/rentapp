@@ -2,10 +2,17 @@
 
 import Layout from '@/components/Layout';
 import { Home, Search, Calendar, MapPin, Package, Settings, Headphones } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 
 
 export default function ServicesPage() {
+  const router = useRouter();
+
+  const handleContactClick = () => {
+    router.push('/contact');
+  };
+
   const services = [
     {
       id: 1,
@@ -97,7 +104,7 @@ export default function ServicesPage() {
     <Layout>
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="text-center mb-6 mt-8 flex flex-col items-center">
+        <div className="text-center mb-6 mt-6 flex flex-col items-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-black mb-2 whitespace-nowrap text-center mx-auto">
             Explore Rentapp Services
           </h1>
@@ -141,7 +148,10 @@ export default function ServicesPage() {
           </p>
           
           {/* Contact Us Button */}
-          <button className="bg-white hover:bg-gray-100 text-black font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl">
+          <button 
+            onClick={handleContactClick}
+            className="bg-white hover:bg-gray-100 text-black font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl"
+          >
             Contact us
           </button>
         </div>

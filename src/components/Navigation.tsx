@@ -76,31 +76,43 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           <span className="text-base font-medium">Our Services</span>
         </Link>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/contact" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/contact' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <Phone size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Contact Info</span>
-        </a>
+        </Link>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/about" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/about' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <Info size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">About Us</span>
-        </a>
+        </Link>
         
         <Link 
           href="/list-property" 
@@ -162,18 +174,24 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           <span className="text-base font-medium">My Properties</span>
         </Link>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/profile" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/profile' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <User size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Profile</span>
-        </a>
+        </Link>
       </div>
 
     </nav>

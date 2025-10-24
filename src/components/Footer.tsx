@@ -7,9 +7,9 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-200 py-2">
       <div className="max-w-7xl mx-auto px-4">
         {/* Mobile: Original layout - only for very small devices (smartphones) */}
-        <div className="text-center lg:hidden">
-          <p className="text-sm text-gray-600">© {currentYear} Rentapp Limited</p>
-          <p className="text-sm text-gray-600 mt-0.5">All Rights Reserved.</p>
+        <div className="lg:hidden">
+          <p className="text-sm text-gray-600 text-center">© {currentYear} Rentapp Limited</p>
+          <p className="text-sm text-gray-600 mt-0.5 text-center pl-4">All Rights Reserved.</p>
         </div>
 
         {/* Tablet and Desktop: Combined layout */}
