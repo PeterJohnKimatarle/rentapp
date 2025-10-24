@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Property } from '@/data/properties';
-import { X, Save, Upload, Trash2, Plus } from 'lucide-react';
+import { X, Save, Trash2, Plus } from 'lucide-react';
 
 interface EditPropertyModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave }:
     }
   }, [property]);
 
-  const handleInputChange = (field: keyof Property, value: any) => {
+  const handleInputChange = (field: keyof Property, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
