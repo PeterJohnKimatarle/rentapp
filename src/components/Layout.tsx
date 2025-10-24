@@ -5,6 +5,7 @@ import NextImage from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
+import SearchPopup from './SearchPopup';
 import { Menu, X, Search, ArrowLeft } from 'lucide-react';
 
 interface LayoutProps {
@@ -13,6 +14,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -23,13 +25,23 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleBackClick = () => {
-    // Check if there's history to go back to
-    if (window.history.length > 1) {
-      router.back();
+    // Use browser history for the listing page and services page
+    if (pathname === '/list-property' || pathname === '/services') {
+      // Check if there's history to go back to
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        // Fallback to home page if no history
+        router.push('/');
+      }
     } else {
-      // Fallback to home page if no history
+      // For other pages, always go to home page
       router.push('/');
     }
+  };
+
+  const handleSearchClick = () => {
+    setIsSearchPopupOpen(true);
   };
 
   const getPageTitle = () => {
@@ -40,6 +52,8 @@ export default function Layout({ children }: LayoutProps) {
         return 'Bookmarks';
       case '/list-property':
         return 'Listing...';
+      case '/services':
+        return 'Our Services';
       default:
         return 'Rentapp';
     }
@@ -93,7 +107,10 @@ export default function Layout({ children }: LayoutProps) {
           </button>
         )}
         <div className="flex items-center gap-2">
-          <button className="p-2 text-gray-600 hover:text-booking-blue transition-colors">
+          <button 
+            onClick={handleSearchClick}
+            className="p-2 text-gray-600 hover:text-booking-blue transition-colors cursor-pointer"
+          >
             <Search size={24} />
           </button>
                  <button
@@ -114,12 +131,16 @@ export default function Layout({ children }: LayoutProps) {
           <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
           <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
         </button>
-        <div className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80">
+        <div 
+          onClick={handleSearchClick}
+          className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+        >
           <Search size={20} className="text-gray-500 mr-3" />
           <input
             type="text"
             placeholder="Search for properties..."
-            className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500"
+            className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
+            readOnly
           />
         </div>
       </div>
@@ -144,7 +165,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} />
+              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">
@@ -157,7 +178,6 @@ export default function Layout({ children }: LayoutProps) {
                   onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                   onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
                 >
-                  <X size={16} className="mr-1" />
                   <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
                 </button>
               </div>
@@ -169,7 +189,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-16">
         {/* Left Panel - Navigation (Desktop) */}
         <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem - 4rem)' }}>
-          <Navigation />
+          <Navigation onSearchClick={handleSearchClick} />
         </div>
 
         {/* Center Panel - Main Content */}
@@ -190,6 +210,12 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Footer */}
       <Footer />
+
+      {/* Search Popup */}
+      <SearchPopup 
+        isOpen={isSearchPopupOpen} 
+        onClose={() => setIsSearchPopupOpen(false)} 
+      />
     </div>
   );
 }

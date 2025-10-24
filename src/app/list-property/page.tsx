@@ -257,7 +257,7 @@ export default function ListPropertyPage() {
               className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
             >
               <div 
-                className="rounded-lg p-4 w-full mx-4 shadow-2xl transform scale-105" 
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl transform scale-105 overflow-hidden" 
                 style={{ backgroundColor: '#0071c2', maxWidth: '21.6rem' }}
                 onClick={(e) => e.stopPropagation()}
               >

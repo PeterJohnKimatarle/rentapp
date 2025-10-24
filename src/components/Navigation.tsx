@@ -7,9 +7,10 @@ import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, Us
 interface NavigationProps {
   variant?: 'default' | 'popup';
   onItemClick?: () => void;
+  onSearchClick?: () => void;
 }
 
-export default function Navigation({ variant = 'default', onItemClick }: NavigationProps) {
+export default function Navigation({ variant = 'default', onItemClick, onSearchClick }: NavigationProps) {
   const pathname = usePathname();
   
   return (
@@ -37,7 +38,15 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
         
         <a 
           href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+          onClick={(e) => {
+            e.preventDefault();
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+            if (onSearchClick) {
+              onSearchClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
@@ -48,18 +57,24 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
           <span className="text-base font-medium">Search</span>
         </a>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/services" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/services' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <Settings size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Our Services</span>
-        </a>
+        </Link>
         
         <a 
           href="#" 

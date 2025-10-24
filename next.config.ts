@@ -11,11 +11,9 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: false,
   },
-  experimental: {
-    // Disable turbopack for production builds
-    turbo: {
-      rules: {},
-    },
+  // Turbopack configuration moved to separate config
+  turbopack: {
+    rules: {},
   },
 };
 

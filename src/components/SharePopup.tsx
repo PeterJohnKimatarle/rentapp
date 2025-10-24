@@ -107,7 +107,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
       style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}
     >
       <div 
-        className="rounded-lg max-w-md w-full p-6 shadow-lg"
+        className="rounded-xl max-w-md w-full p-6 shadow-lg overflow-hidden"
         style={{ backgroundColor: '#0071c2' }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >

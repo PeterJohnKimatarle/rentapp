@@ -68,7 +68,7 @@ export default function BookmarksPage() {
           style={{ overflow: 'hidden' }}
         >
           <div 
-            className="rounded-lg max-w-sm w-full p-6 shadow-lg"
+            className="rounded-xl max-w-sm w-full p-6 shadow-lg overflow-hidden"
             style={{ backgroundColor: '#0071c2' }}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >

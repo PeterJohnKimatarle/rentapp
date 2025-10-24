@@ -318,7 +318,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
           onClick={() => setIsDetailsOpen(false)}
         >
            <div 
-             className="rounded-lg max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col"
+             className="rounded-xl max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col overflow-hidden"
              style={{ backgroundColor: '#0071c2' }}
              onClick={(e: React.MouseEvent) => e.stopPropagation()}
            >
@@ -539,14 +539,13 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
                {/* Close Button */}
                <button
                  onClick={() => setIsDetailsOpen(false)}
-                 className="text-white transition-colors rounded-lg px-2 py-2 cursor-pointer flex items-center justify-center ml-2"
+                 className="text-white transition-colors rounded-lg px-8 py-2 cursor-pointer flex items-center justify-center ml-2"
                  style={{ 
                    backgroundColor: 'rgba(239, 68, 68, 0.8)'
                  }}
                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
                >
-                 <X size={16} className="mr-1" />
                  <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
                </button>
              </div>
