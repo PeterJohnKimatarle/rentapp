@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User } from 'lucide-react';
 
 interface NavigationProps {
@@ -9,6 +10,8 @@ interface NavigationProps {
 }
 
 export default function Navigation({ variant = 'default', onItemClick }: NavigationProps) {
+  const pathname = usePathname();
+  
   return (
     <nav className="p-4 lg:p-6">
       {/* Logo removed as requested */}
@@ -84,44 +87,65 @@ export default function Navigation({ variant = 'default', onItemClick }: Navigat
           <span className="text-base font-medium">About Us</span>
         </a>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/list-property" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/list-property' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <PlusCircle size={20} className="flex-shrink-0" />
-          <span className="text-base font-medium">List Your Property</span>
-        </a>
+          <span className="text-base font-medium relative">
+            List Your Property
+            <span className="absolute bottom-0 left-0 right-0 h-px bg-current transform scale-x-105 origin-left -translate-x-0.75"></span>
+          </span>
+        </Link>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/bookmarks" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/bookmarks' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <Bookmark size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Bookmarks</span>
-        </a>
+        </Link>
         
-        <a 
-          href="#" 
-          onClick={variant === 'popup' ? onItemClick : undefined}
+        <Link 
+          href="/my-properties" 
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+              : pathname === '/my-properties' 
+                ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
           <Building size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">My Properties</span>
-        </a>
+        </Link>
         
         <a 
           href="#" 

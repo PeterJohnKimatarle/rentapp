@@ -4,12 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin, Bed, Bath, Square, Image, X, Calendar, Clock, Bookmark } from 'lucide-react';
 import { Property } from '@/data/properties';
 import ImageLightbox from './ImageLightbox';
+import SharePopup from './SharePopup';
 
 interface PropertyCardProps {
   property: Property;
+  onBookmarkClick?: () => void;
 }
 
-export default function PropertyCard({ property }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick }: PropertyCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFromHomescreen, setIsFromHomescreen] = useState(false);
@@ -21,6 +23,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const [isShareSpinning, setIsShareSpinning] = useState(false);
   const [isViewed, setIsViewed] = useState(false);
   const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
+  const [showSharePopup, setShowSharePopup] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
 
   // Restore scroll position when popup opens
@@ -63,6 +66,20 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     };
   }, [isDetailsOpen]);
 
+  // Prevent body scrolling when share popup is open
+  useEffect(() => {
+    if (showSharePopup) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup function to restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSharePopup]);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-TZ', {
       style: 'currency',
@@ -92,17 +109,27 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsShareSpinning(true);
-    // Reset spinning instantly
+    
+    // Reset spinning after animation
     setTimeout(() => {
       setIsShareSpinning(false);
     }, 100);
+    
+    // Wait 200ms after spinning completes before opening popup
+    setTimeout(() => {
+      setShowSharePopup(true);
+    }, 300); // 100ms for spinning + 200ms delay
   };
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowBookmarkPopup(true);
-    // Prevent page scrolling
-    document.body.style.overflow = 'hidden';
+    if (onBookmarkClick) {
+      onBookmarkClick();
+    } else {
+      setShowBookmarkPopup(true);
+      // Prevent page scrolling
+      document.body.style.overflow = 'hidden';
+    }
   };
 
   const handleSaveProperty = (e: React.MouseEvent) => {
@@ -247,6 +274,25 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Share Popup */}
+      <SharePopup
+        isOpen={showSharePopup}
+        onClose={() => setShowSharePopup(false)}
+        shareOptions={{
+          property: {
+            id: property.id,
+            title: property.title,
+            price: property.price,
+            location: property.location,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            area: property.area,
+            images: property.images,
+            description: property.description
+          }
+        }}
+      />
 
       {/* Image Lightbox */}
       {isLightboxOpen && (
@@ -489,6 +535,20 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                >
                  <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Show images</span>
                </button>
+               
+               {/* Close Button */}
+               <button
+                 onClick={() => setIsDetailsOpen(false)}
+                 className="text-white transition-colors rounded-lg px-2 py-2 cursor-pointer flex items-center justify-center ml-2"
+                 style={{ 
+                   backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                 }}
+                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
+               >
+                 <X size={16} className="mr-1" />
+                 <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
+               </button>
              </div>
            </div>
         </div>
@@ -499,7 +559,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden' }}
-          onClick={handleCancelBookmark}
         >
           <div 
             className="rounded-lg max-w-sm w-full p-6 shadow-lg"
@@ -509,7 +568,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <div className="text-center">
               <div className="mb-4">
                 <Bookmark size={48} className="mx-auto text-white mb-2" />
-                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Save Property</h3>
+                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Save this Property</h3>
                 <p className="text-white/80 text-sm">Do you want to save this property to your bookmarks?</p>
               </div>
               

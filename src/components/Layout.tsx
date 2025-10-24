@@ -2,9 +2,10 @@
 
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, ArrowLeft } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,22 +14,38 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogoClick = () => {
     // Force page reload to get fresh data
     window.location.href = '/';
   };
 
-  // Close menu when clicking outside and prevent body scroll
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMobileMenuOpen(false);
-      }
-    };
+  const handleBackClick = () => {
+    router.push('/');
+  };
 
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/my-properties':
+        return 'My Properties';
+      case '/bookmarks':
+        return 'Bookmarks';
+      case '/list-property':
+        return 'Listing...';
+      default:
+        return 'Rentapp';
+    }
+  };
+
+  const shouldShowBackButton = () => {
+    return pathname !== '/';
+  };
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
     if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
       // Prevent body scroll when menu is open
       document.body.style.overflow = 'hidden';
     } else {
@@ -37,7 +54,6 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
@@ -46,13 +62,23 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       {/* Mobile Header */}
       <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
-        <button 
-          onClick={handleLogoClick}
-          className="flex items-center gap-0 cursor-pointer"
-        >
-          <NextImage src="/icon.png" alt="Rentapp Logo" width={32} height={32} />
-          <h1 className="text-xl font-bold text-booking-blue">Rentapp</h1>
-        </button>
+        {shouldShowBackButton() ? (
+          <button 
+            onClick={handleBackClick}
+            className="flex items-center gap-1 cursor-pointer"
+          >
+            <ArrowLeft size={24} className="text-booking-blue" />
+            <h1 className="text-xl font-bold text-booking-blue">{getPageTitle()}</h1>
+          </button>
+        ) : (
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center gap-0 cursor-pointer"
+          >
+            <NextImage src="/icon.png" alt="Rentapp Logo" width={32} height={32} />
+            <h1 className="text-xl font-bold text-booking-blue">Rentapp</h1>
+          </button>
+        )}
         <div className="flex items-center gap-2">
           <button className="p-2 text-gray-600 hover:text-booking-blue transition-colors">
             <Search size={24} />
@@ -87,18 +113,16 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Menu Popup */}
       {isMobileMenuOpen && (
-        <div className="xl:hidden fixed inset-0 z-40">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          
+        <div 
+          className="xl:hidden fixed inset-0 z-40"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Popup Content */}
           <div
             ref={menuRef}
-            className="absolute left-1/2 transform -translate-x-1/2 rounded-lg shadow-2xl max-w-72 w-full max-h-[80vh] overflow-y-auto"
-            style={{ backgroundColor: '#0071c2', top: '14vh' }}
+            className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-2xl max-w-72 w-full max-h-[80vh] overflow-y-auto"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
               <button
@@ -108,6 +132,22 @@ export default function Layout({ children }: LayoutProps) {
                 <X size={20} />
               </button>
               <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} />
+              
+              {/* Second Close Button - Bottom */}
+              <div className="px-4 pb-4">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-white transition-colors rounded-lg py-2 cursor-pointer flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                  }}
+                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
+                >
+                  <X size={16} className="mr-1" />
+                  <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
