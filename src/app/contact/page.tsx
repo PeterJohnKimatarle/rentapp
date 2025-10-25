@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { Mail, Phone, MapPin, Clock, Send, Facebook, Twitter, Instagram, Linkedin, X, MessageCircle, PhoneCall } from 'lucide-react';
+import { Phone, X, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function ContactPage() {
@@ -35,11 +35,6 @@ export default function ContactPage() {
     };
   }, [isContactPopupOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission here
-    alert('Thank you for your message! We will get back to you soon.');
-  };
 
   const handlePhoneCardClick = () => {
     setIsContactPopupOpen(true);

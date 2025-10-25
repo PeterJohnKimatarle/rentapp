@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { Users, Target, Award, Heart, Building, Shield, Globe, TrendingUp } from 'lucide-react';
+import { Users, Heart, Shield, Globe } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AboutPage() {
@@ -161,7 +161,7 @@ export default function AboutPage() {
                   <h3 className="text-xl font-semibold text-black mb-2">Brokers & Property Owners</h3>
                   <p className="text-blue-600 font-medium mb-3">Our Community</p>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    The heart of our platform. Without our dedicated brokers and property owners, Rentapp wouldn't exist. 
+                    The heart of our platform. Without our dedicated brokers and property owners, Rentapp wouldn&apos;t exist. 
                     They are the foundation of our success, bringing quality properties and expertise to help renters find their perfect home.
                   </p>
                 </div>
