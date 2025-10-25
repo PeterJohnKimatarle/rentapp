@@ -7,6 +7,7 @@ import Navigation from './Navigation';
 import Footer from './Footer';
 import SearchPopup from './SearchPopup';
 import LoginPopup from './LoginPopup';
+import RegistrationPopup from './RegistrationPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { Menu, X, Search, ArrowLeft, User, LogOut } from 'lucide-react';
 
@@ -18,6 +19,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isRegistrationPopupOpen, setIsRegistrationPopupOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -59,12 +61,19 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleLoginPopupClose = () => {
-    // If on registration page, navigate to home first
-    if (pathname === '/register') {
-      router.push('/');
-    }
-    // Then close the popup
     setIsLoginPopupOpen(false);
+  };
+
+  const handleRegistrationPopupClose = () => {
+    setIsRegistrationPopupOpen(false);
+  };
+
+  const handleOpenRegistration = () => {
+    setIsRegistrationPopupOpen(true);
+  };
+
+  const handleOpenLogin = () => {
+    setIsLoginPopupOpen(true);
   };
 
   const getPageTitle = () => {
@@ -96,20 +105,24 @@ export default function Layout({ children }: LayoutProps) {
     return pathname !== '/';
   };
 
-  // Prevent body scroll when menu is open
+  // Prevent body scroll when any popup is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      // Prevent body scroll when menu is open
+    if (isMobileMenuOpen || isSearchPopupOpen || isLoginPopupOpen || isRegistrationPopupOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
-      // Restore body scroll when menu is closed
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
     }
 
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isSearchPopupOpen, isLoginPopupOpen, isRegistrationPopupOpen]);
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -201,12 +214,12 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleLoginClick}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                Login
-              </button>
+                 <button
+                   onClick={handleOpenLogin}
+                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                 >
+                   Login
+                 </button>
             </div>
           )}
         </div>
@@ -235,7 +248,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={handleLoginClick} />
+                     <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={handleOpenLogin} />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">
@@ -288,7 +301,15 @@ export default function Layout({ children }: LayoutProps) {
       {/* Login Popup */}
       <LoginPopup 
         isOpen={isLoginPopupOpen} 
-        onClose={handleLoginPopupClose} 
+        onClose={handleLoginPopupClose}
+        onOpenRegistration={handleOpenRegistration}
+      />
+
+      {/* Registration Popup */}
+      <RegistrationPopup 
+        isOpen={isRegistrationPopupOpen} 
+        onClose={handleRegistrationPopupClose}
+        onOpenLogin={handleOpenLogin}
       />
     </div>
   );

@@ -9,9 +9,10 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, X } from 'lucide-react';
 interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenRegistration?: () => void;
 }
 
-export default function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
+export default function LoginPopup({ isOpen, onClose, onOpenRegistration }: LoginPopupProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -249,18 +250,24 @@ export default function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
             </button>
           </div>
 
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                href="/register"
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-              >
-                Register here
-              </Link>
-            </p>
-          </div>
+               {/* Register Link */}
+               <div className="mt-6 text-center">
+                 <p className="text-sm text-gray-600">
+                   Don't have an account?{' '}
+                   <button
+                     type="button"
+                     onClick={() => {
+                       onClose();
+                       if (onOpenRegistration) {
+                         onOpenRegistration();
+                       }
+                     }}
+                     className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                   >
+                     Register here
+                   </button>
+                 </p>
+               </div>
         </div>
       </div>
     </div>
