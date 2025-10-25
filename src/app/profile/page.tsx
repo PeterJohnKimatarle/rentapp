@@ -1,13 +1,26 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, Mail, Phone, MapPin, Edit, Save, X, Settings, Bell, Shield, CreditCard, Bookmark, Building } from 'lucide-react';
-import { useState } from 'react';
+import { User, Edit, X, Building, Bookmark, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function ProfilePage() {
-  const [isEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+  const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
+
+  // Block background scroll when popup is open
+  useEffect(() => {
+    if (isEditPopupOpen || isPasswordPopupOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isEditPopupOpen, isPasswordPopupOpen]);
   
   // Mock user data - in a real app, this would come from authentication context
   const [userData, setUserData] = useState({
@@ -17,17 +30,16 @@ export default function ProfilePage() {
     phone: '+1 (555) 123-4567',
     address: '123 Main Street, City, State 12345',
     joinDate: 'January 2023',
-    profileImage: '/api/placeholder/150/150',
-    bio: 'Property owner and real estate enthusiast with 5+ years of experience in property management.',
-    preferences: {
-      notifications: true,
-      emailUpdates: true,
-      smsUpdates: false,
-      marketingEmails: false
-    }
+    bio: 'Property owner and real estate enthusiast with 5+ years of experience in property management.'
   });
 
   const [formData, setFormData] = useState(userData);
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   const handleEdit = () => {
     setIsEditPopupOpen(true);
@@ -53,22 +65,49 @@ export default function ProfilePage() {
     }));
   };
 
-  const handlePreferenceChange = (preference: string, value: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      preferences: {
-        ...prev.preferences,
-        [preference]: value
-      }
-    }));
+  const handlePasswordChange = () => {
+    setIsPasswordPopupOpen(true);
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
   };
 
-  const tabs = [
-    { id: 'personal', label: 'Personal Info', icon: User },
-    { id: 'preferences', label: 'Preferences', icon: Settings },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'billing', label: 'Billing', icon: CreditCard }
-  ];
+  const handlePasswordSave = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New passwords do not match!');
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      alert('New password must be at least 6 characters long!');
+      return;
+    }
+    // In a real app, you would validate current password and save new password to backend
+    alert('Password changed successfully!');
+    setIsPasswordPopupOpen(false);
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handlePasswordCancel = () => {
+    setIsPasswordPopupOpen(false);
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handlePasswordInputChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
     <Layout>
@@ -82,309 +121,68 @@ export default function ProfilePage() {
           </div>
 
           {/* Profile Header Card */}
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8 border border-blue-500 border-2 shadow-blue-100">
-            <div className="flex flex-row items-start">
-              {/* Profile Image */}
-              <div className="relative mr-8" style={{ transform: 'translateX(-16px)' }}>
-                <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="w-16 h-16 text-gray-400" />
-                </div>
-              </div>
-
-              {/* Profile Info */}
-              <div className="flex-1 text-left -ml-4">
-                <h2 className="text-2xl font-bold text-black mb-2">
-                  {isEditing ? (
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  ) : (
-                    `${userData.firstName} ${userData.lastName}`
-                  )}
-                </h2>
-                <p className="text-gray-600 mb-2">{userData.email}</p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Member since {userData.joinDate}
-                </p>
-                 <button
-                   onClick={handleEdit}
-                   className="bg-blue-500 text-white px-8 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2"
-                 >
-                   <Edit className="w-4 h-4" />
-                   <span>Edit Profile</span>
-                 </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
           <div className="bg-white rounded-lg shadow-sm mb-8 border border-blue-500 border-2 shadow-blue-100">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
-                {tabs.map((tab) => (
+            {/* Profile Header Section */}
+            <div className="pt-4 pb-4 px-8">
+              <div className="flex items-center space-x-4">
+                {/* Profile Image */}
+                <div className="flex-shrink-0 -ml-4">
+                  <div className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="w-14 h-14 text-gray-400" />
+                  </div>
+                </div>
+
+                {/* User Info */}
+                <div className="flex-1">
+                  {/* User Name */}
+                  <h2 className="text-2xl font-bold text-black mb-2">
+                    {userData.firstName} {userData.lastName}
+                  </h2>
+
+                  {/* User Email */}
+                  <p className="text-gray-600 mb-1">
+                    {userData.email}
+                  </p>
+
+                  {/* User Phone */}
+                  <p className="text-gray-600 mb-4">
+                    {userData.phone}
+                  </p>
+                </div>
+              </div>
+
+              {/* User Bio */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-gray-600 text-sm mb-4">
+                  {userData.bio}
+                </p>
+                
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-3">
                   <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                    onClick={handlePasswordChange}
+                    className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
                   >
-                    <tab.icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
+                    <span>Change Password</span>
                   </button>
-                ))}
-              </nav>
-            </div>
-
-            <div className="p-6">
-              {/* Personal Info Tab */}
-              {activeTab === 'personal' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-black mb-4">Personal Information</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Mail className="w-4 h-4 inline mr-2" />
-                        Email Address
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      ) : (
-                        <p className="text-gray-600 py-3">{userData.email}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Phone className="w-4 h-4 inline mr-2" />
-                        Phone Number
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      ) : (
-                        <p className="text-gray-600 py-3">{userData.phone}</p>
-                      )}
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <MapPin className="w-4 h-4 inline mr-2" />
-                        Address
-                      </label>
-                      {isEditing ? (
-                        <textarea
-                          value={formData.address}
-                          onChange={(e) => handleInputChange('address', e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        />
-                      ) : (
-                        <p className="text-gray-600 py-3">{userData.address}</p>
-                      )}
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Bio
-                      </label>
-                      {isEditing ? (
-                        <textarea
-                          value={formData.bio}
-                          onChange={(e) => handleInputChange('bio', e.target.value)}
-                          rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          placeholder="Tell us about yourself..."
-                        />
-                      ) : (
-                        <p className="text-gray-600 py-3">{userData.bio}</p>
-                      )}
-                    </div>
-                  </div>
+                  <button
+                    onClick={handleEdit}
+                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit Profile</span>
+                  </button>
                 </div>
-              )}
-
-              {/* Preferences Tab */}
-              {activeTab === 'preferences' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-black mb-4">Notification Preferences</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Bell className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <h4 className="font-medium text-black">Push Notifications</h4>
-                          <p className="text-sm text-gray-600">Receive notifications about property updates</p>
-                        </div>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.preferences.notifications}
-                          onChange={(e) => handlePreferenceChange('notifications', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <h4 className="font-medium text-black">Email Updates</h4>
-                          <p className="text-sm text-gray-600">Receive important updates via email</p>
-                        </div>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.preferences.emailUpdates}
-                          onChange={(e) => handlePreferenceChange('emailUpdates', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <h4 className="font-medium text-black">SMS Updates</h4>
-                          <p className="text-sm text-gray-600">Receive urgent updates via SMS</p>
-                        </div>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.preferences.smsUpdates}
-                          onChange={(e) => handlePreferenceChange('smsUpdates', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <h4 className="font-medium text-black">Marketing Emails</h4>
-                          <p className="text-sm text-gray-600">Receive promotional offers and updates</p>
-                        </div>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.preferences.marketingEmails}
-                          onChange={(e) => handlePreferenceChange('marketingEmails', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Security Tab */}
-              {activeTab === 'security' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-black mb-4">Security Settings</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Change Password</h4>
-                      <p className="text-sm text-gray-600 mb-4">Update your password to keep your account secure</p>
-                      <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200">
-                        Change Password
-                      </button>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Two-Factor Authentication</h4>
-                      <p className="text-sm text-gray-600 mb-4">Add an extra layer of security to your account</p>
-                      <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200">
-                        Enable 2FA
-                      </button>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Login Activity</h4>
-                      <p className="text-sm text-gray-600 mb-4">View recent login activity and active sessions</p>
-                      <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                        View Activity
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Billing Tab */}
-              {activeTab === 'billing' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-black mb-4">Billing & Subscription</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Current Plan</h4>
-                      <p className="text-sm text-gray-600 mb-4">You&apos;re currently on the Basic plan</p>
-                      <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200">
-                        Upgrade Plan
-                      </button>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Payment Method</h4>
-                      <p className="text-sm text-gray-600 mb-4">Manage your payment methods and billing information</p>
-                      <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                        Manage Payment
-                      </button>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-black mb-2">Billing History</h4>
-                      <p className="text-sm text-gray-600 mb-4">View your past invoices and payment history</p>
-                      <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                        View History
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-col gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <a
               href="/my-properties"
-              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4 w-64"
+              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4"
             >
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Building className="w-4 h-4 text-white" />
@@ -394,7 +192,7 @@ export default function ProfilePage() {
 
             <a
               href="/bookmarks"
-              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4 w-64"
+              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4"
             >
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Bookmark className="w-4 h-4 text-white" />
@@ -404,7 +202,7 @@ export default function ProfilePage() {
 
             <a
               href="/contact"
-              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4 w-64"
+              className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4"
             >
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Mail className="w-4 h-4 text-white" />
@@ -417,9 +215,9 @@ export default function ProfilePage() {
 
       {/* Edit Profile Popup */}
       {isEditPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
               <h3 className="text-xl font-semibold text-black">Edit Profile</h3>
               <button
                 onClick={handleCancel}
@@ -431,98 +229,164 @@ export default function ProfilePage() {
                 <X size={20} />
               </button>
             </div>
+            <div className="p-4 overflow-y-auto flex-1">
             
-            <div className="space-y-6">
-              {/* Profile Image Section */}
-              <div className="text-center">
-                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-12 h-12 text-gray-400" />
+            <div className="space-y-3">
+              {/* Profile Image and Basic Info Section */}
+              <div className="flex items-start space-x-4">
+                {/* Profile Image */}
+                <div className="flex-shrink-0">
+                  <button 
+                    className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors duration-200"
+                    onClick={() => {
+                      // Handle image change here
+                      console.log('Change image clicked');
+                    }}
+                  >
+                    <User className="w-14 h-14 text-gray-400" />
+                  </button>
                 </div>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 text-sm">
-                  Change Image
-                </button>
-              </div>
 
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Basic Info Fields */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                   <input
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="First Name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                   <input
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Last Name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Email"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Phone"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                  <textarea
-                    value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                  <textarea
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Tell us about yourself..."
-                  />
                 </div>
               </div>
 
+              {/* Bio Section */}
+              <div className="pt-3 border-t border-gray-200">
+                <textarea
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                  placeholder="Bio"
+                />
+              </div>
+
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <div className="flex flex-row gap-3 pt-3">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center space-x-2 flex-1"
+                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1"
                 >
-                  <Save className="w-4 h-4" />
-                  <span>Save Changes</span>
+                  Save
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center space-x-2 flex-1"
+                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex-1"
                 >
-                  <X className="w-4 h-4" />
-                  <span>Cancel</span>
+                  Cancel
                 </button>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Popup */}
+      {isPasswordPopupOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+              <h3 className="text-xl font-semibold text-black">Change Password</h3>
+              <button
+                onClick={handlePasswordCancel}
+                className="text-white transition-colors rounded-lg p-2 cursor-pointer"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              <div className="space-y-4">
+                <div>
+                  <input
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                    placeholder="Current Password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                    placeholder="New Password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                    placeholder="Confirm New Password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-row gap-3 pt-3">
+                  <button
+                    onClick={handlePasswordSave}
+                    className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handlePasswordCancel}
+                    className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>

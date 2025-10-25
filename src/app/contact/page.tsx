@@ -2,10 +2,24 @@
 
 import Layout from '@/components/Layout';
 import { Mail, Phone, MapPin, Clock, Send, Facebook, Twitter, Instagram, Linkedin, X, MessageCircle, PhoneCall } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ContactPage() {
   const [isContactPopupOpen, setIsContactPopupOpen] = useState(false);
+
+  // Block background scroll when popup is open
+  useEffect(() => {
+    if (isContactPopupOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isContactPopupOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +109,7 @@ export default function ContactPage() {
 
         {/* Contact Options Popup */}
         {isContactPopupOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
             <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black">Choose Contact Method</h3>

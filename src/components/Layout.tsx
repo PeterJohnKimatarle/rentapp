@@ -195,7 +195,7 @@ export default function Layout({ children }: LayoutProps) {
 
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-16">
         {/* Left Panel - Navigation (Desktop) */}
-        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem - 4rem)' }}>
+        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
           <Navigation onSearchClick={handleSearchClick} />
         </div>
 
@@ -207,7 +207,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Right Panel - Placeholder (Desktop) */}
-        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem - 4rem)' }}>
+        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
           <div className="text-center text-gray-500">
             <h3 className="text-lg font-medium mb-4">Insights & Promotions</h3>
             <p className="text-sm">Coming soon...</p>

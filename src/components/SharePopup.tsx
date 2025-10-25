@@ -105,6 +105,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div 
         className="rounded-xl max-w-md w-full p-6 shadow-lg overflow-hidden"

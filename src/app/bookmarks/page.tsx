@@ -12,6 +12,20 @@ export default function BookmarksPage() {
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // Block background scroll when modal is open
+  useEffect(() => {
+    if (showRemoveModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showRemoveModal]);
+
   const handleBookmarkClick = (property: Property) => {
     setSelectedProperty(property);
     setShowRemoveModal(true);
@@ -66,6 +80,7 @@ export default function BookmarksPage() {
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden' }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div 
             className="rounded-xl max-w-sm w-full p-6 shadow-lg overflow-hidden"

@@ -315,7 +315,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden' }}
-          onClick={() => setIsDetailsOpen(false)}
+          onClick={(e) => e.stopPropagation()}
         >
            <div 
              className="rounded-xl max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col overflow-hidden"
@@ -558,6 +558,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden' }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div 
             className="rounded-lg max-w-sm w-full p-6 shadow-lg"

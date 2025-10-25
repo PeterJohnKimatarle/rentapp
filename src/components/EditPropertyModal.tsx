@@ -15,6 +15,20 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave }:
   const [formData, setFormData] = useState<Partial<Property>>({});
   const [newImageUrl, setNewImageUrl] = useState('');
 
+  // Block background scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (property) {
       setFormData(property);
@@ -60,7 +74,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave }:
   if (!isOpen || !property) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={(e) => e.stopPropagation()}>
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">

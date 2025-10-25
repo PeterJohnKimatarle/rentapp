@@ -153,7 +153,7 @@ export default function ImageLightbox({
   };
 
   return (
-         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
 
       {/* Navigation Arrows - Desktop Only */}
       {images.length > 1 && (

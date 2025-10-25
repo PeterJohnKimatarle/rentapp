@@ -87,6 +87,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div 
         className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"

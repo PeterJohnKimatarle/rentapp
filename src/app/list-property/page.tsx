@@ -255,6 +255,7 @@ export default function ListPropertyPage() {
           {showWardPopup && (
             <div 
               className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              onClick={(e) => e.stopPropagation()}
             >
               <div 
                 className="rounded-xl p-4 w-full mx-4 shadow-2xl transform scale-105 overflow-hidden" 
