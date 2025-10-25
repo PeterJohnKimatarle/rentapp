@@ -1,12 +1,18 @@
 "use client";
 
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import { User, Edit, X, Building, Bookmark, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function ProfilePage() {
+  const { user, isAuthenticated, loading } = useAuth();
+  const router = useRouter();
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
+
 
   // Block background scroll when popup is open
   useEffect(() => {
@@ -22,16 +28,31 @@ export default function ProfilePage() {
     };
   }, [isEditPopupOpen, isPasswordPopupOpen]);
   
-  // Mock user data - in a real app, this would come from authentication context
+  // User data from authentication context
   const [userData, setUserData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
+    firstName: user?.name?.split(' ')[0] || '',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     address: '123 Main Street, City, State 12345',
-    joinDate: 'January 2023',
-    bio: 'Property owner and real estate enthusiast with 5+ years of experience in property management.'
+    joinDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2023',
+    bio: user?.bio || 'Property owner and real estate enthusiast with 5+ years of experience in property management.'
   });
+
+  // Update userData when user changes
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        firstName: user.name?.split(' ')[0] || '',
+        lastName: user.name?.split(' ').slice(1).join(' ') || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: '123 Main Street, City, State 12345',
+        joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2023',
+        bio: user.bio || 'Property owner and real estate enthusiast with 5+ years of experience in property management.'
+      });
+    }
+  }, [user]);
 
   const [formData, setFormData] = useState(userData);
 
@@ -109,8 +130,10 @@ export default function ProfilePage() {
     }));
   };
 
+
   return (
-    <Layout>
+    <ProtectedRoute>
+      <Layout>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -392,6 +415,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </Layout>
+      </Layout>
+    </ProtectedRoute>
   );
 }

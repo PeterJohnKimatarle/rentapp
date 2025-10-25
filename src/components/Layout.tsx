@@ -6,7 +6,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import SearchPopup from './SearchPopup';
-import { Menu, X, Search, ArrowLeft } from 'lucide-react';
+import LoginPopup from './LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
+import { Menu, X, Search, ArrowLeft, User, LogOut } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,9 +17,11 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout, isAuthenticated } = useAuth();
 
   const handleLogoClick = () => {
     // Force page reload to get fresh data
@@ -25,6 +29,12 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleBackClick = () => {
+    // Special handling for registration page - open login popup
+    if (pathname === '/register') {
+      setIsLoginPopupOpen(true);
+      return;
+    }
+    
     // Use browser history for the listing page, services page, and new pages
     if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile') {
       // Check if there's history to go back to
@@ -44,6 +54,19 @@ export default function Layout({ children }: LayoutProps) {
     setIsSearchPopupOpen(true);
   };
 
+  const handleLoginClick = () => {
+    setIsLoginPopupOpen(true);
+  };
+
+  const handleLoginPopupClose = () => {
+    // If on registration page, navigate to home first
+    if (pathname === '/register') {
+      router.push('/');
+    }
+    // Then close the popup
+    setIsLoginPopupOpen(false);
+  };
+
   const getPageTitle = () => {
     switch (pathname) {
       case '/my-properties':
@@ -60,6 +83,10 @@ export default function Layout({ children }: LayoutProps) {
         return 'About Us';
       case '/profile':
         return 'Profile';
+      case '/register':
+        return 'Registration';
+      case '/login':
+        return 'Login';
       default:
         return 'Rentapp';
     }
@@ -137,17 +164,51 @@ export default function Layout({ children }: LayoutProps) {
           <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
           <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
         </button>
-        <div 
-          onClick={handleSearchClick}
-          className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
-        >
-          <Search size={20} className="text-gray-500 mr-3" />
-          <input
-            type="text"
-            placeholder="Search for properties..."
-            className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
-            readOnly
-          />
+        <div className="flex items-center gap-4">
+          <div 
+            onClick={handleSearchClick}
+            className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+          >
+            <Search size={20} className="text-gray-500 mr-3" />
+            <input
+              type="text"
+              placeholder="Search for properties..."
+              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
+              readOnly
+            />
+          </div>
+          
+          {/* Authentication Buttons */}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-gray-700">
+                <User size={20} />
+                <span className="text-sm font-medium">{user?.name}</span>
+              </div>
+              <button
+                onClick={() => router.push('/profile')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                Profile
+              </button>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleLoginClick}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                Login
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -174,7 +235,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} />
+              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={handleLoginClick} />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">
@@ -222,6 +283,12 @@ export default function Layout({ children }: LayoutProps) {
       <SearchPopup 
         isOpen={isSearchPopupOpen} 
         onClose={() => setIsSearchPopupOpen(false)} 
+      />
+
+      {/* Login Popup */}
+      <LoginPopup 
+        isOpen={isLoginPopupOpen} 
+        onClose={handleLoginPopupClose} 
       />
     </div>
   );
