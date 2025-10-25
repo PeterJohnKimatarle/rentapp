@@ -58,25 +58,25 @@ export default function ListPropertyPage() {
   }, [showWardPopup]);
   return (
     <Layout>
-        <div className="w-full max-w-2xl mx-auto px-1 sm:px-2 lg:px-4">
+        <div className="w-full max-w-md mx-auto px-1 sm:px-2 lg:px-4">
         {/* Header Section */}
-            <div className="mb-4 sm:mb-6 lg:mb-6 text-center">
+            <div className="mt-6 mb-4 sm:mb-6 lg:mb-6 text-center">
                   <h1 className="text-3xl sm:text-4xl font-bold text-black">
                     List Your Property
               </h1>
             </div>
 
          {/* Basic Information Section */}
-         <div className="text-center">
+         <div className="text-center mb-1">
            <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
              Basic Information
            </h2>
          </div>
 
             {/* Basic Information Card */}
-            <div className="bg-blue-500 rounded-lg p-4 sm:p-6 mb-3">
-               <div className="grid grid-cols-5 gap-2">
-                 <div className="col-span-3">
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+               <div className="grid grid-cols-4 gap-2">
+                 <div className="col-span-2">
                    <label className="block text-base font-bold text-white mb-2 text-center">
                      Property Type
                    </label>
@@ -103,14 +103,14 @@ export default function ListPropertyPage() {
             </div>
 
          {/* Location Section */}
-         <div className="text-center">
+         <div className="text-center mb-1">
            <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
              Location
            </h2>
          </div>
 
             {/* Location Card */}
-            <div className="bg-blue-500 rounded-lg p-4 sm:p-6 mb-3">
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
@@ -185,14 +185,14 @@ export default function ListPropertyPage() {
             </div>
 
          {/* Pricing Section */}
-         <div className="text-center">
+         <div className="text-center mb-1">
            <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
              Pricing & Terms
            </h2>
          </div>
 
             {/* Pricing Card */}
-            <div className="bg-blue-500 rounded-lg p-4 sm:p-6 mb-3">
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
@@ -226,15 +226,15 @@ export default function ListPropertyPage() {
             </div>
 
          {/* Images Section */}
-         <div className="text-center">
+         <div className="text-center mb-2">
            <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
              Property Images
            </h2>
          </div>
 
             {/* Images Card */}
-            <div className="bg-yellow-50 rounded-lg p-4 sm:p-6 mb-3">
-           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div className="bg-yellow-50 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
              <p className="text-gray-500 mb-2">Upload property images</p>
              <p className="text-sm text-gray-400">Drag and drop images here or click to browse</p>
            </div>
