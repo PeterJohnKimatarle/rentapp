@@ -99,9 +99,9 @@ export default function LoginPopup({ isOpen, onClose, onOpenRegistration }: Logi
   return (
     <div 
       className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={(e) => e.stopPropagation()}
+      onClick={onClose}
     >
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div>
@@ -109,7 +109,7 @@ export default function LoginPopup({ isOpen, onClose, onOpenRegistration }: Logi
             <p className="text-gray-600 text-sm mt-1">Sign in to your account to continue</p>
           </div>
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-2 hover:bg-gray-100"
           >
             <X size={24} />
@@ -193,7 +193,7 @@ export default function LoginPopup({ isOpen, onClose, onOpenRegistration }: Logi
               <Link
                 href="/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
-                onClick={handleClose}
+                onClick={onClose}
               >
                 Forgot password?
               </Link>
