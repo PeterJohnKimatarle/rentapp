@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from './Layout';
+import LoginPopup from './LoginPopup';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,11 +19,13 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        router.push(fallbackPath);
+        // Open login popup instead of redirecting to non-existent page
+        setIsLoginPopupOpen(true);
         return;
       }
 
@@ -55,13 +58,17 @@ export default function ProtectedRoute({
           <div className="text-center">
             <p className="text-gray-600 mb-4">Please log in to access this page.</p>
             <button
-              onClick={() => router.push('/login')}
+              onClick={() => setIsLoginPopupOpen(true)}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Go to Login
+              Login
             </button>
           </div>
         </div>
+        <LoginPopup 
+          isOpen={isLoginPopupOpen} 
+          onClose={() => setIsLoginPopupOpen(false)}
+        />
       </Layout>
     );
   }
@@ -88,5 +95,13 @@ export default function ProtectedRoute({
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <LoginPopup 
+        isOpen={isLoginPopupOpen} 
+        onClose={() => setIsLoginPopupOpen(false)}
+      />
+    </>
+  );
 }
