@@ -131,7 +131,7 @@ export default function RegistrationPopup({ isOpen, onClose, onOpenLogin }: Regi
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 p-8 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-8 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors"
@@ -153,32 +153,34 @@ export default function RegistrationPopup({ isOpen, onClose, onOpenLogin }: Regi
             <label className="block text-sm font-medium text-gray-700 mb-3">
               I am a:
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {roleOptions.map((option) => {
                 const Icon = option.icon;
                 return (
-                  <label
-                    key={option.value}
-                    className={`relative flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      formData.role === option.value
-                        ? option.color
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={option.value}
-                      checked={formData.role === option.value}
-                      onChange={handleInputChange}
-                      className="sr-only"
-                    />
-                    <Icon className="h-8 w-8 mb-2" />
-                    <span className="font-medium text-sm">{option.label}</span>
-                    <span className="text-xs text-center mt-1 opacity-75">
-                      {option.description}
-                    </span>
-                  </label>
+                    <label
+                      key={option.value}
+                      className={`relative flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        formData.role === option.value
+                          ? option.color
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="role"
+                        value={option.value}
+                        checked={formData.role === option.value}
+                        onChange={handleInputChange}
+                        className="sr-only"
+                      />
+                      <Icon className="h-6 w-6 mr-3 flex-shrink-0" />
+                      <div className="flex-1">
+                        <span className="font-medium text-sm block">{option.label}</span>
+                        <span className="text-xs opacity-75">
+                          {option.description}
+                        </span>
+                      </div>
+                    </label>
                 );
               })}
             </div>
