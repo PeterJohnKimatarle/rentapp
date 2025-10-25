@@ -10,14 +10,28 @@ export default function ContactPage() {
   // Block background scroll when popup is open
   useEffect(() => {
     if (isContactPopupOpen) {
+      // Store original overflow value
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = '';
+        document.body.style.width = '';
+      };
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
 
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isContactPopupOpen]);
 
@@ -52,7 +66,7 @@ export default function ContactPage() {
 
   return (
     <Layout>
-        <div className="bg-gray-50 pt-2 pb-2">
+        <div className="bg-gray-50 pt-2 pb-2 min-h-0">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="text-center mb-1">

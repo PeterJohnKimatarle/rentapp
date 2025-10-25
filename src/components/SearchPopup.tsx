@@ -53,14 +53,28 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   // Block background scroll when popup is open
   useEffect(() => {
     if (isOpen || showWardPopup) {
+      // Store original overflow value
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = '';
+        document.body.style.width = '';
+      };
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
 
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isOpen, showWardPopup]);
 
