@@ -124,6 +124,19 @@ export default function Layout({ children }: LayoutProps) {
     };
   }, [isMobileMenuOpen, isSearchPopupOpen, isLoginPopupOpen, isRegistrationPopupOpen]);
 
+  // Listen for custom event to open login popup
+  useEffect(() => {
+    const handleOpenLoginPopup = () => {
+      setIsLoginPopupOpen(true);
+    };
+
+    window.addEventListener('openLoginPopup', handleOpenLoginPopup);
+    
+    return () => {
+      window.removeEventListener('openLoginPopup', handleOpenLoginPopup);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       {/* Mobile Header */}

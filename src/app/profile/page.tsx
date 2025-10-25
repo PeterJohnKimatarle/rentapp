@@ -1,7 +1,6 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { User, Edit, X, Building, Bookmark, Mail } from 'lucide-react';
@@ -131,9 +130,70 @@ export default function ProfilePage() {
   };
 
 
-  return (
-    <ProtectedRoute>
+  // Show login prompt if not authenticated
+  if (!isAuthenticated && !loading) {
+    return (
       <Layout>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold text-black mb-4">
+                My Profile
+              </h1>
+            </div>
+
+            {/* Login Prompt */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6">
+                  👤
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to Your Profile</h2>
+                <p className="text-gray-600 mb-8">
+                  To access your profile and manage your account, please log in or create an account.
+                </p>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => {
+                      // This will be handled by the Layout component's login popup
+                      const event = new CustomEvent('openLoginPopup');
+                      window.dispatchEvent(event);
+                    }}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+                  >
+                    Login to Your Account
+                  </button>
+                  <p className="text-gray-500 text-sm">
+                    Don't have an account? Login to access the registration option.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your profile...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -416,6 +476,5 @@ export default function ProfilePage() {
         </div>
       )}
       </Layout>
-    </ProtectedRoute>
   );
 }
