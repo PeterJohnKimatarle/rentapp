@@ -18,7 +18,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       {/* Logo removed as requested */}
 
       {/* Navigation Links */}
-      <div className={`space-y-2 lg:space-y-2 ${variant === 'popup' ? 'flex flex-col items-start space-y-0 pt-0 pb-0 -space-y-1' : ''}`}>
+      <div className={`space-y-2 lg:space-y-2 ${variant === 'popup' ? 'flex flex-col items-start space-y-2 pt-0 pb-0' : ''}`}>
         <Link 
           href="/" 
           onClick={() => {
@@ -28,7 +28,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-5/6 justify-start h-10 -mt-1' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-5/6 justify-start h-10 -mt-1 border border-white border-opacity-30 bg-blue-100' 
               : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
@@ -49,7 +49,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
@@ -66,7 +66,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/services' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -85,7 +85,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/contact' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -104,7 +104,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/about' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -123,7 +123,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/list-property' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -145,7 +145,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/bookmarks' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -164,7 +164,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/my-properties' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
@@ -183,7 +183,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           }}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
-              ? 'text-white hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10' 
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
               : pathname === '/profile' 
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'

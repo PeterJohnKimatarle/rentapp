@@ -167,7 +167,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="relative">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-4 right-4 text-white transition-colors rounded-lg p-2 cursor-pointer"
+                className="absolute top-3 right-4 text-white transition-colors rounded-lg cursor-pointer h-10 w-10 flex items-center justify-center border border-white border-opacity-30"
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
