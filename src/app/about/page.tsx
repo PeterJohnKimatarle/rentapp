@@ -141,6 +141,34 @@ export default function AboutPage() {
           {activeTab === 'team' && (
             <div className="mb-16">
               <div className="grid grid-cols-1 gap-8">
+                {/* Community Card - Special Highlight */}
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-center text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full translate-y-12 -translate-x-12"></div>
+                  <div className="relative z-10">
+                    <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <Users className="w-12 h-12 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">Our Community</h3>
+                    <p className="text-blue-100 font-medium mb-3">Brokers & Property Owners</p>
+                    <p className="text-blue-50 text-sm leading-relaxed max-w-md mx-auto">
+                      The heart of our platform. Without our dedicated brokers and property owners, Rentapp wouldn't exist. 
+                      They are the foundation of our success, bringing quality properties and expertise to help renters find their perfect home.
+                    </p>
+                    <div className="mt-4 flex justify-center space-x-6 text-blue-100">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-white">500+</div>
+                        <div className="text-xs">Active Brokers</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-white">2,000+</div>
+                        <div className="text-xs">Property Owners</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Core Team Members */}
                 {teamMembers.map((member, index) => (
                   <div key={index} className="bg-white p-6 rounded-lg shadow-sm text-center">
                     <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
