@@ -30,7 +30,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const handleBackClick = () => {
     // Use browser history for the listing page, services page, and new pages
-    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile') {
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register') {
       // Check if there's history to go back to
       if (window.history.length > 1) {
         router.back();
@@ -64,6 +64,8 @@ export default function Layout({ children }: LayoutProps) {
         return 'About Us';
       case '/profile':
         return 'Profile';
+      case '/register':
+        return 'Registration';
       default:
         return 'Rentapp';
     }

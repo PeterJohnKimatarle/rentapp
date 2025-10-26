@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -198,45 +198,25 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         {/* Authentication Section */}
         {!isAuthenticated ? (
-          <>
-            {/* Login Button */}
-            <button
-              onClick={() => {
-                if (variant === 'popup' && onItemClick) {
-                  onItemClick();
-                }
-                if (onLoginClick) {
-                  onLoginClick();
-                }
-              }}
-              className={`flex items-center space-x-3 ${
-                variant === 'popup' 
-                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-blue-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
-                  : 'text-gray-700 hover:text-black hover:bg-blue-500 hover:text-white rounded-lg px-3 py-2'
-              }`}
-            >
-              <LogIn size={20} className="flex-shrink-0" />
-              <span className="text-base font-medium">Login</span>
-            </button>
-
-            {/* Register Button */}
-            <Link 
-              href="/register" 
-              onClick={() => {
-                if (variant === 'popup' && onItemClick) {
-                  onItemClick();
-                }
-              }}
-              className={`flex items-center space-x-3 ${
-                variant === 'popup' 
-                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-green-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
-                  : 'text-gray-700 hover:text-black hover:bg-green-500 hover:text-white rounded-lg px-3 py-2'
-              }`}
-            >
-              <UserPlus size={20} className="flex-shrink-0" />
-              <span className="text-base font-medium">Register</span>
-            </Link>
-          </>
+          /* Login Button */
+          <button
+            onClick={() => {
+              if (variant === 'popup' && onItemClick) {
+                onItemClick();
+              }
+              if (onLoginClick) {
+                onLoginClick();
+              }
+            }}
+            className={`flex items-center space-x-3 ${
+              variant === 'popup' 
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-blue-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                : 'text-gray-700 hover:text-black hover:bg-blue-500 hover:text-white rounded-lg px-3 py-2'
+            }`}
+          >
+            <LogIn size={20} className="flex-shrink-0" />
+            <span className="text-base font-medium">Login</span>
+          </button>
         ) : (
           /* Logout Button for authenticated users */
           <button

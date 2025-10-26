@@ -1,22 +1,16 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, Edit, X, Building, Bookmark, Mail } from 'lucide-react';
+import { User, X, Building, Bookmark, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import LoginPopup from '@/components/LoginPopup';
-import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
-  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   
-  const { user, isAuthenticated } = useAuth();
-
   // Block background scroll when popup is open
   useEffect(() => {
-    if (isEditPopupOpen || isPasswordPopupOpen || isLoginPopupOpen) {
+    if (isEditPopupOpen || isPasswordPopupOpen) {
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
@@ -32,15 +26,15 @@ export default function ProfilePage() {
       document.body.style.position = '';
       document.body.style.width = '';
     };
-  }, [isEditPopupOpen, isPasswordPopupOpen, isLoginPopupOpen]);
+  }, [isEditPopupOpen, isPasswordPopupOpen]);
   
-  // User data from auth context or default values
+  // Static user data
   const [userData, setUserData] = useState({
-    firstName: user?.name?.split(' ')[0] || 'Guest',
-    lastName: user?.name?.split(' ')[1] || 'User',
-    email: user?.email || 'guest@example.com',
-    phone: user?.phone || '+1 (555) 000-0000',
-    bio: user?.bio || 'Welcome to Rentapp! Please login to customize your profile.'
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    phone: '+1 (555) 123-4567',
+    bio: 'Welcome to Rentapp! I\'m passionate about finding the perfect home for everyone. Whether you\'re looking to rent or list your property, I\'m here to help make the process smooth and enjoyable.'
   });
 
   const [formData, setFormData] = useState(userData);
@@ -52,10 +46,6 @@ export default function ProfilePage() {
   });
 
   const handleEdit = () => {
-    if (!isAuthenticated) {
-      setIsLoginPopupOpen(true);
-      return;
-    }
     setIsEditPopupOpen(true);
     setFormData(userData);
   };
@@ -80,10 +70,6 @@ export default function ProfilePage() {
   };
 
   const handlePasswordChange = () => {
-    if (!isAuthenticated) {
-      setIsLoginPopupOpen(true);
-      return;
-    }
     setIsPasswordPopupOpen(true);
     setPasswordData({
       currentPassword: '',
@@ -153,7 +139,7 @@ export default function ProfilePage() {
                 {/* User Info */}
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-black mb-2">
-                    {isAuthenticated ? `${userData.firstName} ${userData.lastName}` : 'Guest User'}
+                    {userData.firstName} {userData.lastName}
                   </h2>
                   <p className="text-gray-600 mb-1">{userData.email}</p>
                   <p className="text-gray-600">{userData.phone}</p>
@@ -166,38 +152,20 @@ export default function ProfilePage() {
                 <p className="text-gray-600">{userData.bio}</p>
               </div>
 
-              {/* Authentication Status */}
-              {!isAuthenticated && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <p className="text-blue-700 text-sm">
-                    Please login or register to access all profile features
-                  </p>
-                </div>
-              )}
-
               {/* Action Buttons */}
               <div className="flex justify-center space-x-4">
-                {isAuthenticated ? (
-                  <>
-                    <button
-                      onClick={handlePasswordChange}
-                      className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200"
-                    >
-                      Change Password
-                    </button>
-                    <button
-                      onClick={handleEdit}
-                      className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2"
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span>Edit Profile</span>
-                    </button>
-                  </>
-                ) : (
-                  <div className="text-center text-gray-500 py-4">
-                    <p className="text-sm">Please use the navigation menu to login or register</p>
-                  </div>
-                )}
+                <button
+                  onClick={handlePasswordChange}
+                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 whitespace-nowrap"
+                >
+                  Change Password
+                </button>
+                <button
+                  onClick={handleEdit}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 whitespace-nowrap"
+                >
+                  Edit Profile
+                </button>
               </div>
             </div>
           </div>
@@ -417,11 +385,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Login Popup */}
-      <LoginPopup
-        isOpen={isLoginPopupOpen}
-        onClose={() => setIsLoginPopupOpen(false)}
-      />
     </Layout>
   );
 }

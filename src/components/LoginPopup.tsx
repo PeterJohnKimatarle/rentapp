@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -145,6 +146,20 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           </form>
+
+          {/* Registration Prompt */}
+          <div className="mt-4 text-center">
+            <p className="text-gray-600 text-sm">
+              Don&apos;t have an account?{' '}
+              <Link 
+                href="/register" 
+                onClick={onClose}
+                className="text-blue-500 hover:text-blue-600 font-medium underline"
+              >
+                Register here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
