@@ -1,17 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
   variant?: 'default' | 'popup';
   onItemClick?: () => void;
   onSearchClick?: () => void;
+  onLoginClick?: () => void;
 }
 
-export default function Navigation({ variant = 'default', onItemClick, onSearchClick }: NavigationProps) {
+export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick }: NavigationProps) {
   const pathname = usePathname();
+  const { isAuthenticated, logout } = useAuth();
   
   return (
     <nav className="p-4 lg:p-6">
@@ -192,6 +195,67 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           <User size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Profile</span>
         </Link>
+
+        {/* Authentication Section */}
+        {!isAuthenticated ? (
+          <>
+            {/* Login Button */}
+            <button
+              onClick={() => {
+                if (variant === 'popup' && onItemClick) {
+                  onItemClick();
+                }
+                if (onLoginClick) {
+                  onLoginClick();
+                }
+              }}
+              className={`flex items-center space-x-3 ${
+                variant === 'popup' 
+                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-blue-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                  : 'text-gray-700 hover:text-black hover:bg-blue-500 hover:text-white rounded-lg px-3 py-2'
+              }`}
+            >
+              <LogIn size={20} className="flex-shrink-0" />
+              <span className="text-base font-medium">Login</span>
+            </button>
+
+            {/* Register Button */}
+            <Link 
+              href="/register" 
+              onClick={() => {
+                if (variant === 'popup' && onItemClick) {
+                  onItemClick();
+                }
+              }}
+              className={`flex items-center space-x-3 ${
+                variant === 'popup' 
+                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-green-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                  : 'text-gray-700 hover:text-black hover:bg-green-500 hover:text-white rounded-lg px-3 py-2'
+              }`}
+            >
+              <UserPlus size={20} className="flex-shrink-0" />
+              <span className="text-base font-medium">Register</span>
+            </Link>
+          </>
+        ) : (
+          /* Logout Button for authenticated users */
+          <button
+            onClick={() => {
+              if (variant === 'popup' && onItemClick) {
+                onItemClick();
+              }
+              logout();
+            }}
+            className={`flex items-center space-x-3 ${
+              variant === 'popup' 
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                : 'text-gray-700 hover:text-black hover:bg-red-500 hover:text-white rounded-lg px-3 py-2'
+            }`}
+          >
+            <LogOut size={20} className="flex-shrink-0" />
+            <span className="text-base font-medium">Logout</span>
+          </button>
+        )}
       </div>
 
     </nav>

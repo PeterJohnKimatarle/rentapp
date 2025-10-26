@@ -178,7 +178,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} />
+              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">
@@ -200,7 +200,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-16">
         {/* Left Panel - Navigation (Desktop) */}
         <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
-          <Navigation onSearchClick={handleSearchClick} />
+          <Navigation onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} />
         </div>
 
         {/* Center Panel - Main Content */}
