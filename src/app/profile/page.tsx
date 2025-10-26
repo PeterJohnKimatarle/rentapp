@@ -13,7 +13,6 @@ export default function ProfilePage() {
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   
   const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
 
   // Block background scroll when popup is open
   useEffect(() => {
@@ -422,10 +421,6 @@ export default function ProfilePage() {
       <LoginPopup
         isOpen={isLoginPopupOpen}
         onClose={() => setIsLoginPopupOpen(false)}
-        onSwitchToRegister={() => {
-          setIsLoginPopupOpen(false);
-          router.push('/register');
-        }}
       />
     </Layout>
   );

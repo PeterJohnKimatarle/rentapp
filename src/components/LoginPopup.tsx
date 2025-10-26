@@ -8,10 +8,9 @@ import { useRouter } from 'next/navigation';
 interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  onSwitchToRegister?: () => void;
 }
 
-const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
+const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -144,16 +143,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onSwitchToRegi
               >
                 {isLoading ? 'Logging in...' : 'Login'}
               </button>
-              
-              {onSwitchToRegister && (
-                <button
-                  type="button"
-                  onClick={onSwitchToRegister}
-                  className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                >
-                  Don&apos;t have an account? Register
-                </button>
-              )}
             </div>
           </form>
         </div>

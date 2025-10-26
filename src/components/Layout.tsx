@@ -276,7 +276,7 @@ export default function Layout({ children }: LayoutProps) {
                     <span>Login</span>
                   </button>
                   <button
-                    onClick={() => window.open('/register', '_blank')}
+                    onClick={() => router.push('/register')}
                     className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
                     <UserPlus size={16} />
@@ -325,10 +325,6 @@ export default function Layout({ children }: LayoutProps) {
       <LoginPopup
         isOpen={isLoginPopupOpen}
         onClose={() => setIsLoginPopupOpen(false)}
-        onSwitchToRegister={() => {
-          setIsLoginPopupOpen(false);
-          router.push('/register');
-        }}
       />
     </div>
   );
