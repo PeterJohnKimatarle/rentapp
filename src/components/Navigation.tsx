@@ -220,12 +220,12 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             </button>
 
             {/* Register Button */}
-            <Link 
-              href="/register" 
+            <button
               onClick={() => {
                 if (variant === 'popup' && onItemClick) {
                   onItemClick();
                 }
+                window.open('/register', '_blank');
               }}
               className={`flex items-center space-x-3 ${
                 variant === 'popup' 
@@ -235,7 +235,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             >
               <UserPlus size={20} className="flex-shrink-0" />
               <span className="text-base font-medium">Register</span>
-            </Link>
+            </button>
           </>
         ) : (
           /* Logout Button for authenticated users */

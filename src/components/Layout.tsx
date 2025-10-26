@@ -276,7 +276,7 @@ export default function Layout({ children }: LayoutProps) {
                     <span>Login</span>
                   </button>
                   <button
-                    onClick={() => router.push('/register')}
+                    onClick={() => window.open('/register', '_blank')}
                     className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
                     <UserPlus size={16} />
