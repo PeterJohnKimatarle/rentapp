@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, Edit, X, Building, Bookmark, Mail, LogIn, UserPlus } from 'lucide-react';
+import { User, Edit, X, Building, Bookmark, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginPopup from '@/components/LoginPopup';
@@ -139,91 +139,66 @@ export default function ProfilePage() {
             </h1>
           </div>
 
-          {/* Profile Header Card */}
+          {/* Profile Card */}
           <div className="bg-white rounded-lg shadow-sm mb-8 border border-blue-500 border-2 shadow-blue-100">
-            {/* Profile Header Section */}
-            <div className="pt-4 pb-4 px-8">
-              <div className="flex items-center space-x-4">
+            <div className="p-8">
+              {/* Profile Header */}
+              <div className="flex items-center space-x-6 mb-6">
                 {/* Profile Image */}
-                <div className="flex-shrink-0 -ml-4">
-                  <div className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-14 h-14 text-gray-400" />
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="w-12 h-12 text-gray-400" />
                   </div>
                 </div>
 
                 {/* User Info */}
                 <div className="flex-1">
-                  {/* User Name */}
                   <h2 className="text-2xl font-bold text-black mb-2">
                     {isAuthenticated ? `${userData.firstName} ${userData.lastName}` : 'Guest User'}
                   </h2>
-
-                  {/* User Email */}
-                  <p className="text-gray-600 mb-1">
-                    {userData.email}
-                  </p>
-
-                  {/* User Phone */}
-                  <p className="text-gray-600 mb-4">
-                    {userData.phone}
-                  </p>
-
-                  {/* Authentication Status */}
-                  {!isAuthenticated && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                      <p className="text-blue-700 text-sm">
-                        Please login or register to access all profile features
-                      </p>
-                    </div>
-                  )}
+                  <p className="text-gray-600 mb-1">{userData.email}</p>
+                  <p className="text-gray-600">{userData.phone}</p>
                 </div>
               </div>
 
-              {/* User Bio */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-gray-600 text-sm mb-4">
-                  {userData.bio}
-                </p>
-                
-                {/* Action Buttons */}
-                <div className="flex justify-center space-x-3">
-                  {isAuthenticated ? (
-                    <>
-                      <button
-                        onClick={handlePasswordChange}
-                        className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <span>Change Password</span>
-                      </button>
-                      
-                      <button
-                        onClick={handleEdit}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span>Edit Profile</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => router.push('/register')}
-                        className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        <span>Register</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => setIsLoginPopupOpen(true)}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <LogIn className="w-4 h-4" />
-                        <span>Login</span>
-                      </button>
-                    </>
-                  )}
+              {/* Bio Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
+                <p className="text-gray-600">{userData.bio}</p>
+              </div>
+
+              {/* Authentication Status */}
+              {!isAuthenticated && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-blue-700 text-sm">
+                    Please login or register to access all profile features
+                  </p>
                 </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-4">
+                {isAuthenticated ? (
+                  <>
+                    <button
+                      onClick={handlePasswordChange}
+                      className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200"
+                    >
+                      Change Password
+                    </button>
+                    <button
+                      onClick={handleEdit}
+                      className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span>Edit Profile</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    <p className="text-sm">Please use the navigation menu to login or register</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
