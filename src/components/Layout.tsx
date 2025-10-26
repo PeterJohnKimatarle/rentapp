@@ -6,10 +6,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import SearchPopup from './SearchPopup';
-import LoginPopup from './LoginPopup';
-import RegistrationPopup from './RegistrationPopup';
+import { Menu, X, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, X, Search, ArrowLeft, User, LogOut } from 'lucide-react';
+import LoginPopup from './LoginPopup';
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,11 +18,10 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
-  const [isRegistrationPopupOpen, setIsRegistrationPopupOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleLogoClick = () => {
     // Force page reload to get fresh data
@@ -31,12 +29,6 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleBackClick = () => {
-    // Special handling for registration page - open login popup
-    if (pathname === '/register') {
-      setIsLoginPopupOpen(true);
-      return;
-    }
-    
     // Use browser history for the listing page, services page, and new pages
     if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile') {
       // Check if there's history to go back to
@@ -56,26 +48,6 @@ export default function Layout({ children }: LayoutProps) {
     setIsSearchPopupOpen(true);
   };
 
-  const handleLoginClick = () => {
-    setIsLoginPopupOpen(true);
-  };
-
-  const handleLoginPopupClose = () => {
-    setIsLoginPopupOpen(false);
-  };
-
-  const handleRegistrationPopupClose = () => {
-    setIsRegistrationPopupOpen(false);
-  };
-
-  const handleOpenRegistration = () => {
-    setIsRegistrationPopupOpen(true);
-  };
-
-  const handleOpenLogin = () => {
-    setIsLoginPopupOpen(true);
-  };
-
   const getPageTitle = () => {
     switch (pathname) {
       case '/my-properties':
@@ -92,10 +64,6 @@ export default function Layout({ children }: LayoutProps) {
         return 'About Us';
       case '/profile':
         return 'Profile';
-      case '/register':
-        return 'Registration';
-      case '/login':
-        return 'Login';
       default:
         return 'Rentapp';
     }
@@ -105,37 +73,20 @@ export default function Layout({ children }: LayoutProps) {
     return pathname !== '/';
   };
 
-  // Prevent body scroll when any popup is open
+  // Prevent body scroll when menu is open
   useEffect(() => {
-    if (isMobileMenuOpen || isSearchPopupOpen || isLoginPopupOpen || isRegistrationPopupOpen) {
+    if (isMobileMenuOpen) {
+      // Prevent body scroll when menu is open
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
     } else {
+      // Restore body scroll when menu is closed
       document.body.style.overflow = 'unset';
-      document.body.style.position = 'unset';
-      document.body.style.width = 'unset';
     }
 
     return () => {
       document.body.style.overflow = 'unset';
-      document.body.style.position = 'unset';
-      document.body.style.width = 'unset';
     };
-  }, [isMobileMenuOpen, isSearchPopupOpen, isLoginPopupOpen, isRegistrationPopupOpen]);
-
-  // Listen for custom event to open login popup
-  useEffect(() => {
-    const handleOpenLoginPopup = () => {
-      setIsLoginPopupOpen(true);
-    };
-
-    window.addEventListener('openLoginPopup', handleOpenLoginPopup);
-    
-    return () => {
-      window.removeEventListener('openLoginPopup', handleOpenLoginPopup);
-    };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -190,51 +141,17 @@ export default function Layout({ children }: LayoutProps) {
           <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
           <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
         </button>
-        <div className="flex items-center gap-4">
-          <div 
-            onClick={handleSearchClick}
-            className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
-          >
-            <Search size={20} className="text-gray-500 mr-3" />
-            <input
-              type="text"
-              placeholder="Search for properties..."
-              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
-              readOnly
-            />
-          </div>
-          
-          {/* Authentication Buttons */}
-          {isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-gray-700">
-                <User size={20} />
-                <span className="text-sm font-medium">{user?.name}</span>
-              </div>
-              <button
-                onClick={() => router.push('/profile')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                Profile
-              </button>
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-                 <button
-                   onClick={handleOpenLogin}
-                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                 >
-                   Login
-                 </button>
-            </div>
-          )}
+        <div 
+          onClick={handleSearchClick}
+          className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+        >
+          <Search size={20} className="text-gray-500 mr-3" />
+          <input
+            type="text"
+            placeholder="Search for properties..."
+            className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
+            readOnly
+          />
         </div>
       </div>
 
@@ -261,7 +178,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-                     <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={handleOpenLogin} />
+              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">
@@ -293,12 +210,105 @@ export default function Layout({ children }: LayoutProps) {
           </main>
         </div>
 
-        {/* Right Panel - Placeholder (Desktop) */}
+        {/* Right Panel - User Profile & Actions (Desktop) */}
         <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
-          <div className="text-center text-gray-500">
-            <h3 className="text-lg font-medium mb-4">Insights & Promotions</h3>
-            <p className="text-sm">Coming soon...</p>
-          </div>
+          {isAuthenticated ? (
+            <div className="space-y-6">
+              {/* User Profile Card */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">
+                      {user?.name?.charAt(0) || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{user?.name || 'User'}</h3>
+                    <p className="text-sm text-gray-600">{user?.role || 'Member'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={() => router.push('/my-properties')}
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  My Properties
+                </button>
+                <button
+                  onClick={() => router.push('/bookmarks')}
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Bookmarks
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Welcome Card */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Rentapp!</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Join our community to access all features and manage your properties.
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setIsLoginPopupOpen(true)}
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <LogIn size={16} />
+                    <span>Login</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/register')}
+                    className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <UserPlus size={16} />
+                    <span>Register</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Features Preview */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-900">What you can do:</h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Search and browse properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Save favorite properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>List your own properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Connect with landlords & tenants</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -312,17 +322,13 @@ export default function Layout({ children }: LayoutProps) {
       />
 
       {/* Login Popup */}
-      <LoginPopup 
-        isOpen={isLoginPopupOpen} 
-        onClose={handleLoginPopupClose}
-        onOpenRegistration={handleOpenRegistration}
-      />
-
-      {/* Registration Popup */}
-      <RegistrationPopup 
-        isOpen={isRegistrationPopupOpen} 
-        onClose={handleRegistrationPopupClose}
-        onOpenLogin={handleOpenLogin}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={() => setIsLoginPopupOpen(false)}
+        onSwitchToRegister={() => {
+          setIsLoginPopupOpen(false);
+          router.push('/register');
+        }}
       />
     </div>
   );
