@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Home, Building, Users } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Home, Building, Users, ArrowLeft } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -23,6 +23,16 @@ const RegisterPage: React.FC = () => {
   
   const { register } = useAuth();
   const router = useRouter();
+
+  const handleBackClick = () => {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback to home page if no history
+      router.push('/');
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -74,13 +84,32 @@ const RegisterPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-blue-600 px-6 py-8 text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Join Rentapp</h1>
-          <p className="text-blue-100">Create your account to get started</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Back Button */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="max-w-md mx-auto flex items-center space-x-4">
+          <button
+            onClick={handleBackClick}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            <ArrowLeft size={20} />
+            <span className="text-sm font-medium">Back</span>
+          </button>
+          <div className="flex-1 text-center">
+            <h1 className="text-lg font-semibold text-gray-900">Create Account</h1>
+          </div>
+          <div className="w-16"></div> {/* Spacer for centering */}
         </div>
+      </div>
+
+      {/* Registration Form */}
+      <div className="py-8">
+        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Form Header */}
+          <div className="bg-blue-600 px-6 py-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-2">Join Rentapp</h2>
+            <p className="text-blue-100">Create your account to get started</p>
+          </div>
 
         {/* Form */}
         <div className="p-6">
@@ -250,6 +279,7 @@ const RegisterPage: React.FC = () => {
               </Link>
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>
