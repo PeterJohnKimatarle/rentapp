@@ -76,11 +76,11 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     
     const distanceX = touchStart.x - touchEnd.x;
     const distanceY = touchStart.y - touchEnd.y;
-    const isRightSwipe = distanceX < -minSwipeDistance; // Left to right swipe
+    const isLeftSwipe = distanceX > minSwipeDistance; // Right to left swipe
     const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
     
-    // Only handle horizontal right swipes to close
-    if (!isVerticalSwipe && isRightSwipe) {
+    // Only handle horizontal left swipes to close (right to left swipe)
+    if (!isVerticalSwipe && isLeftSwipe) {
       onClose();
     }
   };
