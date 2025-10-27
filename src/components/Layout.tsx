@@ -47,13 +47,9 @@ export default function Layout({ children }: LayoutProps) {
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     
-    // Check if any modal/popup is open by looking for elements with z-50 class
-    // This includes property details, image lightbox, edit modals, etc.
-    const openModals = document.querySelectorAll('.z-50');
-    const hasOpenModal = openModals.length > 0;
-    
-    // Don't handle swipe gestures if any modal is open
-    if (hasOpenModal) return;
+    // Check if image lightbox is open by looking for bg-black bg-opacity-90 (unique to lightbox)
+    const imageLightbox = document.querySelector('.bg-black.bg-opacity-90.z-50');
+    if (imageLightbox) return;
     
     const distanceX = touchStart.x - touchEnd.x;
     const distanceY = touchStart.y - touchEnd.y;
@@ -228,7 +224,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Menu Popup */}
       {isMobileMenuOpen && (
         <div 
-          className="xl:hidden fixed inset-0 z-40"
+          className="xl:hidden fixed inset-0 z-[60]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Popup Content */}
@@ -248,7 +244,26 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <X size={20} />
               </button>
-              <Navigation variant="popup" onItemClick={() => setIsMobileMenuOpen(false)} onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} />
+              <Navigation 
+                variant="popup" 
+                onItemClick={() => setIsMobileMenuOpen(false)} 
+                onSearchClick={handleSearchClick} 
+                onLoginClick={() => setIsLoginPopupOpen(true)}
+                onHomeClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsSearchPopupOpen(false);
+                  setIsLoginPopupOpen(false);
+                  
+                  // Close any property details modals or other popups with z-50 class
+                  const allModals = document.querySelectorAll('.z-50');
+                  allModals.forEach(modal => {
+                    const closeButton = modal.querySelector('button, [onclick*="Close"], [onclick*="close"]');
+                    if (closeButton && closeButton instanceof HTMLElement) {
+                      closeButton.click();
+                    }
+                  });
+                }}
+              />
               
               {/* Second Close Button - Bottom */}
               <div className="px-4 pb-4">

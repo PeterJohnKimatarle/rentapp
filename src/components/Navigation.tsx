@@ -10,11 +10,22 @@ interface NavigationProps {
   onItemClick?: () => void;
   onSearchClick?: () => void;
   onLoginClick?: () => void;
+  onHomeClick?: () => void;
 }
 
-export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick }: NavigationProps) {
+export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onHomeClick }: NavigationProps) {
   const pathname = usePathname();
   const { isAuthenticated, logout } = useAuth();
+  
+  // Handle navigation item clicks in popup mode
+  const handleNavClick = () => {
+    if (variant === 'popup' && onItemClick) {
+      onItemClick();
+    }
+    if (onHomeClick) {
+      onHomeClick();
+    }
+  };
   
   return (
     <nav className="p-4 lg:p-6">
@@ -24,11 +35,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       <div className={`space-y-2 lg:space-y-2 ${variant === 'popup' ? 'flex flex-col items-start space-y-2 pt-0 pb-0' : ''}`}>
         <Link 
           href="/" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-5/6 justify-start h-10 -mt-1 border border-white border-opacity-30 bg-blue-100' 
@@ -62,11 +69,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/services" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -81,11 +84,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/contact" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -100,11 +99,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/about" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -119,11 +114,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/list-property" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -141,11 +132,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/bookmarks" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -160,11 +147,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/my-properties" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
@@ -179,11 +162,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         
         <Link 
           href="/profile" 
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-          }}
+          onClick={handleNavClick}
           className={`flex items-center space-x-3 ${
             variant === 'popup' 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
