@@ -23,6 +23,60 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
 
+  // Touch event handlers for swipe gestures
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    // Check if any modal/popup is open by looking for elements with z-50 class
+    // This includes property details, image lightbox, edit modals, etc.
+    const openModals = document.querySelectorAll('.z-50');
+    const hasOpenModal = openModals.length > 0;
+    
+    // Don't handle swipe gestures if any modal is open
+    if (hasOpenModal) return;
+    
+    const distanceX = touchStart.x - touchEnd.x;
+    const distanceY = touchStart.y - touchEnd.y;
+    const isLeftSwipe = distanceX > minSwipeDistance;
+    const isRightSwipe = distanceX < -minSwipeDistance;
+    const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
+
+    // Only handle horizontal swipes
+    if (isVerticalSwipe) return;
+
+    if (isLeftSwipe) {
+      // Right to left swipe - toggle navigation menu
+      // Don't open menu if search popup is already open
+      if (isSearchPopupOpen && !isMobileMenuOpen) return;
+      setIsMobileMenuOpen(!isMobileMenuOpen);
+    } else if (isRightSwipe) {
+      // Left to right swipe - toggle search popup
+      // Don't open search if menu is already open
+      if (isMobileMenuOpen && !isSearchPopupOpen) return;
+      setIsSearchPopupOpen(!isSearchPopupOpen);
+    }
+  };
+
   const handleLogoClick = () => {
     // Force page reload to get fresh data
     window.location.href = '/';
@@ -91,7 +145,12 @@ export default function Layout({ children }: LayoutProps) {
   }, [isMobileMenuOpen]);
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div 
+      className="min-h-screen flex flex-col overflow-x-hidden"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Mobile Header */}
       <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
         {shouldShowBackButton() ? (
@@ -173,7 +232,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="relative">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-3 right-4 text-white transition-colors rounded-lg cursor-pointer h-10 w-10 flex items-center justify-center border border-white border-opacity-30"
+                className="absolute top-3 right-4 text-white transition-colors rounded-lg cursor-pointer h-10 w-10 flex items-center justify-center"
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}

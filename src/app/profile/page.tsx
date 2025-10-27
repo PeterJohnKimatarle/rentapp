@@ -34,7 +34,7 @@ export default function ProfilePage() {
     lastName: 'Doe',
     email: 'john.doe@example.com',
     phone: '+1 (555) 123-4567',
-    bio: 'Welcome to Rentapp! I\'m passionate about finding the perfect home for everyone. Whether you\'re looking to rent or list your property, I\'m here to help make the process smooth and enjoyable.'
+    bio: 'Passionate about finding the perfect home for everyone.'
   });
 
   const [formData, setFormData] = useState(userData);
@@ -115,7 +115,7 @@ export default function ProfilePage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">

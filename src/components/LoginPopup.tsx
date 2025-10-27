@@ -149,16 +149,16 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
 
           {/* Registration Prompt */}
           <div className="mt-4 text-center">
-            <p className="text-gray-600 text-sm">
-              Don&apos;t have an account?{' '}
-              <Link 
-                href="/register" 
-                onClick={onClose}
-                className="text-blue-500 hover:text-blue-600 font-medium underline"
-              >
-                Register here
-              </Link>
+            <p className="text-gray-600 text-sm mb-2">
+              Don&apos;t have an account?
             </p>
+            <Link 
+              href="/register" 
+              onClick={onClose}
+              className="text-blue-500 hover:text-blue-600 font-medium underline"
+            >
+              Register here
+            </Link>
           </div>
         </div>
       </div>

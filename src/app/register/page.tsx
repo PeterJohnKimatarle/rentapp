@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -223,15 +222,15 @@ const RegisterPage: React.FC = () => {
 
             {/* Login Link */}
             <div className="mt-2 text-center">
-              <p className="text-gray-600">
-                Already have an account?{' '}
-                <button 
-                  onClick={() => setIsLoginPopupOpen(true)}
-                  className="text-blue-500 hover:text-blue-600 font-medium underline cursor-pointer"
-                >
-                  Login here
-                </button>
+              <p className="text-gray-600 mb-2">
+                Already have an account?
               </p>
+              <button 
+                onClick={() => setIsLoginPopupOpen(true)}
+                className="text-blue-500 hover:text-blue-600 font-medium underline cursor-pointer"
+              >
+                Login here
+              </button>
             </div>
           </div>
         </div>
