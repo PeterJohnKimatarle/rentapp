@@ -49,6 +49,41 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   const [selectedWard, setSelectedWard] = useState('');
   const [customWard, setCustomWard] = useState('');
   const [showWardPopup, setShowWardPopup] = useState(false);
+  
+  // Swipe detection state
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
+  
+  const minSwipeDistance = 50;
+  
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
+  };
+  
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
+  };
+  
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distanceX = touchStart.x - touchEnd.x;
+    const distanceY = touchStart.y - touchEnd.y;
+    const isRightSwipe = distanceX < -minSwipeDistance; // Left to right swipe
+    const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
+    
+    // Only handle horizontal right swipes to close
+    if (!isVerticalSwipe && isRightSwipe) {
+      onClose();
+    }
+  };
 
   // Block background scroll when popup is open
   useEffect(() => {
@@ -106,7 +141,9 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={(e) => e.stopPropagation()}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       <div 
         className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"

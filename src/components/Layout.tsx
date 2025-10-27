@@ -68,12 +68,18 @@ export default function Layout({ children }: LayoutProps) {
       // Right to left swipe - toggle navigation menu
       // Don't open menu if search popup is already open
       if (isSearchPopupOpen && !isMobileMenuOpen) return;
-      setIsMobileMenuOpen(!isMobileMenuOpen);
+      setIsMobileMenuOpen(prev => !prev);
     } else if (isRightSwipe) {
       // Left to right swipe - toggle search popup
       // Don't open search if menu is already open
       if (isMobileMenuOpen && !isSearchPopupOpen) return;
-      setIsSearchPopupOpen(!isSearchPopupOpen);
+      
+      // Toggle search popup
+      if (isSearchPopupOpen) {
+        setIsSearchPopupOpen(false);
+      } else {
+        setIsSearchPopupOpen(true);
+      }
     }
   };
 

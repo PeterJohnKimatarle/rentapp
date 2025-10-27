@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -210,8 +210,8 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             }}
             className={`flex items-center space-x-3 ${
               variant === 'popup' 
-                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-blue-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
-                : 'text-gray-700 hover:text-black hover:bg-blue-500 hover:text-white rounded-lg px-3 py-2'
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer' 
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer'
             }`}
           >
             <LogIn size={20} className="flex-shrink-0" />
@@ -228,8 +228,8 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             }}
             className={`flex items-center space-x-3 ${
               variant === 'popup' 
-                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
-                : 'text-gray-700 hover:text-black hover:bg-red-500 hover:text-white rounded-lg px-3 py-2'
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer' 
+                : 'text-gray-700 hover:text-black hover:bg-red-500 hover:text-white rounded-lg px-3 py-2 w-full cursor-pointer'
             }`}
           >
             <LogOut size={20} className="flex-shrink-0" />

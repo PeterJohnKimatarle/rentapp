@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Mobile: Original layout - only for very small devices (smartphones) */}
         <div className="lg:hidden">
           <p className="text-sm text-gray-600 text-center">© {currentYear} Rentapp Limited</p>
-          <p className="text-sm text-gray-600 mt-0.5 text-center">All Rights Reserved.</p>
+          <p className="text-sm text-gray-600 mt-0 text-center">All Rights Reserved.</p>
         </div>
 
         {/* Tablet and Desktop: Combined layout */}
