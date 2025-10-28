@@ -221,10 +221,10 @@ export default function ImageLightbox({
                  </div>
                )}
                {imageError || !images[currentIndex] ? (
-                 <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 flex flex-col items-center justify-center min-h-[80vh] relative overflow-hidden">
+                 <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 flex flex-col items-center justify-center min-h-[56vh] relative overflow-hidden">
                    {/* Main Content */}
                    <div className="flex flex-col items-center justify-center text-center px-8">
-                     <div className="bg-white/20 backdrop-blur-md rounded-full p-8 mb-8 shadow-2xl border border-white/30">
+                     <div className="mb-8">
                        <img
                          src="/icon.png"
                          alt="Rentapp Logo"
@@ -232,8 +232,8 @@ export default function ImageLightbox({
                        />
                      </div>
                      
-                     <div className="text-blue-200 mb-8">
-                       <div className="text-2xl font-semibold mb-2">Sorry!</div>
+                     <div className="text-blue-200 mb-4">
+                       <div className="text-2xl font-semibold mb-1">Sorry!</div>
                        <div className="text-lg">image {currentIndex + 1} is not available</div>
                      </div>
                      
@@ -264,11 +264,9 @@ export default function ImageLightbox({
                )}
         
                {/* Image Counter */}
-               {images.length > 1 && (
-                  <div className="absolute bottom-1 left-1 lg:bottom-3 lg:left-1 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                   <span className="font-medium">{currentIndex + 1} / {images.length}</span>
-                 </div>
-               )}
+               <div className="absolute bottom-1 left-1 lg:bottom-3 lg:left-1 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                 <span className="font-medium">{currentIndex + 1} / {images.length}</span>
+               </div>
       </div>
 
     </div>

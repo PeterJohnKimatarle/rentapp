@@ -152,7 +152,9 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
     const updatedAt = new Date(dateString);
     const diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
 
-    if (diffInSeconds < 3600) {
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds} sec${diffInSeconds === 1 ? '' : 's'} ago`;
+    } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
       return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
     } else if (diffInSeconds < 86400) {
@@ -192,7 +194,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
               <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden" onClick={handleImageClick}>
                 {/* Main Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 shadow-lg">
+                  <div className="p-6">
                     <img
                       src="/icon.png"
                       alt="Rentapp Logo"
@@ -200,13 +202,6 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
                     />
                   </div>
                 </div>
-                
-                {/* Decorative Elements */}
-                <div className="absolute top-4 right-4 w-8 h-8 border-2 border-white/30 rounded-full"></div>
-                <div className="absolute bottom-4 left-4 w-6 h-6 border-2 border-white/20 rounded-full"></div>
-                <div className="absolute top-1/2 left-4 w-4 h-4 bg-white/20 rounded-full"></div>
-                <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-white/15 rounded-full"></div>
-                <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-white/10 rounded-full"></div>
               </div>
             ) : (
               <img
@@ -247,7 +242,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
           <div className="flex-1 p-1.5 sm:p-3 md:p-4 lg:p-6 min-w-0 cursor-pointer" onClick={handleDetailsClick}>
             <div className="flex flex-col mb-2">
               <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-0 truncate">
-                {property.bedrooms} Bdrm apartment
+                {property.title}
               </h3>
                 <div className="text-sm text-gray-600 mb-0">
                   <span className="font-bold">Price:</span> {formatPrice(property.price)}/month
@@ -339,177 +334,72 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
              </div>
 
              {/* Content - Scrollable */}
-             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6">
+             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-4 px-6 pb-6">
                <div className="space-y-6">
-                 {/* Property Description */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-                   <p className="text-white/90 leading-relaxed">{property.description}</p>
-                   <p className="text-white/90 leading-relaxed mt-3">
-                     This beautiful property offers modern living with contemporary design elements. The spacious layout provides excellent natural lighting throughout the day, creating a warm and inviting atmosphere. Perfect for families, professionals, or anyone seeking comfort and convenience in a prime location.
-                   </p>
-                 </div>
+                   {/* Property Title */}
+                   <div className="mb-1">
+                     <h2 className="text-2xl font-bold text-white">{property.title}</h2>
+                   </div>
 
-                 {/* Property Features */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Property Features</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-3">
-                       <div className="flex items-center space-x-3">
-                         <Bed size={18} className="text-white" />
-                         <span className="text-white/90">{property.bedrooms} Bedrooms</span>
-                       </div>
-                       <div className="flex items-center space-x-3">
-                         <Bath size={18} className="text-white" />
-                         <span className="text-white/90">{property.bathrooms} Bathrooms</span>
-                       </div>
-                       <div className="flex items-center space-x-3">
-                         <Square size={18} className="text-white" />
-                         <span className="text-white/90">{property.area} m²</span>
-                       </div>
-                     </div>
-                     <div className="space-y-3">
-                       <div className="flex items-center space-x-3">
-                         <MapPin size={18} className="text-white" />
-                         <span className="text-white/90">{property.location}</span>
-                       </div>
-                       <div className="flex items-center space-x-3">
-                         <Calendar size={18} className="text-white" />
-                         <span className="text-white/90">Available Now</span>
-                       </div>
-                       <div className="flex items-center space-x-3">
-                         <span className="text-white/90">Property Type: Apartment</span>
-                       </div>
-                     </div>
+                 {/* Property Information - Same as Homepage */}
+                 <div className="space-y-2">
+                   {/* Status */}
+                   <div className="text-lg text-white">
+                     <span className="font-bold">Status:</span> 
+                     <span className={`ml-2 px-3 py-1 rounded text-sm font-medium border-[1.5px] border-black ${
+                       property.status === 'available' 
+                         ? 'bg-green-400 text-black' 
+                         : 'bg-red-400 text-white'
+                     }`}>
+                       {property.status === 'available' ? 'Available' : 'Occupied'}
+                     </span>
+                   </div>
+                   <div className="text-lg text-white">
+                     <span className="font-bold">Price:</span> {formatPrice(property.price)}/month
+                   </div>
+                   <div className="text-lg text-white">
+                     <span className="font-bold">Plan:</span> {property.plan} Months
+                   </div>
+                   <div className="text-sm text-black bg-yellow-200 px-3 py-1 rounded w-fit flex items-center justify-center border border-black">
+                     <MapPin size={12} className="mr-1 flex-shrink-0" />
+                     <span>{property.location}</span>
+                   </div>
+                   <div className="text-sm text-white/80 flex items-center">
+                     <Clock size={12} className="mr-1 flex-shrink-0" />
+                     <span>Updated: {getRelativeTime(property.updatedAt)}</span>
                    </div>
                  </div>
 
-                 {/* Amenities */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Amenities & Features</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                       <div className="text-white/90">✓ Air Conditioning</div>
-                       <div className="text-white/90">✓ Parking Space</div>
-                       <div className="text-white/90">✓ Security System</div>
-                       <div className="text-white/90">✓ Internet Ready</div>
-                       <div className="text-white/90">✓ Balcony</div>
-                       <div className="text-white/90">✓ Elevator</div>
-                     </div>
-                     <div className="space-y-2">
-                       <div className="text-white/90">✓ Swimming Pool</div>
-                       <div className="text-white/90">✓ Gym</div>
-                       <div className="text-white/90">✓ Garden</div>
-                       <div className="text-white/90">✓ Pet Friendly</div>
-                       <div className="text-white/90">✓ Laundry Room</div>
-                       <div className="text-white/90">✓ Storage Space</div>
-                     </div>
-                   </div>
-                 </div>
-
-                 {/* Location Details */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Location & Transportation</h3>
-                   <div className="space-y-3">
-                     <div className="text-white/90">
-                       <strong>Distance to City Center:</strong> 5 minutes drive
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Nearest Bus Stop:</strong> 200 meters
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Nearest Shopping Mall:</strong> 1.2 km
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Nearest Hospital:</strong> 3.5 km
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Nearest School:</strong> 800 meters
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Nearest Airport:</strong> 25 km
+                 {/* Contact Information - Only show if available */}
+                 {(property.contactName || property.contactPhone || property.contactEmail) && (
+                   <div className="mt-6">
+                     <h3 className="text-lg font-semibold text-white mb-3 text-center">Contact Information</h3>
+                     <div className="space-y-3 text-center">
+                       {property.contactName && (
+                         <div className="text-white/90">
+                           <strong>Contact:</strong> {property.contactName}
+                         </div>
+                       )}
+                       {property.contactPhone && (
+                         <div className="text-white/90">
+                           <strong>Phone:</strong> {property.contactPhone}
+                         </div>
+                       )}
+                       {property.contactEmail && (
+                         <div className="text-white/90">
+                           <strong>Email:</strong> {property.contactEmail}
+                         </div>
+                       )}
                      </div>
                    </div>
-                 </div>
-
-                 {/* Rental Terms */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Rental Terms & Conditions</h3>
-                   <div className="space-y-3">
-                     <div className="text-white/90">
-                       <strong>Minimum Lease:</strong> 12 months
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Security Deposit:</strong> 2 months rent
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Utilities:</strong> Not included in rent
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Pet Policy:</strong> Small pets allowed with additional deposit
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Maintenance:</strong> Landlord responsible for major repairs
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Notice Period:</strong> 30 days for lease termination
-                     </div>
-                   </div>
-                 </div>
-
-                 {/* Contact Information */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Contact Information</h3>
-                   <div className="space-y-3">
-                     <div className="text-white/90">
-                       <strong>Property Manager:</strong> John Smith
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Phone:</strong> +255 123 456 789
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Email:</strong> john.smith@rentapp.com
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Office Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Emergency Contact:</strong> +255 987 654 321
-                     </div>
-                   </div>
-                 </div>
-
-                 {/* Additional Information */}
-                 <div>
-                   <h3 className="text-lg font-semibold text-white mb-3">Additional Information</h3>
-                   <div className="space-y-3">
-                     <div className="text-white/90">
-                       <strong>Year Built:</strong> 2020
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Floor:</strong> 3rd Floor
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Orientation:</strong> South-facing
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Heating:</strong> Central heating system
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Cooling:</strong> Air conditioning in all rooms
-                     </div>
-                     <div className="text-white/90">
-                       <strong>Parking:</strong> 1 covered parking space included
-                     </div>
-                   </div>
-                 </div>
+                 )}
 
                </div>
              </div>
 
              {/* Show Images Button - Fixed at Bottom */}
              <div className="flex justify-center items-center pt-1 pb-2 px-4 flex-shrink-0">
-               <div className="w-3/4 h-0.5 bg-yellow-500 mb-2"></div>
+               <div className="w-3/4 h-0.5 bg-yellow-500 mb-1"></div>
              </div>
              <div className="flex justify-center items-center pb-2 px-4 flex-shrink-0">
                <button
