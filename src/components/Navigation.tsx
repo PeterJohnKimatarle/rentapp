@@ -215,6 +215,41 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             <span className="text-base font-medium">Logout</span>
           </button>
         )}
+        
+        {/* Close and Home Buttons - Only in popup mode */}
+        {variant === 'popup' && (
+          <div className="flex space-x-2 w-full">
+            <button
+              onClick={() => {
+                if (onItemClick) {
+                  onItemClick();
+                }
+                if (onHomeClick) {
+                  onHomeClick();
+                }
+              }}
+              className="text-white px-4 py-2 rounded-lg font-medium transition-colors text-center h-10 cursor-pointer flex-1"
+              style={{ backgroundColor: 'rgba(34, 197, 94, 0.8)' }}
+              onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
+              onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.8)'}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => {
+                if (onItemClick) {
+                  onItemClick();
+                }
+              }}
+              className="text-white px-4 py-2 rounded-lg font-medium transition-colors text-center h-10 cursor-pointer flex-1"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
+              onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+              onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
+            >
+              Close
+            </button>
+          </div>
+        )}
       </div>
 
     </nav>

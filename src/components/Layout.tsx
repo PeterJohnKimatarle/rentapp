@@ -262,21 +262,11 @@ export default function Layout({ children }: LayoutProps) {
                       closeButton.click();
                     }
                   });
+                  
+                  // Navigate to home page
+                  router.push('/');
                 }}
               />
-              
-              {/* Second Close Button - Bottom */}
-              <div className="px-4 pb-4">
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-2 text-white rounded-lg font-medium transition-colors text-center"
-                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
-                >
-                  Close
-                </button>
-              </div>
             </div>
           </div>
         </div>
