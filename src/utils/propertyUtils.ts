@@ -1,4 +1,4 @@
-import { Property as StaticProperty, properties as staticProperties } from '@/data/properties';
+import { properties as staticProperties } from '@/data/properties';
 
 // Interface for properties saved from the form (localStorage)
 export interface PropertyFormData {

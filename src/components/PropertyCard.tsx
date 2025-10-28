@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Bed, Bath, Square, Image, X, Calendar, Clock, Bookmark } from 'lucide-react';
+import { MapPin, Image, X, Clock, Bookmark } from 'lucide-react';
 import { Property } from '@/data/properties';
 import ImageLightbox from './ImageLightbox';
 import SharePopup from './SharePopup';

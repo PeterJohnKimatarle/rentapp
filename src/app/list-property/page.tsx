@@ -106,10 +106,10 @@ export default function ListPropertyPage() {
       return true; // Success
     } catch (error) {
       console.error('Failed to save property:', error);
-      console.log('Error details:', error.name, error.message);
+      console.log('Error details:', (error as Error).name, (error as Error).message);
       
       // Only try to manage storage if it's actually a quota error
-      if (error.name === 'QuotaExceededError') {
+      if ((error as Error).name === 'QuotaExceededError') {
         console.log('Storage quota exceeded, trying to make space...');
         try {
           // Keep only the last 10 properties to make room (more conservative)
@@ -613,7 +613,7 @@ export default function ListPropertyPage() {
                    />
                    <div className="text-left">
                      <h3 className="text-xl font-bold text-white leading-tight">Rentapp</h3>
-                     <p className="text-red-100 text-sm leading-tight">Tanzania's #1 Renting Platform</p>
+                     <p className="text-red-100 text-sm leading-tight">Tanzania&apos;s #1 Renting Platform</p>
                    </div>
                  </div>
                </div>

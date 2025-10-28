@@ -8,9 +8,12 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   area: number;
-  plan: '3+' | '6+';
+  plan: '3+' | '6+' | '12+';
   updatedAt: string;
   status: 'available' | 'occupied';
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 export const properties: Property[] = [];
