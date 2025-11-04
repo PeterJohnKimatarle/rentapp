@@ -159,6 +159,7 @@ export default function ListPropertyPage() {
     setTempMainImage('');
   };
 
+
   const handleAdditionalImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
@@ -190,6 +191,7 @@ export default function ListPropertyPage() {
     setTempAdditionalImages([]);
   };
 
+
   const removeTempAdditionalImage = (index: number) => {
     setTempAdditionalImages(prev => {
       const imageToRemove = prev[index];
@@ -208,6 +210,7 @@ export default function ListPropertyPage() {
     setTempAdditionalImages([]);
     setFormData(prev => ({ ...prev, additionalImages: [] }));
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -816,118 +819,44 @@ export default function ListPropertyPage() {
                     <div className="mb-4">
                       <div className="flex flex-col gap-2">
                         {tempAdditionalImages.map((image, index) => (
-                          <div 
-                            key={index} 
-                            className="flex gap-2 select-none"
-                            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-                            onMouseDown={() => {
-                              if (typeof window !== 'undefined' && window.getSelection) {
-                                window.getSelection()?.removeAllRanges();
-                              }
-                            }}
-                          >
+                          <div key={index} className="flex gap-2">
                             <img 
                               src={image} 
                               alt={`Additional ${index + 1}`} 
                               className="w-3/4 h-32 object-cover rounded border"
-                              draggable={false}
                             />
                             <button
                               type="button"
-                              tabIndex={-1}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                if (typeof window !== 'undefined' && window.getSelection) {
-                                  window.getSelection()?.removeAllRanges();
-                                }
-                                removeTempAdditionalImage(index);
-                                // Immediately reset color after click (for both mouse and touch)
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                btn.removeAttribute('data-pressed');
-                                btn.removeAttribute('data-touch');
-                              }}
+                              onClick={() => removeTempAdditionalImage(index)}
+                              onDragStart={(e) => e.preventDefault()}
                               onMouseDown={(e) => {
-                                e.stopPropagation();
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                btn.setAttribute('data-pressed', 'true');
-                                if (typeof window !== 'undefined' && window.getSelection) {
-                                  window.getSelection()?.removeAllRanges();
+                                // Prevent text selection on mouse down
+                                if (e.detail > 1) {
+                                  e.preventDefault(); // Prevent double-click selection
                                 }
                               }}
-                              onMouseUp={(e) => {
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                btn.removeAttribute('data-pressed');
-                              }}
-                              onTouchStart={(e) => {
-                                e.stopPropagation();
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                btn.setAttribute('data-pressed', 'true');
-                                btn.setAttribute('data-touch', 'true');
-                                if (typeof window !== 'undefined' && window.getSelection) {
-                                  window.getSelection()?.removeAllRanges();
-                                }
-                              }}
-                              onTouchEnd={(e) => {
-                                e.stopPropagation();
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                btn.removeAttribute('data-pressed');
-                                btn.removeAttribute('data-touch');
-                                if (typeof window !== 'undefined' && window.getSelection) {
-                                  window.getSelection()?.removeAllRanges();
-                                }
-                              }}
-                              onFocus={(e) => {
-                                e.currentTarget.blur();
-                                if (typeof window !== 'undefined' && window.getSelection) {
-                                  window.getSelection()?.removeAllRanges();
-                                }
-                              }}
-                              draggable={false}
-                              className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none"
+                              className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none outline-none focus:outline-none"
                               style={{ 
                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
                                 userSelect: 'none',
                                 WebkitUserSelect: 'none',
                                 MozUserSelect: 'none',
                                 msUserSelect: 'none',
-                                WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
+                                WebkitTapHighlightColor: 'transparent',
                                 outline: 'none',
                                 touchAction: 'manipulation'
                               }}
-                              onMouseEnter={(e) => {
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                // Only apply hover if button is not pressed and not being touched
-                                if (!btn.getAttribute('data-pressed') && !btn.getAttribute('data-touch')) {
-                                  btn.style.backgroundColor = 'rgba(59, 130, 246, 1)';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                const btn = e.currentTarget as HTMLButtonElement;
-                                // Only reset if not being touched
-                                if (!btn.getAttribute('data-touch')) {
-                                  btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                }
-                                btn.removeAttribute('data-pressed');
-                              }}
                             >
                               <span 
-                                className="select-none"
                                 style={{ 
                                   transform: 'scaleX(1.3)', 
-                                  display: 'inline-block',
-                                  userSelect: 'none',
-                                  WebkitUserSelect: 'none',
-                                  MozUserSelect: 'none',
-                                  msUserSelect: 'none',
-                                  pointerEvents: 'none'
+                                  display: 'inline-block', 
+                                  userSelect: 'none'
                                 }}
-                              >−</span>
+                              >
+                                −
+                              </span>
                             </button>
                           </div>
                         ))}
