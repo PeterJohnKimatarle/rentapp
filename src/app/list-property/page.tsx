@@ -842,8 +842,10 @@ export default function ListPropertyPage() {
                                   window.getSelection()?.removeAllRanges();
                                 }
                                 removeTempAdditionalImage(index);
-                                // Immediately reset color after click
+                                // Immediately reset color after click (for both mouse and touch)
                                 btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.removeAttribute('data-pressed');
+                                btn.removeAttribute('data-touch');
                               }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
@@ -858,6 +860,26 @@ export default function ListPropertyPage() {
                                 const btn = e.currentTarget as HTMLButtonElement;
                                 btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                                 btn.removeAttribute('data-pressed');
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.setAttribute('data-pressed', 'true');
+                                btn.setAttribute('data-touch', 'true');
+                                if (typeof window !== 'undefined' && window.getSelection) {
+                                  window.getSelection()?.removeAllRanges();
+                                }
+                              }}
+                              onTouchEnd={(e) => {
+                                e.stopPropagation();
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.removeAttribute('data-pressed');
+                                btn.removeAttribute('data-touch');
+                                if (typeof window !== 'undefined' && window.getSelection) {
+                                  window.getSelection()?.removeAllRanges();
+                                }
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.blur();
@@ -874,18 +896,23 @@ export default function ListPropertyPage() {
                                 MozUserSelect: 'none',
                                 msUserSelect: 'none',
                                 WebkitTapHighlightColor: 'transparent',
-                                outline: 'none'
+                                WebkitTouchCallout: 'none',
+                                outline: 'none',
+                                touchAction: 'manipulation'
                               }}
                               onMouseEnter={(e) => {
                                 const btn = e.currentTarget as HTMLButtonElement;
-                                // Only apply hover if button is not pressed
-                                if (!btn.getAttribute('data-pressed')) {
+                                // Only apply hover if button is not pressed and not being touched
+                                if (!btn.getAttribute('data-pressed') && !btn.getAttribute('data-touch')) {
                                   btn.style.backgroundColor = 'rgba(59, 130, 246, 1)';
                                 }
                               }}
                               onMouseLeave={(e) => {
                                 const btn = e.currentTarget as HTMLButtonElement;
-                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                // Only reset if not being touched
+                                if (!btn.getAttribute('data-touch')) {
+                                  btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                }
                                 btn.removeAttribute('data-pressed');
                               }}
                             >
