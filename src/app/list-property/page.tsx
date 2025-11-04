@@ -821,7 +821,7 @@ export default function ListPropertyPage() {
                             className="flex gap-2 select-none"
                             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                             onMouseDown={() => {
-                              if (window.getSelection) {
+                              if (typeof window !== 'undefined' && window.getSelection) {
                                 window.getSelection()?.removeAllRanges();
                               }
                             }}
@@ -837,20 +837,20 @@ export default function ListPropertyPage() {
                               tabIndex={-1}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (window.getSelection) {
+                                if (typeof window !== 'undefined' && window.getSelection) {
                                   window.getSelection()?.removeAllRanges();
                                 }
                                 removeTempAdditionalImage(index);
                               }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
-                                if (window.getSelection) {
+                                if (typeof window !== 'undefined' && window.getSelection) {
                                   window.getSelection()?.removeAllRanges();
                                 }
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.blur();
-                                if (window.getSelection) {
+                                if (typeof window !== 'undefined' && window.getSelection) {
                                   window.getSelection()?.removeAllRanges();
                                 }
                               }}
