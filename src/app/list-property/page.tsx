@@ -818,7 +818,13 @@ export default function ListPropertyPage() {
                         {tempAdditionalImages.map((image, index) => (
                           <div 
                             key={index} 
-                            className="flex gap-2"
+                            className="flex gap-2 select-none"
+                            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                            onMouseDown={() => {
+                              if (window.getSelection) {
+                                window.getSelection()?.removeAllRanges();
+                              }
+                            }}
                           >
                             <img 
                               src={image} 
@@ -831,14 +837,31 @@ export default function ListPropertyPage() {
                               tabIndex={-1}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                if (window.getSelection) {
+                                  window.getSelection()?.removeAllRanges();
+                                }
                                 removeTempAdditionalImage(index);
                               }}
-                              onFocus={(e) => e.currentTarget.blur()}
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                if (window.getSelection) {
+                                  window.getSelection()?.removeAllRanges();
+                                }
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.blur();
+                                if (window.getSelection) {
+                                  window.getSelection()?.removeAllRanges();
+                                }
+                              }}
                               draggable={false}
                               className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none"
                               style={{ 
                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
                                 userSelect: 'none',
+                                WebkitUserSelect: 'none',
+                                MozUserSelect: 'none',
+                                msUserSelect: 'none',
                                 WebkitTapHighlightColor: 'transparent',
                                 outline: 'none'
                               }}
@@ -853,7 +876,12 @@ export default function ListPropertyPage() {
                                 className="select-none"
                                 style={{ 
                                   transform: 'scaleX(1.3)', 
-                                  display: 'inline-block'
+                                  display: 'inline-block',
+                                  userSelect: 'none',
+                                  WebkitUserSelect: 'none',
+                                  MozUserSelect: 'none',
+                                  msUserSelect: 'none',
+                                  pointerEvents: 'none'
                                 }}
                               >−</span>
                             </button>
