@@ -67,10 +67,13 @@ export default function ListPropertyPage() {
   const [selectedWard, setSelectedWard] = useState('');
   const [customWard, setCustomWard] = useState('');
   const [showWardPopup, setShowWardPopup] = useState(false);
+  const [showMainImagePopup, setShowMainImagePopup] = useState(false);
+  const [showOtherImagesPopup, setShowOtherImagesPopup] = useState(false);
+  const [tempMainImage, setTempMainImage] = useState<string>('');
+  const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -121,14 +124,12 @@ export default function ListPropertyPage() {
           return true; // Success after cleanup
         } catch (quotaError) {
           console.error('Still failed after removing old properties:', quotaError);
-          setErrorMessage('Sorry, it seems we are having a technical issue. Please contact support@rentapp.co.tz or Call/Whatsapp on 0755-123-500 for further assistance.');
           setShowError(true);
           return false; // Failure
         }
       } else {
         // For other errors, just show the error without modifying existing data
         console.error('Non-quota error occurred:', error);
-        setErrorMessage('Sorry, it seems we are having a technical issue. Please contact support@rentapp.co.tz or Call/Whatsapp on 0755-123-500 for further assistance.');
         setShowError(true);
         return false; // Failure
       }
@@ -144,10 +145,18 @@ export default function ListPropertyPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setFormData(prev => ({ ...prev, mainImage: e.target?.result as string }));
+        setTempMainImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+      // Reset input value to allow selecting the same file again
+      event.target.value = '';
     }
+  };
+
+  const handleMainImagePopupOk = () => {
+    setFormData(prev => ({ ...prev, mainImage: tempMainImage }));
+    setShowMainImagePopup(false);
+    setTempMainImage('');
   };
 
   const handleAdditionalImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,20 +171,42 @@ export default function ListPropertyPage() {
       });
 
       Promise.all(imagePromises).then(base64Images => {
-        setFormData(prev => ({ ...prev, additionalImages: [...prev.additionalImages, ...base64Images] }));
+        setTempAdditionalImages(prev => {
+          // Filter out duplicates by comparing base64 strings
+          const uniqueNewImages = base64Images.filter(newImage => 
+            !prev.some(existingImage => existingImage === newImage)
+          );
+          return [...prev, ...uniqueNewImages];
+        });
       });
+      // Reset input value to allow selecting the same files again
+      event.target.value = '';
     }
   };
 
-  const removeMainImage = () => {
-    setFormData(prev => ({ ...prev, mainImage: '' }));
+  const handleOtherImagesPopupOk = () => {
+    setFormData(prev => ({ ...prev, additionalImages: tempAdditionalImages }));
+    setShowOtherImagesPopup(false);
+    setTempAdditionalImages([]);
   };
 
-  const removeAdditionalImage = (index: number) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      additionalImages: prev.additionalImages.filter((_, i) => i !== index) 
-    }));
+  const removeTempAdditionalImage = (index: number) => {
+    setTempAdditionalImages(prev => {
+      const imageToRemove = prev[index];
+      // Remove from temp
+      const updatedTemp = prev.filter((_, i) => i !== index);
+      // Also remove from form data by matching the base64 string
+      setFormData(formPrev => ({
+        ...formPrev,
+        additionalImages: formPrev.additionalImages.filter(img => img !== imageToRemove)
+      }));
+      return updatedTemp;
+    });
+  };
+
+  const removeAllTempAdditionalImages = () => {
+    setTempAdditionalImages([]);
+    setFormData(prev => ({ ...prev, additionalImages: [] }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,12 +234,14 @@ export default function ListPropertyPage() {
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('propertyAdded', { detail: property }));
 
-    // Show success message
-    setShowSuccess(true);
-    setIsSubmitting(false);
-
-    // Reset form and redirect to homepage
+    // Wait 2 seconds to show submit animation
     setTimeout(() => {
+      // Show success message
+      setShowSuccess(true);
+      setIsSubmitting(false);
+
+      // Reset form and redirect to homepage
+      setTimeout(() => {
       setFormData({
         propertyType: '',
         status: '',
@@ -228,11 +261,12 @@ export default function ListPropertyPage() {
       // Redirect to homepage to see the new property
       router.push('/');
     }, 2000);
+    }, 2000); // 2 second delay to show submit animation
   };
 
   // Prevent body scroll when popup is open
   useEffect(() => {
-    if (showWardPopup) {
+    if (showWardPopup || showMainImagePopup || showOtherImagesPopup) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -242,7 +276,7 @@ export default function ListPropertyPage() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [showWardPopup]);
+  }, [showWardPopup, showMainImagePopup, showOtherImagesPopup]);
   return (
     <Layout>
         <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto px-1 sm:px-2 lg:px-4">
@@ -459,8 +493,9 @@ export default function ListPropertyPage() {
                    <button 
                      type="button"
                      onClick={() => {
-                       // Open file picker
-                       document.getElementById('main-image-upload')?.click();
+                       // Open popup
+                       setTempMainImage(formData.mainImage); // Load current image into temp
+                       setShowMainImagePopup(true);
                      }}
                      className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black" 
                      style={{ backgroundColor: 'white' }}
@@ -469,27 +504,6 @@ export default function ListPropertyPage() {
                      <span className="text-base whitespace-nowrap">Main image ({formData.mainImage ? '1' : '0'})</span>
                    </button>
                </label>
-               
-               {/* Main Image Preview */}
-               {formData.mainImage && (
-                 <div className="mt-2">
-                   <div className="text-xs text-gray-600 mb-1">Main Image:</div>
-                   <div className="relative">
-                     <img 
-                       src={formData.mainImage} 
-                       alt="Main" 
-                       className="w-full h-20 object-cover rounded border"
-                     />
-                     <button
-                       type="button"
-                       onClick={removeMainImage}
-                       className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
-                     >
-                       ×
-                     </button>
-                   </div>
-                 </div>
-               )}
              </div>
 
              {/* Other Images Button */}
@@ -506,8 +520,9 @@ export default function ListPropertyPage() {
                    <button 
                      type="button"
                      onClick={() => {
-                       // Open file picker
-                       document.getElementById('additional-images-upload')?.click();
+                       // Open popup
+                       setTempAdditionalImages([...formData.additionalImages]); // Load current images into temp
+                       setShowOtherImagesPopup(true);
                      }}
                      className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black" 
                      style={{ backgroundColor: 'white' }}
@@ -516,31 +531,6 @@ export default function ListPropertyPage() {
                      <span className="text-base whitespace-nowrap">Other images ({formData.additionalImages.length})</span>
                    </button>
                </label>
-               
-               {/* Additional Images Preview */}
-               {formData.additionalImages.length > 0 && (
-                 <div className="mt-2">
-                   <div className="text-xs text-gray-600 mb-1">Other Images:</div>
-                   <div className="grid grid-cols-4 gap-1">
-                     {formData.additionalImages.map((image, index) => (
-                       <div key={index} className="relative">
-                         <img 
-                           src={image} 
-                           alt={`Additional ${index + 1}`} 
-                           className="w-full h-12 object-cover rounded border"
-                         />
-                         <button
-                           type="button"
-                           onClick={() => removeAdditionalImage(index)}
-                           className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs"
-                         >
-                           ×
-                         </button>
-                       </div>
-                     ))}
-                   </div>
-                 </div>
-               )}
              </div>
            </div>
          </div>
@@ -720,6 +710,207 @@ export default function ListPropertyPage() {
                   >
                     Add Ward
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Image Popup */}
+          {showMainImagePopup && (
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div 
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden" 
+                style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-white">Main image</h3>
+                </div>
+                
+                {/* Image Preview (if temp image exists) */}
+                {tempMainImage && (
+                  <div className="mb-4">
+                    <img 
+                      src={tempMainImage} 
+                      alt="Main image preview" 
+                      className="w-full h-32 object-cover rounded border"
+                    />
+                  </div>
+                )}
+                
+                {/* Buttons */}
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleMainImageUpload}
+                    className="hidden"
+                    id="main-image-upload-popup"
+                  />
+                  <button
+                    type="button"
+                    className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
+                    style={{ backgroundColor: 'white' }}
+                    onClick={() => {
+                      document.getElementById('main-image-upload-popup')?.click();
+                    }}
+                  >
+                    <Image size={20} />
+                    <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change image' : 'Add image'} ({tempMainImage ? '1' : '0'})</span>
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      onClick={() => {
+                        if (tempMainImage) {
+                          setTempMainImage('');
+                          setFormData(prev => ({ ...prev, mainImage: '' }));
+                          // Reset file input to allow selecting the same file again
+                          const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
+                          if (input) input.value = '';
+                        } else {
+                          setShowMainImagePopup(false);
+                          setTempMainImage('');
+                        }
+                      }}
+                    >
+                      {tempMainImage ? 'Remove' : 'Cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                      onClick={handleMainImagePopupOk}
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Other Images Popup */}
+          {showOtherImagesPopup && (
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div 
+                className="rounded-xl w-full mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" 
+                style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header - Fixed */}
+                <div className="text-center p-4 pb-2 flex-shrink-0">
+                  <h3 className="text-xl font-bold text-white">Other images</h3>
+                </div>
+                
+                {/* Images Preview - Scrollable */}
+                <div className="flex-1 overflow-y-auto px-4">
+                  {tempAdditionalImages.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex flex-col gap-2">
+                        {tempAdditionalImages.map((image, index) => (
+                          <div 
+                            key={index} 
+                            className="flex gap-2"
+                          >
+                            <img 
+                              src={image} 
+                              alt={`Additional ${index + 1}`} 
+                              className="w-3/4 h-32 object-cover rounded border"
+                              draggable={false}
+                            />
+                            <button
+                              type="button"
+                              tabIndex={-1}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeTempAdditionalImage(index);
+                              }}
+                              onFocus={(e) => e.currentTarget.blur()}
+                              draggable={false}
+                              className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none"
+                              style={{ 
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                userSelect: 'none',
+                                WebkitTapHighlightColor: 'transparent',
+                                outline: 'none'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                              }}
+                            >
+                              <span 
+                                className="select-none"
+                                style={{ 
+                                  transform: 'scaleX(1.3)', 
+                                  display: 'inline-block'
+                                }}
+                              >−</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Buttons - Fixed */}
+                <div className="flex flex-col gap-2 p-4 pt-2 flex-shrink-0">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleAdditionalImagesUpload}
+                    className="hidden"
+                    id="additional-images-upload-popup"
+                  />
+                  <button
+                    type="button"
+                    className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
+                    style={{ backgroundColor: 'white' }}
+                    onClick={() => {
+                      document.getElementById('additional-images-upload-popup')?.click();
+                    }}
+                  >
+                    <Image size={20} />
+                    <span className="text-base whitespace-nowrap">Add images ({tempAdditionalImages.length})</span>
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      onClick={() => {
+                        if (tempAdditionalImages.length > 0) {
+                          removeAllTempAdditionalImages();
+                          // Reset file input to allow selecting the same files again
+                          const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
+                          if (input) input.value = '';
+                        } else {
+                          setShowOtherImagesPopup(false);
+                          setTempAdditionalImages([]);
+                        }
+                      }}
+                    >
+                      {tempAdditionalImages.length > 0 ? 'Remove all' : 'Cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                      onClick={handleOtherImagesPopupOk}
+                    >
+                      OK
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
