@@ -837,16 +837,27 @@ export default function ListPropertyPage() {
                               tabIndex={-1}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                const btn = e.currentTarget as HTMLButtonElement;
                                 if (typeof window !== 'undefined' && window.getSelection) {
                                   window.getSelection()?.removeAllRanges();
                                 }
                                 removeTempAdditionalImage(index);
+                                // Immediately reset color after click
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                               }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.setAttribute('data-pressed', 'true');
                                 if (typeof window !== 'undefined' && window.getSelection) {
                                   window.getSelection()?.removeAllRanges();
                                 }
+                              }}
+                              onMouseUp={(e) => {
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.removeAttribute('data-pressed');
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.blur();
@@ -866,10 +877,16 @@ export default function ListPropertyPage() {
                                 outline: 'none'
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 1)';
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                // Only apply hover if button is not pressed
+                                if (!btn.getAttribute('data-pressed')) {
+                                  btn.style.backgroundColor = 'rgba(59, 130, 246, 1)';
+                                }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                btn.removeAttribute('data-pressed');
                               }}
                             >
                               <span 
