@@ -263,7 +263,7 @@ export default function ListPropertyPage() {
       
       // Redirect to homepage to see the new property
       router.push('/');
-    }, 2000);
+    }, 5000);
     }, 2000); // 2 second delay to show submit animation
   };
 
@@ -584,10 +584,10 @@ export default function ListPropertyPage() {
 
          {/* Success Message */}
          {showSuccess && (
-           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8">
              <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-               <h3 className="text-xl font-bold mb-2">Property Listed Successfully!</h3>
-               <p>Your property has been added to Rentapp.</p>
+               <h2 className="text-2xl font-bold mb-2">Congratulations!</h2>
+               <h3 className="text-xl font-bold">Property Listed Successfully!</h3>
              </div>
            </div>
          )}
@@ -645,7 +645,7 @@ export default function ListPropertyPage() {
                    onClick={() => setShowError(false)}
                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium transition-colors"
                  >
-                   Got it
+                   Ok, I got it
                  </button>
                </div>
              </div>
@@ -884,7 +884,7 @@ export default function ListPropertyPage() {
                     }}
                   >
                     <Image size={20} />
-                    <span className="text-base whitespace-nowrap">Add images ({tempAdditionalImages.length})</span>
+                    <span className="text-base whitespace-nowrap">{tempAdditionalImages.length > 0 ? 'Add more images' : 'Add images'} ({tempAdditionalImages.length})</span>
                   </button>
                   <div className="flex gap-2">
                     <button

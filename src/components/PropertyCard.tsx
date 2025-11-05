@@ -464,16 +464,16 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
               
               <div className="flex space-x-3">
                 <button
-                  onClick={handleCancelBookmark}
-                  className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  No
-                </button>
-                <button
                   onClick={handleSaveProperty}
                   className="flex-1 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   Yes
+                </button>
+                <button
+                  onClick={handleCancelBookmark}
+                  className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  No
                 </button>
               </div>
             </div>

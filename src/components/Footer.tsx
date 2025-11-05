@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Info, X } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -66,55 +66,58 @@ export default function Footer() {
           onClick={() => setIsGestureInfoOpen(false)}
         >
           <div 
-            className="rounded-xl max-w-md w-full py-6 px-6 shadow-2xl overflow-hidden"
+            className="rounded-xl max-w-72 w-full py-6 px-6 shadow-2xl overflow-hidden"
             style={{ backgroundColor: '#0071c2' }}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="text-center mb-4">
               <h2 className="text-2xl font-bold text-white">Swipe Gestures</h2>
-              <button
-                onClick={() => setIsGestureInfoOpen(false)}
-                className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-              >
-                <X size={20} />
-              </button>
             </div>
 
             {/* Gesture Information - Simple and Clear */}
             <div className="space-y-3 text-white">
               {/* Navigation Menu */}
-              <div className="bg-blue-600 bg-opacity-50 rounded-lg px-4 py-2">
-                <div className="space-y-0">
-                  <div className="flex items-center gap-3 whitespace-nowrap">
-                    <span className="text-4xl text-yellow-300 flex-shrink-0">←</span>
-                    <span className="text-base">Open menu (Swipe to the left)</span>
+              <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>←</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Open menu</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Swipe to the left</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 whitespace-nowrap">
-                    <span className="text-4xl text-yellow-300 flex-shrink-0">→</span>
-                    <span className="text-base">Close menu (Swipe to the right)</span>
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>→</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Close menu</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Swipe to the right</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Search Popup */}
-              <div className="bg-blue-600 bg-opacity-50 rounded-lg px-4 py-2">
-                <div className="space-y-0">
-                  <div className="flex items-center gap-3 whitespace-nowrap">
-                    <span className="text-4xl text-yellow-300 flex-shrink-0">→</span>
-                    <span className="text-base">Open search (Swipe to the right)</span>
+              <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>→</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Open search</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Swipe to the right</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 whitespace-nowrap">
-                    <span className="text-4xl text-yellow-300 flex-shrink-0">←</span>
-                    <span className="text-base">Close search (Swipe to the left)</span>
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>←</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Close search</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Swipe to the left</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <p className="text-sm text-blue-100 text-center mt-4">
+              <p className="text-sm text-center mt-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                 💡 Gestures work across the app
               </p>
             </div>
@@ -127,7 +130,7 @@ export default function Footer() {
               onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
               onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
             >
-              Got it!
+              Ok, I got it
             </button>
           </div>
         </div>

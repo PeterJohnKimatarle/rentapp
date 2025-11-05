@@ -50,7 +50,7 @@ export default function Home() {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500 text-lg">No properties available at the moment.</p>
-              <p className="text-gray-400 text-sm mt-2">Check back later or list your own property!</p>
+              <p className="text-gray-400 text-sm mt-2">Check back later!</p>
             </div>
           )}
         </div>
