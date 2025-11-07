@@ -1,9 +1,10 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image } from 'lucide-react';
+import { Image, Info } from 'lucide-react';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 // Ward data organized by region (most common and well-known wards, alphabetically sorted)
 const wardsByRegion = {
@@ -71,6 +72,10 @@ export default function ListPropertyPage() {
   const [showOtherImagesPopup, setShowOtherImagesPopup] = useState(false);
   const [tempMainImage, setTempMainImage] = useState<string>('');
   const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>([]);
+  const [originalMainImage, setOriginalMainImage] = useState<string>('');
+  const [originalAdditionalImages, setOriginalAdditionalImages] = useState<string[]>([]);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showRemoveAllInfo, setShowRemoveAllInfo] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -191,6 +196,19 @@ export default function ListPropertyPage() {
     setTempAdditionalImages([]);
   };
 
+  // Check if there are changes in the main image popup
+  const hasMainImageChanges = () => {
+    return tempMainImage !== originalMainImage;
+  };
+
+  // Check if there are changes in the other images popup
+  const hasOtherImagesChanges = () => {
+    if (tempAdditionalImages.length !== originalAdditionalImages.length) {
+      return true;
+    }
+    return tempAdditionalImages.some((img, idx) => img !== originalAdditionalImages[idx]);
+  };
+
 
   const removeTempAdditionalImage = (index: number) => {
     setTempAdditionalImages(prev => {
@@ -209,6 +227,27 @@ export default function ListPropertyPage() {
   const removeAllTempAdditionalImages = () => {
     setTempAdditionalImages([]);
     setFormData(prev => ({ ...prev, additionalImages: [] }));
+    // Reset file input
+    const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
+  // Long press handler for individual images
+  const handleImageLongPress = (e: React.TouchEvent | React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (tempAdditionalImages.length > 0) {
+      setShowDeleteAllConfirm(true);
+    }
+  };
+
+  const handleConfirmDeleteAll = () => {
+    removeAllTempAdditionalImages();
+    setShowDeleteAllConfirm(false);
+  };
+
+  const handleCancelDeleteAll = () => {
+    setShowDeleteAllConfirm(false);
   };
 
 
@@ -261,25 +300,14 @@ export default function ListPropertyPage() {
       setCustomWard('');
       setShowSuccess(false);
       
-      // Redirect to homepage to see the new property
-      router.push('/');
-    }, 5000);
+      // Go back to the previous page
+      router.back();
+    }, 4000);
     }, 2000); // 2 second delay to show submit animation
   };
 
   // Prevent body scroll when popup is open
-  useEffect(() => {
-    if (showWardPopup || showMainImagePopup || showOtherImagesPopup) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    // Cleanup function to restore scroll when component unmounts
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showWardPopup, showMainImagePopup, showOtherImagesPopup]);
+  usePreventScroll(showWardPopup || showMainImagePopup || showOtherImagesPopup || showSuccess || showError || showDeleteAllConfirm || showRemoveAllInfo);
   return (
     <Layout>
         <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto px-1 sm:px-2 lg:px-4">
@@ -498,6 +526,7 @@ export default function ListPropertyPage() {
                      onClick={() => {
                        // Open popup
                        setTempMainImage(formData.mainImage); // Load current image into temp
+                       setOriginalMainImage(formData.mainImage); // Store original for comparison
                        setShowMainImagePopup(true);
                      }}
                      className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black" 
@@ -525,6 +554,7 @@ export default function ListPropertyPage() {
                      onClick={() => {
                        // Open popup
                        setTempAdditionalImages([...formData.additionalImages]); // Load current images into temp
+                       setOriginalAdditionalImages([...formData.additionalImages]); // Store original for comparison
                        setShowOtherImagesPopup(true);
                      }}
                      className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black" 
@@ -570,8 +600,8 @@ export default function ListPropertyPage() {
                    setSelectedRegion('');
                    setSelectedWard('');
                    setCustomWard('');
-                   // Redirect to homepage
-                   router.push('/');
+                   // Go back to the previous page
+                   router.back();
                  }}
                  className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12" 
                  style={{ backgroundColor: 'rgb(239, 68, 68)' }}
@@ -584,17 +614,17 @@ export default function ListPropertyPage() {
 
          {/* Success Message */}
          {showSuccess && (
-           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8">
-             <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-               <h2 className="text-2xl font-bold mb-2">Congratulations!</h2>
-               <h3 className="text-xl font-bold">Property Listed Successfully!</h3>
-             </div>
+           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
+            <div className="bg-green-500 text-white p-6 rounded-lg text-center">
+              <h2 className="text-2xl font-bold mb-2">Congratulations..!</h2>
+              <h3 className="text-xl font-bold">Property Listed Successfully.</h3>
+            </div>
            </div>
          )}
 
          {/* Custom Error Modal */}
          {showError && (
-           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
              <div className="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
                {/* Header */}
                <div className="bg-red-500 px-6 py-4 text-center">
@@ -657,6 +687,7 @@ export default function ListPropertyPage() {
           {showWardPopup && (
             <div 
               className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
               onClick={(e) => e.stopPropagation()}
             >
               <div 
@@ -722,6 +753,7 @@ export default function ListPropertyPage() {
           {showMainImagePopup && (
             <div 
               className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
               onClick={(e) => e.stopPropagation()}
             >
               <div 
@@ -768,28 +800,25 @@ export default function ListPropertyPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
-                      onClick={() => {
-                        if (tempMainImage) {
-                          setTempMainImage('');
-                          setFormData(prev => ({ ...prev, mainImage: '' }));
-                          // Reset file input to allow selecting the same file again
-                          const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
-                          if (input) input.value = '';
-                        } else {
-                          setShowMainImagePopup(false);
-                          setTempMainImage('');
-                        }
-                      }}
+                      className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                      onClick={handleMainImagePopupOk}
+                      disabled={!hasMainImageChanges()}
                     >
-                      {tempMainImage ? 'Remove' : 'Cancel'}
+                      OK
                     </button>
                     <button
                       type="button"
-                      className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
-                      onClick={handleMainImagePopupOk}
+                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      onClick={() => {
+                        // Restore original image and close popup (discard all changes)
+                        setTempMainImage(originalMainImage);
+                        setShowMainImagePopup(false);
+                        // Reset file input
+                        const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
+                        if (input) input.value = '';
+                      }}
                     >
-                      OK
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -801,6 +830,7 @@ export default function ListPropertyPage() {
           {showOtherImagesPopup && (
             <div 
               className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
               onClick={(e) => e.stopPropagation()}
             >
               <div 
@@ -809,8 +839,20 @@ export default function ListPropertyPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header - Fixed */}
-                <div className="text-center p-4 pb-2 flex-shrink-0">
-                  <h3 className="text-xl font-bold text-white">Other images</h3>
+                <div className="p-4 pb-2 flex-shrink-0 relative">
+                  <div className="flex items-center justify-center">
+                    <h3 className="text-xl font-bold text-white">Other images</h3>
+                  </div>
+                  {tempAdditionalImages.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowRemoveAllInfo(true)}
+                      className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center"
+                      title="How to remove all images"
+                    >
+                      <Info size={22} className="text-white" />
+                    </button>
+                  )}
                 </div>
                 
                 {/* Images Preview - Scrollable */}
@@ -824,6 +866,30 @@ export default function ListPropertyPage() {
                               src={image} 
                               alt={`Additional ${index + 1}`} 
                               className="w-3/4 h-32 object-cover rounded border"
+                              onTouchStart={(e) => {
+                                const timer = setTimeout(() => {
+                                  handleImageLongPress(e);
+                                }, 800);
+                                (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = timer;
+                              }}
+                              onTouchEnd={(e) => {
+                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                if (timer) {
+                                  clearTimeout(timer);
+                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                }
+                              }}
+                              onTouchMove={(e) => {
+                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                if (timer) {
+                                  clearTimeout(timer);
+                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                }
+                              }}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                handleImageLongPress(e);
+                              }}
                             />
                             <button
                               type="button"
@@ -889,29 +955,128 @@ export default function ListPropertyPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
-                      onClick={() => {
-                        if (tempAdditionalImages.length > 0) {
-                          removeAllTempAdditionalImages();
-                          // Reset file input to allow selecting the same files again
-                          const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
-                          if (input) input.value = '';
-                        } else {
-                          setShowOtherImagesPopup(false);
-                          setTempAdditionalImages([]);
-                        }
-                      }}
-                    >
-                      {tempAdditionalImages.length > 0 ? 'Remove all' : 'Cancel'}
-                    </button>
-                    <button
-                      type="button"
                       className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
                       onClick={handleOtherImagesPopupOk}
+                      disabled={!hasOtherImagesChanges()}
                     >
                       OK
                     </button>
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      onClick={() => {
+                        // Restore original images and close popup (discard all changes)
+                        setTempAdditionalImages([...originalAdditionalImages]);
+                        setShowOtherImagesPopup(false);
+                        // Reset file input
+                        const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
+                        if (input) input.value = '';
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Remove All Info Popup */}
+          {showRemoveAllInfo && (
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setShowRemoveAllInfo(false);
+                }
+                e.stopPropagation();
+              }}
+            >
+              <div 
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+                style={{ backgroundColor: '#0071c2' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-white mb-2">Remove All Images</h3>
+                  <p className="text-white/80 text-sm">Long press any image to remove all.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRemoveAllInfo(false)}
+                  className="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Ok, I got it
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete All Confirmation Popup */}
+          {showDeleteAllConfirm && (
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  handleCancelDeleteAll();
+                }
+                e.stopPropagation();
+              }}
+            >
+              <div 
+                className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+                style={{ backgroundColor: '#0071c2' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center mb-6">
+                  <div className="flex items-center justify-center mb-4">
+                    <div 
+                      className="w-16 rounded-lg flex items-center justify-center border-white"
+                      style={{ 
+                        height: '3.5rem',
+                        borderWidth: '3px',
+                        borderStyle: 'solid',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <span 
+                        className="text-white text-4xl font-bold"
+                        style={{ 
+                          transform: 'scaleX(1.3)', 
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          lineHeight: '1',
+                          width: '100%',
+                          height: '100%'
+                        }}
+                      >
+                        −
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Remove All Images</h3>
+                  <p className="text-white/80 text-sm">Are you sure you want to remove all images?</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleConfirmDeleteAll}
+                    className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelDeleteAll}
+                    className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                  >
+                    No
+                  </button>
                 </div>
               </div>
             </div>
@@ -919,3 +1084,15 @@ export default function ListPropertyPage() {
         </Layout>
       );
     }
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 // Ward data organized by region (exact match from listing page)
 const wardsByRegion = {
@@ -85,38 +86,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     }
   };
 
-  // Block background scroll when popup is open
-  useEffect(() => {
-    if (isOpen || showWardPopup) {
-      // Store scroll position before locking
-      const scrollY = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${scrollY}px`;
-      
-      return () => {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.top = '';
-        window.scrollTo(0, scrollY);
-      };
-    } else {
-      document.body.style.overflow = 'unset';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-    };
-  }, [isOpen, showWardPopup]);
+  // Block background scroll when popup is open (hook handles this)
 
   if (!isOpen) return null;
 
@@ -140,7 +110,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', minHeight: '100vh', height: '100%' }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -313,6 +283,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
       {showWardPopup && (
         <div 
           className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
         >
           <div 
             className="rounded-xl p-4 w-full mx-4 shadow-2xl transform scale-105 overflow-hidden" 

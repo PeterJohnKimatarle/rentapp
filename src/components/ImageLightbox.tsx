@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface ImageLightboxProps {
   images: string[];
@@ -70,6 +71,9 @@ export default function ImageLightbox({
     preloadImage(prevIndex);
   }, [currentIndex, images.length, preloadImage]);
 
+  // Prevent body scroll when lightbox is open
+  usePreventScroll(images.length > 0);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -80,16 +84,11 @@ export default function ImageLightbox({
         goToNext();
       }
     };
-
-    // Prevent body scroll when lightbox is open
-    document.body.style.overflow = 'hidden';
     
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      // Restore body scroll when lightbox is closed
-      document.body.style.overflow = 'unset';
     };
   }, [currentIndex, onClose, goToPrevious, goToNext]);
 
@@ -153,7 +152,7 @@ export default function ImageLightbox({
   };
 
   return (
-         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
 
       {/* Navigation Arrows - Desktop Only */}
       {images.length > 1 && (

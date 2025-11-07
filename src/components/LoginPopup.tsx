@@ -5,6 +5,7 @@ import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -22,23 +23,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
 
   // Prevent background scrolling when popup is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [isOpen]);
+  usePreventScroll(isOpen);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +57,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   return (
     <div 
       className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50"
+      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">

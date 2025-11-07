@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Share2, Copy, MessageCircle, Facebook, Mail, Smartphone, Link, Send } from 'lucide-react';
 import { ShareManager, ShareOptions } from '@/utils/shareUtils';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface SharePopupProps {
   isOpen: boolean;
@@ -13,6 +14,9 @@ interface SharePopupProps {
 export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopupProps) {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState<string | null>(null);
+
+  // Block background scroll when popup is open
+  usePreventScroll(isOpen);
 
   if (!isOpen) return null;
 
@@ -104,7 +108,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0)', touchAction: 'none', minHeight: '100vh', height: '100%' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div 

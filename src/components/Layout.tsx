@@ -9,12 +9,14 @@ import SearchPopup from './SearchPopup';
 import { Menu, X, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginPopup from './LoginPopup';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface LayoutProps {
   children: ReactNode;
+  titleCount?: number;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, titleCount }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
@@ -135,19 +137,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   // Prevent body scroll when menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      // Prevent body scroll when menu is open
-      document.body.style.overflow = 'hidden';
-    } else {
-      // Restore body scroll when menu is closed
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobileMenuOpen]);
+  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen);
 
   return (
     <div 
@@ -170,7 +160,12 @@ export default function Layout({ children }: LayoutProps) {
               onClick={handleBackClick}
               className="cursor-pointer"
             >
-              <h1 className="text-xl font-bold text-booking-blue">{getPageTitle()}</h1>
+              <h1 className="text-xl font-bold text-booking-blue">
+                {getPageTitle()}
+                {titleCount !== undefined && (
+                  <span className="ml-0.5 text-lg font-medium">[{titleCount}]</span>
+                )}
+              </h1>
             </button>
           </div>
         ) : (
@@ -225,6 +220,7 @@ export default function Layout({ children }: LayoutProps) {
       {isMobileMenuOpen && (
         <div 
           className="xl:hidden fixed inset-0 z-[60]"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Popup Content */}

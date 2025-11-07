@@ -1,17 +1,25 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Image, X, Clock, Bookmark } from 'lucide-react';
+import { MapPin, Image, X, Clock, Trash2, Minus, Heart, Pencil, Radio } from 'lucide-react';
 import { Property } from '@/data/properties';
+import { DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
 import ImageLightbox from './ImageLightbox';
 import SharePopup from './SharePopup';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface PropertyCardProps {
-  property: Property;
+  property: Property | DisplayProperty;
   onBookmarkClick?: () => void;
+  showMinusIcon?: boolean;
+  hideBookmark?: boolean;
+  showEditImageIcon?: boolean;
+  onEditImageClick?: () => void;
+  onStatusChange?: (newStatus: 'available' | 'occupied') => void;
+  onEditClick?: () => void;
 }
 
-export default function PropertyCard({ property, onBookmarkClick }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick }: PropertyCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFromHomescreen, setIsFromHomescreen] = useState(false);
@@ -23,7 +31,9 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
   const [isShareSpinning, setIsShareSpinning] = useState(false);
   const [isViewed, setIsViewed] = useState(false);
   const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
+  const [showRemoveBookmarkPopup, setShowRemoveBookmarkPopup] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
 
   // Restore scroll position when popup opens
@@ -53,32 +63,28 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
   }, [property.images]);
 
   // Prevent body scrolling when popup is open
+  usePreventScroll(isDetailsOpen || showBookmarkPopup || showRemoveBookmarkPopup || showSharePopup);
+
+  // Check bookmark status and listen for changes
   useEffect(() => {
-    if (isDetailsOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    // Cleanup function to restore scrolling when component unmounts
-    return () => {
-      document.body.style.overflow = 'unset';
+    const checkBookmarkStatus = () => {
+      setBookmarked(isBookmarked(property.id));
     };
-  }, [isDetailsOpen]);
 
-  // Prevent body scrolling when share popup is open
-  useEffect(() => {
-    if (showSharePopup) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    // Check initial status
+    checkBookmarkStatus();
 
-    // Cleanup function to restore scrolling when component unmounts
-    return () => {
-      document.body.style.overflow = 'unset';
+    // Listen for bookmark changes
+    const handleBookmarksChanged = () => {
+      checkBookmarkStatus();
     };
-  }, [showSharePopup]);
+
+    window.addEventListener('bookmarksChanged', handleBookmarksChanged);
+
+    return () => {
+      window.removeEventListener('bookmarksChanged', handleBookmarksChanged);
+    };
+  }, [property.id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-TZ', {
@@ -126,31 +132,50 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
     if (onBookmarkClick) {
       onBookmarkClick();
     } else {
-      setShowBookmarkPopup(true);
-      // Prevent page scrolling
-      document.body.style.overflow = 'hidden';
+      // If already bookmarked, show remove popup, otherwise show save popup
+      if (bookmarked) {
+        setShowRemoveBookmarkPopup(true);
+      } else {
+        setShowBookmarkPopup(true);
+      }
     }
   };
 
   const handleSaveProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Add save functionality here
+    // Save bookmark to localStorage
+    addBookmark(property.id);
+    setBookmarked(true); // Update state immediately
     setShowBookmarkPopup(false);
-    // Restore page scrolling
-    document.body.style.overflow = 'unset';
   };
 
   const handleCancelBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowBookmarkPopup(false);
-    // Restore page scrolling
-    document.body.style.overflow = 'unset';
+  };
+
+  const handleRemoveBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Remove bookmark from localStorage
+    removeBookmark(property.id);
+    setBookmarked(false); // Update state immediately
+    setShowRemoveBookmarkPopup(false);
+  };
+
+  const handleCancelRemoveBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowRemoveBookmarkPopup(false);
   };
 
   const getRelativeTime = (dateString: string) => {
     const now = new Date();
     const updatedAt = new Date(dateString);
-    const diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
+    let diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
+
+    // Ensure minimum is 2 seconds (handle 0, 1, and negative values)
+    if (diffInSeconds < 2) {
+      diffInSeconds = 2;
+    }
 
     if (diffInSeconds < 60) {
       return `${diffInSeconds} sec${diffInSeconds === 1 ? '' : 's'} ago`;
@@ -229,13 +254,64 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
               <Image size={16} className="w-4 h-4" />
               <span>{property.images.length}</span>
             </div>
-            <div 
-              className="absolute bottom-1 right-1 px-2 py-1.5 rounded-md flex items-center justify-center text-white text-sm cursor-pointer" 
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-              onClick={handleBookmarkClick}
-            >
-              <Bookmark size={16} className="w-4 h-4" />
-            </div>
+            
+            {/* Edit Image Icon */}
+            {showEditImageIcon && onEditImageClick && (
+              <div 
+                className={`absolute ${hideBookmark ? 'bottom-1 right-1' : 'top-1 right-1'} px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-10`}
+                style={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditImageClick();
+                }}
+                title="Edit Images"
+              >
+                <Pencil 
+                  size={24} 
+                  className="w-6 h-6" 
+                  style={{ 
+                    color: 'white',
+                    strokeWidth: 1.5
+                  }}
+                />
+              </div>
+            )}
+            
+            {!hideBookmark && (
+              <div 
+                className="absolute bottom-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer" 
+                style={{ 
+                  backgroundColor: showMinusIcon ? '#ef4444' : 'rgba(0, 0, 0, 0.5)'
+                }}
+                onClick={handleBookmarkClick}
+              >
+                {showMinusIcon ? (
+                  <span 
+                    className="text-xl font-bold w-6 h-6 flex items-center justify-center"
+                    style={{ 
+                      transform: 'scaleX(1.3)', 
+                      userSelect: 'none',
+                      color: 'white',
+                      lineHeight: '1'
+                    }}
+                  >
+                    −
+                  </span>
+                ) : (
+                  <Heart 
+                    size={24} 
+                    className="w-6 h-6" 
+                    style={{ 
+                      color: bookmarked ? 'white' : 'white', 
+                      fill: bookmarked ? '#ef4444' : 'none',
+                      strokeWidth: bookmarked ? 1.5 : 1.5
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* Property Details */}
@@ -260,12 +336,53 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
               <Clock size={10} className="mr-0.5 flex-shrink-0" style={{ transform: 'translateY(0.25px)' }} />
               <span>Updated: {getRelativeTime(property.updatedAt)}</span>
             </div>
-            <button
-              onClick={handleShareClick}
-              className={`bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded ml-0.5 ${isShareSpinning ? 'rotate-[10deg]' : ''}`}
-            >
-              Share this property
-            </button>
+            {hideBookmark && (onStatusChange || onEditClick) && (
+              <div className="flex items-center gap-1.5 ml-0.5">
+                {onStatusChange && (
+                  <div className="relative flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors">
+                    <span>Status</span>
+                    <Radio size={15} />
+                    <select
+                      value={property.status}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const newStatus = e.target.value as 'available' | 'occupied';
+                          onStatusChange(newStatus);
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      title="Change Status"
+                    >
+                      <option value="">---</option>
+                      <option value="available">Available</option>
+                      <option value="occupied">Occupied</option>
+                    </select>
+                  </div>
+                )}
+                {onEditClick && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditClick();
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors flex items-center gap-1"
+                    title="Edit Property Details"
+                  >
+                    Details
+                    <Pencil size={15} />
+                  </button>
+                )}
+              </div>
+            )}
+            {!hideBookmark && (
+              <button
+                onClick={handleShareClick}
+                className={`bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded ml-0.5 ${isShareSpinning ? 'rotate-[10deg]' : ''}`}
+              >
+                Share this property
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -309,7 +426,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
       {isDetailsOpen && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
-          style={{ overflow: 'hidden' }}
+          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
           onClick={(e) => e.stopPropagation()}
         >
            <div 
@@ -318,19 +435,8 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
              onClick={(e: React.MouseEvent) => e.stopPropagation()}
            >
              {/* Header */}
-             <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0 relative" style={{ backgroundColor: '#0071c2' }}>
+             <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0" style={{ backgroundColor: '#0071c2' }}>
                <h2 className="text-xl font-semibold text-white px-4" style={{ borderBottom: '2px solid #eab308' }}>Property Details</h2>
-               <button
-                 onClick={() => setIsDetailsOpen(false)}
-                 className="absolute right-2 text-white transition-colors rounded-lg p-2 cursor-pointer"
-                 style={{ 
-                   backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                 }}
-                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-               >
-                 <X size={20} />
-               </button>
              </div>
 
              {/* Content - Scrollable */}
@@ -447,7 +553,7 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
       {showBookmarkPopup && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
-          style={{ overflow: 'hidden' }}
+          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div 
@@ -457,9 +563,9 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
           >
             <div className="text-center">
               <div className="mb-4">
-                <Bookmark size={48} className="mx-auto text-white mb-2" />
+                <Heart size={48} className="mx-auto text-white mb-2" />
                 <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Save this Property</h3>
-                <p className="text-white/80 text-sm">Do you want to save this property to your bookmarks?</p>
+                <p className="text-white/80 text-sm">Are you sure you want to save this property to your bookmarks?</p>
               </div>
               
               <div className="flex space-x-3">
@@ -471,6 +577,67 @@ export default function PropertyCard({ property, onBookmarkClick }: PropertyCard
                 </button>
                 <button
                   onClick={handleCancelBookmark}
+                  className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Bookmark Popup */}
+      {showRemoveBookmarkPopup && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div 
+            className="rounded-lg max-w-sm w-full p-6 shadow-lg"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="mx-auto mb-2 flex items-center justify-center">
+                  <div 
+                    style={{ 
+                      userSelect: 'none',
+                      border: '3px solid white',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem',
+                      width: '3rem',
+                      height: '3rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Minus 
+                      size={32} 
+                      className="text-white"
+                      strokeWidth={4}
+                      style={{ 
+                        transform: 'scaleX(1.3) scaleY(0.8)'
+                      }}
+                    />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Remove from Bookmarks</h3>
+                <p className="text-white/80 text-sm">Are you sure you want to remove this property from your bookmarks?</p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleRemoveBookmark}
+                  className="flex-1 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={handleCancelRemoveBookmark}
                   className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   No

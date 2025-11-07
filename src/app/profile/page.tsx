@@ -1,32 +1,16 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, X, Building, Bookmark, Mail } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { User, X, Building, Heart, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 export default function ProfilePage() {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   
   // Block background scroll when popup is open
-  useEffect(() => {
-    if (isEditPopupOpen || isPasswordPopupOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [isEditPopupOpen, isPasswordPopupOpen]);
+  usePreventScroll(isEditPopupOpen || isPasswordPopupOpen);
   
   // Static user data
   const [userData, setUserData] = useState({
@@ -187,7 +171,7 @@ export default function ProfilePage() {
               className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-blue-500 border-2 shadow-blue-100 flex items-center space-x-4"
             >
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Bookmark className="w-4 h-4 text-white" />
+                <Heart className="w-4 h-4 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-black">Bookmarks</h3>
             </a>
@@ -207,7 +191,7 @@ export default function ProfilePage() {
 
       {/* Edit Profile Popup */}
       {isEditPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
           <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
               <h3 className="text-xl font-semibold text-black">Edit Profile</h3>
@@ -318,7 +302,7 @@ export default function ProfilePage() {
 
       {/* Change Password Popup */}
       {isPasswordPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
           <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
               <h3 className="text-xl font-semibold text-black">Change Password</h3>

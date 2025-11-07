@@ -17,6 +17,10 @@ export default function Home() {
     const handlePropertyAdded = () => {
       setProperties(getAllProperties());
     };
+
+    const handlePropertyUpdated = () => {
+      setProperties(getAllProperties());
+    };
     
     // Also check for changes when component mounts/focuses
     const handleFocus = () => {
@@ -29,11 +33,15 @@ export default function Home() {
     // Listen for custom property added event
     window.addEventListener('propertyAdded', handlePropertyAdded);
     
+    // Listen for property updated event
+    window.addEventListener('propertyUpdated', handlePropertyUpdated);
+    
     window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('propertyAdded', handlePropertyAdded);
+      window.removeEventListener('propertyUpdated', handlePropertyUpdated);
       window.removeEventListener('focus', handleFocus);
     };
   }, []);

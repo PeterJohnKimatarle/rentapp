@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Settings, Phone, Info, PlusCircle, Bookmark, Building, User, LogIn, LogOut } from 'lucide-react';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -141,7 +141,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
                 : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
           }`}
         >
-          <Bookmark size={20} className="flex-shrink-0" />
+          <Heart size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">Bookmarks</span>
         </Link>
         

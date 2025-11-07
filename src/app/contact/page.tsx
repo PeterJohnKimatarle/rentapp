@@ -2,38 +2,14 @@
 
 import Layout from '@/components/Layout';
 import { Phone, X, MessageCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 export default function ContactPage() {
   const [isContactPopupOpen, setIsContactPopupOpen] = useState(false);
 
   // Block background scroll when popup is open
-  useEffect(() => {
-    if (isContactPopupOpen) {
-      // Store original overflow value
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.position = '';
-        document.body.style.width = '';
-      };
-    } else {
-      document.body.style.overflow = 'unset';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [isContactPopupOpen]);
+  usePreventScroll(isContactPopupOpen);
 
 
   const handlePhoneCardClick = () => {
@@ -118,7 +94,7 @@ export default function ContactPage() {
 
         {/* Contact Options Popup */}
         {isContactPopupOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
             <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black">Choose Contact Method</h3>

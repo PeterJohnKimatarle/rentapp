@@ -20,6 +20,7 @@ export interface PropertyFormData {
   contactPhone: string;
   contactEmail: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 // Combined property interface for display
@@ -77,7 +78,7 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
     bathrooms: bathrooms,
     area: parseInt(formData.squareFootage) || 0,
     plan: formData.paymentPlan as '3+' | '6+' | '12+',
-    updatedAt: formData.createdAt,
+    updatedAt: formData.updatedAt || formData.createdAt,
     status: formData.status as 'available' | 'occupied',
     propertyType: formData.propertyType,
     region: formData.region,
@@ -124,4 +125,167 @@ export const getPropertiesByStatus = (status: 'available' | 'occupied'): Display
 // Get available properties only
 export const getAvailableProperties = (): DisplayProperty[] => {
   return getPropertiesByStatus('available');
+};
+
+// Bookmark utilities
+const BOOKMARKS_STORAGE_KEY = 'rentapp_bookmarks';
+
+// Get all bookmarked property IDs
+export const getBookmarkedIds = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(BOOKMARKS_STORAGE_KEY) || '[]');
+  } catch (error) {
+    console.error('Error reading bookmarks:', error);
+    return [];
+  }
+};
+
+// Check if a property is bookmarked
+export const isBookmarked = (propertyId: string): boolean => {
+  const bookmarkedIds = getBookmarkedIds();
+  return bookmarkedIds.includes(propertyId);
+};
+
+// Add a property to bookmarks
+export const addBookmark = (propertyId: string): boolean => {
+  try {
+    const bookmarkedIds = getBookmarkedIds();
+    if (!bookmarkedIds.includes(propertyId)) {
+      bookmarkedIds.push(propertyId);
+      localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarkedIds));
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('bookmarksChanged'));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error adding bookmark:', error);
+    return false;
+  }
+};
+
+// Remove a property from bookmarks
+export const removeBookmark = (propertyId: string): boolean => {
+  try {
+    const bookmarkedIds = getBookmarkedIds();
+    const updatedIds = bookmarkedIds.filter(id => id !== propertyId);
+    localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(updatedIds));
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('bookmarksChanged'));
+    return true;
+  } catch (error) {
+    console.error('Error removing bookmark:', error);
+    return false;
+  }
+};
+
+// Get all bookmarked properties
+export const getBookmarkedProperties = (): DisplayProperty[] => {
+  const bookmarkedIds = getBookmarkedIds();
+  const allProperties = getAllProperties();
+  return allProperties.filter(property => bookmarkedIds.includes(property.id));
+};
+
+// Get only user-created properties (from localStorage, not static)
+export const getUserCreatedProperties = (): DisplayProperty[] => {
+  if (typeof window === 'undefined') return [];
+  
+  try {
+    const localStorageProperties: PropertyFormData[] = JSON.parse(
+      localStorage.getItem('rentapp_properties') || '[]'
+    );
+    
+    // Convert to display format
+    const convertedProperties = localStorageProperties.map(convertFormDataToDisplayProperty);
+    
+    // Sort by updatedAt (most recent first), fallback to createdAt if updatedAt doesn't exist
+    return convertedProperties.sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || '');
+      const dateB = new Date(b.updatedAt || b.createdAt || '');
+      return dateB.getTime() - dateA.getTime(); // Most recent first
+    });
+  } catch (error) {
+    console.error('Error reading user properties:', error);
+    return [];
+  }
+};
+
+// Update an existing property in localStorage
+export const updateProperty = (propertyId: string, updatedProperty: PropertyFormData): boolean => {
+  try {
+    const existingProperties: PropertyFormData[] = JSON.parse(
+      localStorage.getItem('rentapp_properties') || '[]'
+    );
+    
+    const propertyIndex = existingProperties.findIndex(p => p.id === propertyId);
+    
+    if (propertyIndex === -1) {
+      console.error('Property not found:', propertyId);
+      return false;
+    }
+    
+    // Update the property
+    existingProperties[propertyIndex] = {
+      ...updatedProperty,
+      id: propertyId, // Ensure ID doesn't change
+      createdAt: existingProperties[propertyIndex].createdAt, // Preserve original creation date
+      updatedAt: new Date().toISOString() // Set update timestamp
+    };
+    
+    localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('propertyUpdated', { detail: updatedProperty }));
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating property:', error);
+    return false;
+  }
+};
+
+// Get a property by ID from localStorage
+export const getPropertyById = (propertyId: string): PropertyFormData | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const localStorageProperties: PropertyFormData[] = JSON.parse(
+      localStorage.getItem('rentapp_properties') || '[]'
+    );
+    
+    return localStorageProperties.find(p => p.id === propertyId) || null;
+  } catch (error) {
+    console.error('Error reading property:', error);
+    return null;
+  }
+};
+
+// Delete a property from localStorage
+export const deleteProperty = (propertyId: string): boolean => {
+  try {
+    const existingProperties: PropertyFormData[] = JSON.parse(
+      localStorage.getItem('rentapp_properties') || '[]'
+    );
+    
+    const propertyIndex = existingProperties.findIndex(p => p.id === propertyId);
+    
+    if (propertyIndex === -1) {
+      console.error('Property not found:', propertyId);
+      return false;
+    }
+    
+    // Remove the property
+    existingProperties.splice(propertyIndex, 1);
+    
+    localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('propertyDeleted', { detail: propertyId }));
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    return false;
+  }
 };
