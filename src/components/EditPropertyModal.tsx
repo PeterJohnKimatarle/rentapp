@@ -47,6 +47,16 @@ function DeleteConfirmPopup({
   onConfirm: () => void; 
   onCancel: () => void;
 }) {
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      onCancel();
+    }, 60000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [onCancel]);
+
   const handleCancel = () => {
     onCancel();
   };
