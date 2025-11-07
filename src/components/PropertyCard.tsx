@@ -281,11 +281,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             
             {!hideBookmark && (
               <div 
-                className="absolute bottom-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer" 
+                className="absolute bottom-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-20" 
                 style={{ 
                   backgroundColor: showMinusIcon ? '#ef4444' : 'rgba(0, 0, 0, 0.5)'
                 }}
                 onClick={handleBookmarkClick}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
                 {showMinusIcon ? (
                   <span 

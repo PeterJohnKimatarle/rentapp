@@ -645,15 +645,8 @@ export default function ListPropertyPage() {
                <div className="px-6 py-6 text-center">
                  <div className="text-red-500 text-6xl mb-4">⚠️</div>
                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Technical Issue</h4>
-                 <p className="text-gray-600 mb-6 leading-relaxed">
-                   Sorry, it seems we are having a technical issue. Please contact{' '}
-                   <a 
-                     href="mailto:support@rentapp.co.tz" 
-                     className="text-blue-600 hover:text-blue-800 underline font-medium"
-                   >
-                     support@rentapp.co.tz
-                   </a>
-                   {' '}or Call/WA on{' '}
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Sorry, it seems we are having a technical issue. Please Call/WA on{' '}
                    <a 
                      href="tel:+255755123500" 
                      className="text-blue-600 hover:text-blue-800 underline font-medium"
@@ -999,8 +992,8 @@ export default function ListPropertyPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="text-center mb-4">
-                  <h3 className="text-xl font-bold text-white mb-2">Remove All Images</h3>
-                  <p className="text-white/80 text-sm">Long press any image to remove all.</p>
+                  <h2 className="text-2xl font-bold text-white mb-1.5">Long Press Gestures</h2>
+                  <p className="text-white/80 text-base"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
                 </div>
                 <button
                   type="button"

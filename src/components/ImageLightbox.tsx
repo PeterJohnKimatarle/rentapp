@@ -233,7 +233,12 @@ export default function ImageLightbox({
                      
                      <div className="text-blue-200 mb-4">
                        <div className="text-2xl font-semibold mb-1">Sorry!</div>
-                       <div className="text-lg">image {currentIndex + 1} is not available</div>
+                       <div className="text-lg">
+                         {images.length > 1 
+                           ? `Image ${currentIndex + 1} is not available`
+                           : 'No images available'
+                         }
+                       </div>
                      </div>
                      
                      {/* Call to Action */}
@@ -264,7 +269,7 @@ export default function ImageLightbox({
         
                {/* Image Counter */}
                <div className="absolute bottom-1 left-1 lg:bottom-3 lg:left-1 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                 <span className="font-medium">{currentIndex + 1} / {images.length}</span>
+                 <span className="font-medium">{images.length === 0 ? '0 / 0' : `${currentIndex + 1} / ${images.length}`}</span>
                </div>
       </div>
 
