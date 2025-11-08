@@ -123,7 +123,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
         {/* Header */}
         <div className="flex items-center justify-start mb-6 w-full relative">
           <h1 className="text-xl sm:text-2xl font-bold text-white">
-            Search for Properties
+            Search/Filter Properties
           </h1>
           <button
             onClick={onClose}
@@ -261,7 +261,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
             onClick={handleSearch}
             className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-medium transition-colors text-center"
           >
-            Search
+            Search/Filter
           </button>
         </div>
 

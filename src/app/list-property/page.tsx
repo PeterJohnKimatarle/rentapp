@@ -616,7 +616,7 @@ export default function ListPropertyPage() {
          {showSuccess && (
            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
             <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-              <h2 className="text-2xl font-bold mb-2">Congratulations..!</h2>
+              <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
               <h3 className="text-xl font-bold">Property Listed Successfully.</h3>
             </div>
            </div>

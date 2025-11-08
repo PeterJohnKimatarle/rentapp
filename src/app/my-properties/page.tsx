@@ -236,7 +236,7 @@ export default function MyPropertiesPage() {
       {showUpdateSuccess && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
           <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-2">Congratulations..!</h2>
+            <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
             <h3 className="text-xl font-bold">Property Updated Successfully.</h3>
           </div>
         </div>
@@ -246,8 +246,8 @@ export default function MyPropertiesPage() {
       {showDeleteSuccess && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
           <div className="bg-blue-500 p-6 rounded-lg text-center max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-2 text-red-400">Property deleted..!</h2>
-            <h3 className="text-xl font-bold text-white">The property has been removed successfully.</h3>
+            <h2 className="text-2xl font-bold mb-1 text-red-400">Property deleted..!</h2>
+            <h3 className="text-xl font-bold text-white">The property has been deleted successfully.</h3>
           </div>
         </div>
       )}
@@ -256,7 +256,7 @@ export default function MyPropertiesPage() {
       {showImageUpdateSuccess && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
           <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-2">Congratulations..!</h2>
+            <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
             <h3 className="text-xl font-bold">Property Updated Successfully.</h3>
           </div>
         </div>
