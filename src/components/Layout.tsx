@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect, useRef } from 'react';
+import { ReactNode, useState, useEffect, useRef, useMemo } from 'react';
 import NextImage from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
@@ -13,10 +13,12 @@ import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface LayoutProps {
   children: ReactNode;
-  titleCount?: number;
+  totalCount?: number;
+  filteredCount?: number;
+  hasActiveFilters?: boolean;
 }
 
-export default function Layout({ children, titleCount }: LayoutProps) {
+export default function Layout({ children, totalCount, filteredCount, hasActiveFilters = false }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
@@ -24,6 +26,16 @@ export default function Layout({ children, titleCount }: LayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+
+  const countLabel = useMemo(() => {
+    if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
+      return `${filteredCount}/${totalCount}`;
+    }
+    if (typeof totalCount === 'number') {
+      return `${totalCount}`;
+    }
+    return null;
+  }, [filteredCount, hasActiveFilters, totalCount]);
 
   // Touch event handlers for swipe gestures
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
@@ -162,8 +174,8 @@ export default function Layout({ children, titleCount }: LayoutProps) {
             >
               <h1 className="text-xl font-bold text-booking-blue">
                 {getPageTitle()}
-                {titleCount !== undefined && (
-                  <span className="ml-0.5 text-lg font-medium">[{titleCount}]</span>
+                {countLabel && (
+                  <span className="ml-0.5 text-lg font-medium">[{countLabel}]</span>
                 )}
               </h1>
             </button>

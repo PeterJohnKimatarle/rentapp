@@ -329,10 +329,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                   <option value="3-bdrm-apartment">3 Bdrm apartment</option>
                   <option value="4-bdrm-apartment">4 Bdrm apartment</option>
                   <option value="5-bdrm-apartment">5 Bdrm apartment</option>
-                  <option value="studio">Studio</option>
-                  <option value="house">House</option>
-                  <option value="villa">Villa</option>
-                  <option value="commercial">Commercial Space</option>
+                  <option value="commercial-building-frame">Commercial building (Frame)</option>
                 </select>
               </div>
               <div className="col-span-2">

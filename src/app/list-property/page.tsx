@@ -3,7 +3,7 @@
 import Layout from '@/components/Layout';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Info } from 'lucide-react';
+import { Image, Info, PlusCircle } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 // Ward data organized by region (most common and well-known wards, alphabetically sorted)
@@ -345,10 +345,7 @@ export default function ListPropertyPage() {
                      <option value="3-bdrm-apartment">3 Bdrm apartment</option>
                      <option value="4-bdrm-apartment">4 Bdrm apartment</option>
                      <option value="5-bdrm-apartment">5 Bdrm apartment</option>
-                     <option value="studio">Studio</option>
-                     <option value="house">House</option>
-                     <option value="villa">Villa</option>
-                     <option value="commercial">Commercial Space</option>
+                     <option value="commercial-building-frame">Commercial building (Frame)</option>
                    </select>
                  </div>
                  <div className="col-span-2">
@@ -575,10 +572,26 @@ export default function ListPropertyPage() {
                <button 
                  type="submit"
                  disabled={isSubmitting}
-                 className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-12" 
+                 className={`w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 ${
+                   isSubmitting ? 'cursor-wait' : ''
+                 }`} 
                  style={{ backgroundColor: 'rgb(34, 197, 94)' }}
                >
-                 <span className="text-base">{isSubmitting ? 'Submitting...' : 'Submit'}</span>
+                 {isSubmitting ? (
+                  <span className="text-base flex items-center gap-1">
+                    Posting
+                    <span className="inline-flex items-center gap-0.5 translate-y-0.5">
+                      <span className="w-1 h-1 rounded-full bg-white animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="w-1 h-1 rounded-full bg-white animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="w-1 h-1 rounded-full bg-white animate-bounce"></span>
+                    </span>
+                  </span>
+                ) : (
+                  <>
+                    <PlusCircle size={18} />
+                    <span className="text-base">Post</span>
+                  </>
+                )}
                </button>
              </div>
              <div className="flex-1">
@@ -788,7 +801,7 @@ export default function ListPropertyPage() {
                     }}
                   >
                     <Image size={20} />
-                    <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change image' : 'Add image'} ({tempMainImage ? '1' : '0'})</span>
+                    <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change main image' : 'Add main image'} ({tempMainImage ? '1' : '0'})</span>
                   </button>
                   <div className="flex gap-2">
                     <button

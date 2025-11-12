@@ -5,8 +5,15 @@ import PropertyCard from '@/components/PropertyCard';
 import EditPropertyModal from '@/components/EditPropertyModal';
 import ImageEditModal from '@/components/ImageEditModal';
 import { getUserCreatedProperties, updateProperty, getPropertyById, deleteProperty, PropertyFormData } from '@/utils/propertyUtils';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+
+type SearchFilters = {
+  propertyType?: string;
+  status?: string;
+  region?: string;
+  ward?: string;
+};
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<ReturnType<typeof getUserCreatedProperties>>([]);
@@ -16,14 +23,17 @@ export default function MyPropertiesPage() {
   const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
   const [showUpdateSuccess, setShowUpdateSuccess] = useState(false);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
-  const [showImageUpdateSuccess, setShowImageUpdateSuccess] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
   // Prevent scroll when success messages are shown
-  usePreventScroll(showUpdateSuccess || showDeleteSuccess || showImageUpdateSuccess);
+  usePreventScroll(showUpdateSuccess || showDeleteSuccess);
 
   // Load properties on mount
   useEffect(() => {
     setProperties(getUserCreatedProperties());
+    setIsHydrated(true);
   }, []);
 
   // Update properties when localStorage changes
@@ -74,12 +84,81 @@ export default function MyPropertiesPage() {
     };
   }, []);
 
+  const applyFilters = useCallback((items: ReturnType<typeof getUserCreatedProperties>, filters: SearchFilters | null) => {
+    if (!filters) return items;
+
+    const normalise = (value?: string) => value?.toLowerCase().trim();
+
+    return items.filter((property) => {
+      const matchesPropertyType = filters.propertyType
+        ? normalise(property.propertyType) === normalise(filters.propertyType)
+        : true;
+
+      const matchesStatus = filters.status ? property.status === filters.status : true;
+
+      const matchesRegion = filters.region
+        ? normalise(property.region) === normalise(filters.region)
+        : true;
+
+      const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
+
+      return matchesPropertyType && matchesStatus && matchesRegion && matchesWard;
+    });
+  }, []);
+
+  const filteredProperties = useMemo(
+    () => applyFilters(properties, activeFilters),
+    [properties, activeFilters, applyFilters]
+  );
+
+  useEffect(() => {
+    const handleSearch = (event: Event) => {
+      const { detail } = event as CustomEvent<SearchFilters>;
+      const filters = detail || {};
+
+      const hasFilters = Object.values(filters).some((value) => {
+        if (typeof value === 'string') {
+          return value.trim().length > 0;
+        }
+        return Boolean(value);
+      });
+
+      setActiveFilters(hasFilters ? filters : null);
+    };
+
+    window.addEventListener('rentappSearch', handleSearch as EventListener);
+
+    return () => {
+      window.removeEventListener('rentappSearch', handleSearch as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleSuccess = () => {
+      setShowUpdateSuccess(true);
+      window.setTimeout(() => {
+        setShowUpdateSuccess(false);
+      }, 2000);
+    };
+
+    window.addEventListener('propertyEditSuccess', handleSuccess);
+
+    return () => {
+      window.removeEventListener('propertyEditSuccess', handleSuccess);
+    };
+  }, []);
+
+  const hasActiveFilters = activeFilters !== null;
+
   const handleEditClick = (propertyId: string) => {
     try {
       const property = getPropertyById(propertyId);
       if (property) {
         setEditingProperty(property);
         setIsEditModalOpen(true);
+        setActivePropertyId(propertyId);
       }
     } catch (error) {
       console.error('Error loading property for editing:', error);
@@ -93,12 +172,7 @@ export default function MyPropertiesPage() {
         setProperties(getUserCreatedProperties());
         setIsEditModalOpen(false);
         setEditingProperty(null);
-        
-        // Show success message
-        setShowUpdateSuccess(true);
-        setTimeout(() => {
-          setShowUpdateSuccess(false);
-        }, 4000);
+        setActivePropertyId(editingProperty.id);
       }
     }
   };
@@ -114,6 +188,7 @@ export default function MyPropertiesPage() {
       if (property) {
         setEditingImageProperty(property);
         setIsImageEditModalOpen(true);
+        setActivePropertyId(propertyId);
       }
     } catch (error) {
       console.error('Error loading property for image editing:', error);
@@ -132,12 +207,7 @@ export default function MyPropertiesPage() {
         setProperties(getUserCreatedProperties());
         setIsImageEditModalOpen(false);
         setEditingImageProperty(null);
-        
-        // Show success message
-        setShowImageUpdateSuccess(true);
-        setTimeout(() => {
-          setShowImageUpdateSuccess(false);
-        }, 4000);
+        setActivePropertyId(editingImageProperty.id);
       }
     }
   };
@@ -153,6 +223,9 @@ export default function MyPropertiesPage() {
       setProperties(getUserCreatedProperties());
       setIsEditModalOpen(false);
       setEditingProperty(null);
+      if (activePropertyId === propertyId) {
+        setActivePropertyId(null);
+      }
       // Dispatch event to notify other components
       window.dispatchEvent(new CustomEvent('propertyDeleted'));
       
@@ -160,7 +233,7 @@ export default function MyPropertiesPage() {
         setShowDeleteSuccess(true);
         setTimeout(() => {
           setShowDeleteSuccess(false);
-        }, 4000);
+        }, 2000);
     }
   };
 
@@ -175,6 +248,7 @@ export default function MyPropertiesPage() {
         const success = updateProperty(propertyId, updatedProperty);
         if (success) {
           setProperties(getUserCreatedProperties());
+          setActivePropertyId(propertyId);
           // Dispatch event to notify other components
           window.dispatchEvent(new CustomEvent('propertyUpdated'));
         }
@@ -184,13 +258,29 @@ export default function MyPropertiesPage() {
     }
   };
 
+  if (!isHydrated) {
+    return (
+      <Layout totalCount={0} filteredCount={0} hasActiveFilters={false}>
+        <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-lg">Loading your properties...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
-    <Layout titleCount={properties.length}>
+    <Layout
+      totalCount={properties.length}
+      filteredCount={filteredProperties.length}
+      hasActiveFilters={hasActiveFilters}
+    >
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
         {/* Properties Grid */}
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
-          {properties.length > 0 ? (
-            properties.map((property) => (
+          {filteredProperties.length > 0 ? (
+            filteredProperties.map((property) => (
               <div key={property.id} className="relative">
                 <PropertyCard 
                   property={property} 
@@ -199,13 +289,23 @@ export default function MyPropertiesPage() {
                   onEditImageClick={() => handleEditImageClick(property.id)}
                   onStatusChange={(newStatus) => handleStatusChange(property.id, newStatus)}
                   onEditClick={() => handleEditClick(property.id)}
+                  onManageStart={() => setActivePropertyId(property.id)}
+                  isActiveProperty={activePropertyId === property.id}
                 />
               </div>
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-lg">You haven&apos;t listed any properties yet.</p>
-              <p className="text-gray-400 text-sm mt-2">Start listing your properties to see them here!</p>
+              <p className="text-gray-500 text-lg">
+                {properties.length === 0 && !hasActiveFilters
+                  ? "You haven't listed any properties yet."
+                  : 'No properties match your search.'}
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                {properties.length === 0 && !hasActiveFilters
+                  ? 'Start listing your properties to see them here!'
+                  : 'Adjust your filters or try again later.'}
+              </p>
             </div>
           )}
         </div>
@@ -248,16 +348,6 @@ export default function MyPropertiesPage() {
           <div className="bg-blue-500 p-6 rounded-lg text-center max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold mb-1 text-red-400">Property deleted..!</h2>
             <h3 className="text-xl font-bold text-white">The property has been deleted successfully.</h3>
-          </div>
-        </div>
-      )}
-
-      {/* Image Update Success Message */}
-      {showImageUpdateSuccess && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
-          <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
-            <h3 className="text-xl font-bold">Property Updated Successfully.</h3>
           </div>
         </div>
       )}

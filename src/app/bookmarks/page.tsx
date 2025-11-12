@@ -1,16 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { getBookmarkedProperties, removeBookmark, DisplayProperty } from '@/utils/propertyUtils';
 import { Heart } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
+type SearchFilters = {
+  propertyType?: string;
+  status?: string;
+  region?: string;
+  ward?: string;
+};
+
 export default function BookmarksPage() {
   const [bookmarkedProperties, setBookmarkedProperties] = useState<DisplayProperty[]>(getBookmarkedProperties());
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<DisplayProperty | null>(null);
+  const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
 
   // Update bookmarks when localStorage changes
   useEffect(() => {
@@ -33,6 +41,57 @@ export default function BookmarksPage() {
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
+
+  const applyFilters = useCallback((items: DisplayProperty[], filters: SearchFilters | null) => {
+    if (!filters) return items;
+
+    const normalise = (value?: string) => value?.toLowerCase().trim();
+
+    return items.filter((property) => {
+      const matchesPropertyType = filters.propertyType
+        ? normalise(property.propertyType) === normalise(filters.propertyType)
+        : true;
+
+      const matchesStatus = filters.status ? property.status === filters.status : true;
+
+      const matchesRegion = filters.region
+        ? normalise(property.region) === normalise(filters.region)
+        : true;
+
+      const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
+
+      return matchesPropertyType && matchesStatus && matchesRegion && matchesWard;
+    });
+  }, []);
+
+  const filteredProperties = useMemo(
+    () => applyFilters(bookmarkedProperties, activeFilters),
+    [bookmarkedProperties, activeFilters, applyFilters]
+  );
+
+  useEffect(() => {
+    const handleSearch = (event: Event) => {
+      const { detail } = event as CustomEvent<SearchFilters>;
+      const filters = detail || {};
+
+      const hasFilters = Object.values(filters).some((value) => {
+        if (typeof value === 'string') {
+          return value.trim().length > 0;
+        }
+        return Boolean(value);
+      });
+
+      setActiveFilters(hasFilters ? filters : null);
+    };
+
+    window.addEventListener('rentappSearch', handleSearch as EventListener);
+
+    return () => {
+      window.removeEventListener('rentappSearch', handleSearch as EventListener);
+    };
+  }, []);
+
+  const hasActiveFilters = activeFilters !== null;
 
   // Block background scroll when modal is open
   usePreventScroll(showRemoveModal);
@@ -57,12 +116,16 @@ export default function BookmarksPage() {
   };
 
   return (
-    <Layout titleCount={bookmarkedProperties.length}>
+    <Layout
+      totalCount={bookmarkedProperties.length}
+      filteredCount={filteredProperties.length}
+      hasActiveFilters={hasActiveFilters}
+    >
       <div className="w-full max-w-6xl mx-auto px-1 sm:px-2 lg:px-4">
         {/* Properties Grid */}
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
-          {bookmarkedProperties.length > 0 ? (
-            bookmarkedProperties.map((property) => (
+          {filteredProperties.length > 0 ? (
+            filteredProperties.map((property) => (
               <PropertyCard 
                 key={property.id} 
                 property={property} 
@@ -71,8 +134,16 @@ export default function BookmarksPage() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-lg">No bookmarked properties yet.</p>
-              <p className="text-gray-400 text-sm mt-2">Start bookmarking properties to see them here!</p>
+              <p className="text-gray-500 text-lg">
+                {bookmarkedProperties.length === 0 && !hasActiveFilters
+                  ? 'No bookmarked properties yet.'
+                  : 'No properties match your search.'}
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                {bookmarkedProperties.length === 0 && !hasActiveFilters
+                  ? 'Start bookmarking properties to see them here!'
+                  : 'Adjust your filters or try again later.'}
+              </p>
             </div>
           )}
         </div>

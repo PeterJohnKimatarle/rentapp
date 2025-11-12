@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
@@ -87,15 +87,26 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   };
 
   // Block background scroll when popup is open (hook handles this)
+  usePreventScroll(isOpen || showWardPopup);
+
+  const dispatchSearchEvent = (filters: {
+    propertyType?: string;
+    status?: string;
+    region?: string;
+    ward?: string;
+  }) => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('rentappSearch', { detail: filters }));
+  };
 
   if (!isOpen) return null;
 
   const handleSearch = () => {
-    console.log('Search:', {
-      propertyType,
-      status,
-      region: selectedRegion,
-      ward: selectedWard
+    dispatchSearchEvent({
+      propertyType: propertyType || undefined,
+      status: status || undefined,
+      region: selectedRegion || undefined,
+      ward: selectedWard || undefined
     });
     onClose();
   };
@@ -105,6 +116,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     setStatus('');
     setSelectedRegion('');
     setSelectedWard('');
+    dispatchSearchEvent({});
   };
 
   return (
@@ -123,7 +135,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
         {/* Header */}
         <div className="flex items-center justify-start mb-6 w-full relative">
           <h1 className="text-xl sm:text-2xl font-bold text-white">
-            Search/Filter Properties
+            Search Properties
           </h1>
           <button
             onClick={onClose}
@@ -149,11 +161,12 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
               onChange={(e) => setPropertyType(e.target.value)}
             >
               <option value="" className="text-gray-400">---</option>
-              <option value="1">1 Bdrm apartment</option>
-              <option value="2">2 Bdrm apartment</option>
-              <option value="3">3 Bdrm apartment</option>
-              <option value="4">4 Bdrm apartment</option>
-              <option value="5">5 Bdrm apartment</option>
+              <option value="1-bdrm-apartment" className="text-gray-400">1 Bdrm apartment</option>
+              <option value="2-bdrm-apartment" className="text-gray-400">2 Bdrm apartment</option>
+              <option value="3-bdrm-apartment" className="text-gray-400">3 Bdrm apartment</option>
+              <option value="4-bdrm-apartment" className="text-gray-400">4 Bdrm apartment</option>
+              <option value="5-bdrm-apartment" className="text-gray-400">5 Bdrm apartment</option>
+              <option value="commercial-building-frame" className="text-gray-400">Commercial building (Frame)</option>
             </select>
           </div>
 
@@ -249,33 +262,30 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 w-full justify-center mb-3">
-          <button
-            onClick={handleClearFilters}
-            className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors text-center"
-          >
-            Clear
-          </button>
+        <div className="w-full mb-3 space-y-3">
           <button
             onClick={handleSearch}
-            className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-medium transition-colors text-center"
+            className="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-semibold transition-colors text-center"
           >
-            Search/Filter
+            Search
           </button>
-        </div>
-
-        {/* Close Button */}
-        <div className="w-full flex justify-center">
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2 text-white rounded-lg font-medium transition-colors text-center"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
-            onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-            onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
-          >
-            Close
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleClearFilters}
+              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors text-center"
+            >
+              Clear
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors text-center"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
+              onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+              onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
 

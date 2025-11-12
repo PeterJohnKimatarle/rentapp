@@ -3,10 +3,18 @@
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { getAllProperties } from '@/utils/propertyUtils';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+type SearchFilters = {
+  propertyType?: string;
+  status?: string;
+  region?: string;
+  ward?: string;
+};
 
 export default function Home() {
   const [properties, setProperties] = useState(getAllProperties());
+  const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
 
   // Update properties when localStorage changes
   useEffect(() => {
@@ -46,19 +54,78 @@ export default function Home() {
     };
   }, []);
 
+  const applyFilters = useCallback(
+    (items: ReturnType<typeof getAllProperties>, filters: SearchFilters | null) => {
+      if (!filters) return items;
+
+      const normalise = (value?: string) => value?.toLowerCase().trim();
+
+      return items.filter((property) => {
+        const matchesPropertyType = filters.propertyType
+          ? normalise(property.propertyType) === normalise(filters.propertyType)
+          : true;
+
+        const matchesStatus = filters.status ? property.status === filters.status : true;
+
+        const matchesRegion = filters.region
+          ? normalise(property.region) === normalise(filters.region)
+          : true;
+
+        const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
+
+        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard;
+      });
+    },
+    []
+  );
+
+  const filteredProperties = useMemo(
+    () => applyFilters(properties, activeFilters),
+    [properties, activeFilters, applyFilters]
+  );
+
+  // Listen for search events
+  useEffect(() => {
+    const handleSearch = (event: Event) => {
+      const { detail } = event as CustomEvent<SearchFilters>;
+      const filters = detail || {};
+
+      const hasFilters = Object.values(filters).some((value) => {
+        if (typeof value === 'string') {
+          return value.trim().length > 0;
+        }
+        return Boolean(value);
+      });
+
+      setActiveFilters(hasFilters ? filters : null);
+    };
+
+    window.addEventListener('rentappSearch', handleSearch as EventListener);
+
+    return () => {
+      window.removeEventListener('rentappSearch', handleSearch as EventListener);
+    };
+  }, []);
+
+  const hasActiveFilters = activeFilters !== null;
+
   return (
-    <Layout>
+    <Layout
+      totalCount={properties.length}
+      filteredCount={filteredProperties.length}
+      hasActiveFilters={hasActiveFilters}
+    >
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
         {/* Properties Grid */}
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
-          {properties.length > 0 ? (
-            properties.map((property) => (
+          {filteredProperties.length > 0 ? (
+            filteredProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-lg">No properties available at the moment.</p>
-              <p className="text-gray-400 text-sm mt-2">Check back later!</p>
+              <p className="text-gray-500 text-lg">No properties match your search.</p>
+              <p className="text-gray-400 text-sm mt-2">Adjust your filters or try again later.</p>
             </div>
           )}
         </div>

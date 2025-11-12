@@ -14,12 +14,13 @@ interface ImageEditModalProps {
 export default function ImageEditModal({ isOpen, onClose, onSave, currentImages }: ImageEditModalProps) {
   const [showMainImagePopup, setShowMainImagePopup] = useState(false);
   const [showOtherImagesPopup, setShowOtherImagesPopup] = useState(false);
-  const [tempMainImage, setTempMainImage] = useState<string>('');
-  const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>([]);
+  const [tempMainImage, setTempMainImage] = useState<string>(() => currentImages[0] ?? '');
+  const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>(() => currentImages.length > 1 ? currentImages.slice(1) : []);
   const [originalMainImage, setOriginalMainImage] = useState<string>('');
   const [originalAdditionalImages, setOriginalAdditionalImages] = useState<string[]>([]);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showRemoveAllInfo, setShowRemoveAllInfo] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Initialize images when modal opens
   useEffect(() => {
@@ -31,6 +32,10 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       setTempAdditionalImages([]);
     }
   }, [isOpen, currentImages]);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Block background scroll when modal or nested popups are open
   usePreventScroll(isOpen || showMainImagePopup || showOtherImagesPopup || showDeleteAllConfirm || showRemoveAllInfo);
@@ -172,7 +177,11 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               type="button"
               onClick={() => {
                 setOriginalMainImage(tempMainImage);
-                setShowMainImagePopup(true);
+                if (!isMounted) {
+                  setShowMainImagePopup(true);
+                  return;
+                }
+                setTimeout(() => setShowMainImagePopup(true), 50);
               }}
               className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
               style={{ backgroundColor: 'white' }}
@@ -204,7 +213,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               onClick={handleSave}
               disabled={!hasMainPopupChanges()}
             >
-              Update
+              Submit
             </button>
             <button
               type="button"
@@ -263,7 +272,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                 }}
               >
                 <Image size={20} />
-                <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change image' : 'Add image'} ({tempMainImage ? '1' : '0'})</span>
+                <span className="text-base whitespace-nowrap">Change main image ({tempMainImage ? '1' : '0'})</span>
               </button>
               <div className="flex gap-2">
                 <button

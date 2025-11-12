@@ -17,9 +17,11 @@ interface PropertyCardProps {
   onEditImageClick?: () => void;
   onStatusChange?: (newStatus: 'available' | 'occupied') => void;
   onEditClick?: () => void;
+  onManageStart?: () => void;
+  isActiveProperty?: boolean;
 }
 
-export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false }: PropertyCardProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFromHomescreen, setIsFromHomescreen] = useState(false);
@@ -35,6 +37,20 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
+  const [showActionPopup, setShowActionPopup] = useState(false);
+  const [showStatusPopup, setShowStatusPopup] = useState(false);
+  const statusLabel = property.status === 'available' ? 'Available' : 'Occupied';
+
+  const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>(property.status);
+  const [pendingImages, setPendingImages] = useState(false);
+  const [pendingDetails, setPendingDetails] = useState(false);
+
+  useEffect(() => {
+    setPendingStatus(property.status);
+  }, [property.status]);
+
+  const isSubmitDisabled =
+    pendingStatus === property.status && !pendingImages && !pendingDetails;
 
   // Restore scroll position when popup opens
   useEffect(() => {
@@ -200,13 +216,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     }
   };
 
+  const borderClass = isViewed
+    ? 'border-[3px] border-blue-300 shadow-md'
+    : 'border border-gray-200 shadow-sm hover:shadow-md';
+
+  const showSuccessMessage = () => {
+    const event = new CustomEvent('propertyEditSuccess');
+    window.dispatchEvent(event);
+  };
+
   return (
     <>
-      <div className={`bg-white rounded-lg transition-shadow duration-200 overflow-hidden ${
-        isViewed 
-          ? 'border-[3px] border-blue-300 shadow-md' 
-          : 'border border-gray-200 shadow-sm hover:shadow-md'
-      }`}>
+      <div className={`bg-white rounded-lg transition-shadow duration-200 overflow-hidden ${borderClass}`}>
         <div className="flex flex-row min-w-0">
           {/* Property Image */}
           <div className="w-36 sm:w-44 md:w-56 lg:w-80 h-36 sm:h-44 md:h-56 lg:h-64 flex-shrink-0 relative">
@@ -214,6 +235,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
                 <div className="text-gray-500 text-sm">Loading...</div>
               </div>
+            )}
+            {isActiveProperty && (
+              <span className="absolute top-2 w-3 h-3 rounded-full bg-yellow-500 shadow shadow-yellow-500/60 z-20" style={{ right: '0.35rem', border: '1.5px solid black' }} />
             )}
             {imageError || !property.images[0] ? (
               <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden" onClick={handleImageClick}>
@@ -255,33 +279,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <span>{property.images.length}</span>
             </div>
             
-            {/* Edit Image Icon */}
-            {showEditImageIcon && onEditImageClick && (
-              <div 
-                className={`absolute ${hideBookmark ? 'bottom-1 right-1' : 'top-1 right-1'} px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-10`}
-                style={{ 
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditImageClick();
-                }}
-                title="Edit Images"
-              >
-                <Pencil 
-                  size={24} 
-                  className="w-6 h-6" 
-                  style={{ 
-                    color: 'white',
-                    strokeWidth: 1.5
-                  }}
-                />
-              </div>
-            )}
+            {showEditImageIcon && onEditImageClick && null}
             
             {!hideBookmark && (
               <div 
-                className="absolute bottom-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-20" 
+                className="absolute top-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-20" 
                 style={{ 
                   backgroundColor: showMinusIcon ? '#ef4444' : 'rgba(0, 0, 0, 0.5)'
                 }}
@@ -338,44 +340,24 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <Clock size={10} className="mr-0.5 flex-shrink-0" style={{ transform: 'translateY(0.25px)' }} />
               <span>Updated: {getRelativeTime(property.updatedAt)}</span>
             </div>
-            {hideBookmark && (onStatusChange || onEditClick) && (
-              <div className="flex items-center gap-1.5 ml-0.5">
-                {onStatusChange && (
-                  <div className="relative flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors">
-                    <span>Status</span>
-                    <Radio size={15} />
-                    <select
-                      value={property.status}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          const newStatus = e.target.value as 'available' | 'occupied';
-                          onStatusChange(newStatus);
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      title="Change Status"
-                    >
-                      <option value="">---</option>
-                      <option value="available">Available</option>
-                      <option value="occupied">Occupied</option>
-                    </select>
-                  </div>
-                )}
-                {onEditClick && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditClick();
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors flex items-center gap-1"
-                    title="Edit Property Details"
-                  >
-                    Details
-                    <Pencil size={15} />
-                  </button>
-                )}
-              </div>
+            {hideBookmark && (onStatusChange || onEditClick || onEditImageClick) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onManageStart) {
+                    onManageStart();
+                  }
+                  setShowActionPopup(true);
+                  setPendingStatus(property.status);
+                  setPendingImages(false);
+                  setPendingDetails(false);
+                }}
+                className="mt-1 w-2/3 bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1.5 rounded transition-colors flex items-center justify-start gap-2 whitespace-nowrap"
+                title="Edit this property"
+              >
+                Edit this property
+                <Pencil size={15} />
+              </button>
             )}
             {!hideBookmark && (
               <button
@@ -643,6 +625,107 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   No
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Selection Popup */}
+      {showActionPopup && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div 
+            className="rounded-lg w-full max-w-sm mx-auto p-6 shadow-lg"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-semibold text-white mb-4 text-center">Edit Property</h3>
+            <div className="space-y-3">
+              {onStatusChange && (
+                <div className="flex items-center justify-center">
+                  <div className="relative w-full">
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-gray-800 text-sm font-medium">
+                      <span className="text-sm text-gray-600">[{(pendingStatus || property.status).replace(/^./, (c) => c.toUpperCase())}]</span>
+                      <span>Change status</span>
+                      <Radio size={15} />
+                    </div>
+                    <select
+                      value={pendingStatus}
+                      onChange={(e) => {
+                        const value = e.target.value as 'available' | 'occupied' | '';
+                        if (!value) return;
+                        setPendingStatus(value);
+                      }}
+                      className="w-full appearance-none bg-white/90 text-transparent text-sm py-3 rounded-lg focus:outline-none cursor-pointer"
+                    >
+                      <option value="">---</option>
+                      <option value="available">Available</option>
+                      <option value="occupied">Occupied</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              {onEditImageClick && (
+                <button
+                  onClick={() => {
+                    setPendingImages(true);
+                    onEditImageClick();
+                  }}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  style={{ border: '1px solid #eab308' }}
+                >
+                  Change images
+                  <Image size={15} />
+                </button>
+              )}
+              {onEditClick && (
+                <button
+                  onClick={() => {
+                    setPendingDetails(true);
+                    onEditClick();
+                  }}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  style={{ border: '1px solid #eab308' }}
+                >
+                  Edit details
+                  <Pencil size={15} />
+                </button>
+              )}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    if (pendingStatus !== property.status && onStatusChange) {
+                      onStatusChange(pendingStatus as 'available' | 'occupied');
+                    }
+                    setShowActionPopup(false);
+                    setPendingImages(false);
+                    setPendingDetails(false);
+                    showSuccessMessage();
+                  }}
+                  disabled={isSubmitDisabled}
+                  className={`w-1/2 text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-white ${
+                    isSubmitDisabled
+                      ? 'bg-green-500 cursor-not-allowed'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => {
+                    setShowActionPopup(false);
+                    setPendingStatus(property.status);
+                    setPendingImages(false);
+                    setPendingDetails(false);
+                  }}
+                  className="w-1/2 bg-red-400/75 hover:bg-red-500/75 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
