@@ -5,6 +5,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   bio?: string;
@@ -12,14 +14,50 @@ interface User {
   role: 'tenant' | 'landlord' | 'broker';
 }
 
+interface AuthResult {
+  success: boolean;
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: Omit<User, 'id'> & { password: string }) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (userData: Omit<User, 'id'> & { password: string }) => Promise<AuthResult>;
+  updateUser: (updates: Partial<Omit<User, 'id'>>) => Promise<AuthResult>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
   logout: () => void;
   isLoading: boolean;
 }
+
+type StoredUser = User & { password: string };
+
+const SESSION_KEY = 'rentapp_user';
+const USERS_KEY = 'rentapp_users';
+
+const loadStoredUsers = (): StoredUser[] => {
+  if (typeof window === 'undefined') return [];
+
+  const raw = localStorage.getItem(USERS_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    console.error('Error parsing stored users:', error);
+  }
+
+  localStorage.removeItem(USERS_KEY);
+  return [];
+};
+
+const saveStoredUsers = (users: StoredUser[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -37,80 +75,288 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for existing session on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('rentapp_user');
+    const savedUser = localStorage.getItem(SESSION_KEY);
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error('Error parsing saved user:', error);
-        localStorage.removeItem('rentapp_user');
+        localStorage.removeItem(SESSION_KEY);
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     
-    // Simulate API call - replace with actual authentication
     try {
-      // For demo purposes, accept any email/password combination
-      // In real app, this would be an API call to your backend
-      console.log('Login attempt:', email, password); // Use password to avoid warning
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser: User = {
-        id: '1',
-        name: email.split('@')[0], // Use email prefix as name
-        email: email,
-        phone: '+1234567890',
-        bio: 'Welcome to Rentapp!',
-        profileImage: '/images/default-avatar.png',
-        role: 'tenant'
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const storedUsers = loadStoredUsers();
+      const matchedIndex = storedUsers.findIndex((entry) => entry.email.toLowerCase() === normalizedEmail);
+      const matchedUser = matchedIndex >= 0 ? storedUsers[matchedIndex] : undefined;
+
+      if (!matchedUser) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'User not registered. Please create an account.'
+        };
+      }
+
+      if (!matchedUser.password) {
+        const migratedUser: StoredUser = {
+          ...matchedUser,
+          password,
+          profileImage: matchedUser.profileImage || '/images/reed-richards.png',
+        };
+
+        storedUsers[matchedIndex] = migratedUser;
+        saveStoredUsers(storedUsers);
+
+        const { password: _legacyPassword, profileImage, ...legacyRest } = migratedUser;
+        const derivedFirst = legacyRest.firstName ?? legacyRest.name?.split(' ')[0] ?? '';
+        const derivedLast = legacyRest.lastName ?? legacyRest.name?.split(' ').slice(1).join(' ') ?? '';
+        const legacySafeUser: User = {
+          ...legacyRest,
+          firstName: derivedFirst || undefined,
+          lastName: derivedLast || undefined,
+          name: (legacyRest.name ?? `${derivedFirst} ${derivedLast}`).trim() || legacyRest.email,
+          profileImage: profileImage || '/images/reed-richards.png',
+        };
+
+        setUser(legacySafeUser);
+        localStorage.setItem(SESSION_KEY, JSON.stringify(legacySafeUser));
+        setIsLoading(false);
+        return {
+          success: true,
+          message: 'Account updated. You are now logged in.'
+        };
+      }
+
+      if (matchedUser.password !== password) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'Incorrect password. Please try again.'
+        };
+      }
+
+      const { password: _password, profileImage, ...restUser } = matchedUser;
+      const derivedFirst = restUser.firstName ?? restUser.name?.split(' ')[0] ?? '';
+      const derivedLast = restUser.lastName ?? restUser.name?.split(' ').slice(1).join(' ') ?? '';
+
+      const safeUser: User = {
+        ...restUser,
+        firstName: derivedFirst || undefined,
+        lastName: derivedLast || undefined,
+        name: (restUser.name ?? `${derivedFirst} ${derivedLast}`).trim() || restUser.email,
+        profileImage: profileImage || '/images/reed-richards.png',
       };
-      
-      setUser(mockUser);
-      localStorage.setItem('rentapp_user', JSON.stringify(mockUser));
+
+      setUser(safeUser);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
       setIsLoading(false);
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       setIsLoading(false);
-      return false;
+      return {
+        success: false,
+        message: 'Login failed. Please try again.'
+      };
     }
   };
 
-  const register = async (userData: Omit<User, 'id'> & { password: string }): Promise<boolean> => {
+  const register = async (userData: Omit<User, 'id'> & { password: string }): Promise<AuthResult> => {
     setIsLoading(true);
     
     try {
-      // Simulate API call - replace with actual registration
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      const normalizedEmail = userData.email.trim().toLowerCase();
+      const storedUsers = loadStoredUsers();
+
+      if (storedUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail)) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'An account with this email already exists. Please log in instead.'
+        };
+      }
+
+      const profileImage = userData.profileImage?.trim() || '/images/reed-richards.png';
+      const firstName = userData.firstName?.trim() || '';
+      const lastName = userData.lastName?.trim() || '';
+      const displayName = (userData.name ?? `${firstName} ${lastName}`).trim() || userData.email;
+
       const newUser: User = {
-        id: Date.now().toString(), // Simple ID generation
-        name: userData.name,
+        id: Date.now().toString(),
+        name: displayName,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
         email: userData.email,
         phone: userData.phone,
         bio: userData.bio,
-        profileImage: '/images/default-avatar.png',
+        profileImage,
         role: userData.role
       };
-      
+
+      const storedUserRecord: StoredUser = {
+        ...newUser,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        password: userData.password
+      };
+
+      saveStoredUsers([...storedUsers, storedUserRecord]);
+
       setUser(newUser);
-      localStorage.setItem('rentapp_user', JSON.stringify(newUser));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(newUser));
       setIsLoading(false);
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Registration error:', error);
       setIsLoading(false);
-      return false;
+      return {
+        success: false,
+        message: 'Registration failed. Please try again.'
+      };
+    }
+  };
+
+  const updateUser = async (updates: Partial<Omit<User, 'id'>>): Promise<AuthResult> => {
+    setIsLoading(true);
+
+    try {
+      if (!user) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'No authenticated user found.'
+        };
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const storedUsers = loadStoredUsers();
+      const userIndex = storedUsers.findIndex(entry => entry.id === user.id);
+
+      if (userIndex === -1) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'Unable to locate account information.'
+        };
+      }
+
+      const currentUser = storedUsers[userIndex];
+      const trimmedEmail = updates.email?.trim();
+      const updatedFirstName = updates.firstName?.trim() ?? currentUser.firstName ?? '';
+      const updatedLastName = updates.lastName?.trim() ?? currentUser.lastName ?? '';
+      const providedName = updates.name?.trim();
+      const combinedName = (providedName || `${updatedFirstName} ${updatedLastName}`).trim() || currentUser.name;
+
+      if (
+        trimmedEmail &&
+        trimmedEmail.toLowerCase() !== currentUser.email.toLowerCase() &&
+        storedUsers.some((entry, index) => index !== userIndex && entry.email.toLowerCase() === trimmedEmail.toLowerCase())
+      ) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'Another account already uses this email address.'
+        };
+      }
+
+      const updatedRecord: StoredUser = {
+        ...currentUser,
+        name: combinedName,
+        firstName: updatedFirstName || undefined,
+        lastName: updatedLastName || undefined,
+        email: trimmedEmail ?? currentUser.email,
+        phone: updates.phone ?? currentUser.phone,
+        bio: updates.bio ?? currentUser.bio,
+        profileImage: updates.profileImage ?? currentUser.profileImage,
+        role: updates.role ?? currentUser.role,
+      };
+
+      storedUsers[userIndex] = updatedRecord;
+      saveStoredUsers(storedUsers);
+
+      const { password: _pw, ...safeUser } = updatedRecord;
+      setUser(safeUser);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
+      setIsLoading(false);
+      return { success: true };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      setIsLoading(false);
+      return {
+        success: false,
+        message: 'Could not update profile. Please try again.'
+      };
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<AuthResult> => {
+    setIsLoading(true);
+
+    try {
+      if (!user) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'You must be logged in to change your password.'
+        };
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const storedUsers = loadStoredUsers();
+      const userIndex = storedUsers.findIndex(entry => entry.id === user.id);
+
+      if (userIndex === -1) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'Account could not be found.'
+        };
+      }
+
+      const currentRecord = storedUsers[userIndex];
+
+      if (currentRecord.password !== currentPassword) {
+        setIsLoading(false);
+        return {
+          success: false,
+          message: 'Current password is incorrect.'
+        };
+      }
+
+      storedUsers[userIndex] = {
+        ...currentRecord,
+        password: newPassword
+      };
+
+      saveStoredUsers(storedUsers);
+      setIsLoading(false);
+      return { success: true };
+    } catch (error) {
+      console.error('Change password error:', error);
+      setIsLoading(false);
+      return {
+        success: false,
+        message: 'Unable to change password. Please try again.'
+      };
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('rentapp_user');
+    localStorage.removeItem(SESSION_KEY);
   };
 
   const value: AuthContextType = {
@@ -118,6 +364,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: !!user,
     login,
     register,
+    updateUser,
+    changePassword,
     logout,
     isLoading
   };

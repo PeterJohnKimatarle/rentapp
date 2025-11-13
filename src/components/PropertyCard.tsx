@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin, Image, X, Clock, Trash2, Minus, Heart, Pencil, Radio } from 'lucide-react';
 import { Property } from '@/data/properties';
 import { DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
+import { useAuth } from '@/contexts/AuthContext';
 import ImageLightbox from './ImageLightbox';
 import SharePopup from './SharePopup';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
@@ -40,6 +41,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [showActionPopup, setShowActionPopup] = useState(false);
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const statusLabel = property.status === 'available' ? 'Available' : 'Occupied';
+
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>(property.status);
   const [pendingImages, setPendingImages] = useState(false);
@@ -84,7 +88,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   // Check bookmark status and listen for changes
   useEffect(() => {
     const checkBookmarkStatus = () => {
-      setBookmarked(isBookmarked(property.id));
+      setBookmarked(isBookmarked(property.id, userId));
     };
 
     // Check initial status
@@ -100,7 +104,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     return () => {
       window.removeEventListener('bookmarksChanged', handleBookmarksChanged);
     };
-  }, [property.id]);
+  }, [property.id, userId]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-TZ', {
@@ -159,8 +163,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
   const handleSaveProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!userId) {
+      alert('Please log in to save bookmarks.');
+      setShowBookmarkPopup(false);
+      return;
+    }
     // Save bookmark to localStorage
-    addBookmark(property.id);
+    addBookmark(property.id, userId);
     setBookmarked(true); // Update state immediately
     setShowBookmarkPopup(false);
   };
@@ -172,8 +181,12 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
   const handleRemoveBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!userId) {
+      setShowRemoveBookmarkPopup(false);
+      return;
+    }
     // Remove bookmark from localStorage
-    removeBookmark(property.id);
+    removeBookmark(property.id, userId);
     setBookmarked(false); // Update state immediately
     setShowRemoveBookmarkPopup(false);
   };

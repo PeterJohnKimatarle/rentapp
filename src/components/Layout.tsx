@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect, useRef, useMemo } from 'react';
+import { ReactNode, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import NextImage from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
@@ -10,6 +10,7 @@ import { Menu, X, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-reac
 import { useAuth } from '@/contexts/AuthContext';
 import LoginPopup from './LoginPopup';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import UserMenu from './UserMenu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,6 +27,11 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const [anchorPosition, setAnchorPosition] = useState<{ top: number; right: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const avatarSrc = user?.profileImage && user.profileImage.trim() !== '' ? user.profileImage : '/images/reed-richards.png';
 
   const countLabel = useMemo(() => {
     if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
@@ -117,10 +123,6 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     }
   };
 
-  const handleSearchClick = () => {
-    setIsSearchPopupOpen(true);
-  };
-
   const getPageTitle = () => {
     switch (pathname) {
       case '/my-properties':
@@ -150,6 +152,62 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
   // Prevent body scroll when menu is open
   usePreventScroll(isMobileMenuOpen || isSearchPopupOpen);
+
+  const updateAnchorPosition = useCallback((element: HTMLElement | null) => {
+    if (!element) {
+      setAnchorPosition(null);
+      return;
+    }
+    const rect = element.getBoundingClientRect();
+    setAnchorPosition({
+      top: rect.bottom + window.scrollY + 8,
+      right: window.innerWidth - rect.right + window.scrollX,
+    });
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsUserMenuOpen(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isUserMenuOpen || !anchorElement) return;
+
+    const handleReposition = () => updateAnchorPosition(anchorElement);
+
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [isUserMenuOpen, anchorElement, updateAnchorPosition]);
+
+  const handleProfileClick = (target: HTMLElement) => {
+    if (isUserMenuOpen && anchorElement === target) {
+      setIsUserMenuOpen(false);
+      return;
+    }
+
+    setAnchorElement(target);
+    updateAnchorPosition(target);
+    setIsUserMenuOpen(true);
+  };
+
+  const closeUserMenu = () => {
+    setIsUserMenuOpen(false);
+  };
+
+  const handleSearchClick = () => {
+    closeUserMenu();
+    setIsSearchPopupOpen(true);
+  };
 
   return (
     <div 
@@ -190,6 +248,21 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           </button>
         )}
         <div className="flex items-center gap-2">
+          {isClient && isAuthenticated && (
+            <button
+              onClick={(e) => handleProfileClick(e.currentTarget)}
+              className="w-9 h-9 rounded-full overflow-hidden border border-blue-200 shadow-sm flex items-center justify-center"
+              aria-label="Open profile"
+            >
+              <NextImage
+                src={avatarSrc}
+                alt="Profile avatar"
+                width={36}
+                height={36}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          )}
           <button 
             onClick={handleSearchClick}
             className="p-2 text-gray-600 hover:text-booking-blue transition-colors cursor-pointer"
@@ -214,17 +287,34 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
           <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
         </button>
-        <div 
-          onClick={handleSearchClick}
-          className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
-        >
-          <Search size={20} className="text-gray-500 mr-3" />
-          <input
-            type="text"
-            placeholder="Search for properties..."
-            className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
-            readOnly
-          />
+        <div className="flex items-center gap-4">
+          <div 
+            onClick={handleSearchClick}
+            className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+          >
+            <Search size={20} className="text-gray-500 mr-3" />
+            <input
+              type="text"
+              placeholder="Search for properties..."
+              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
+              readOnly
+            />
+          </div>
+          {isClient && isAuthenticated && (
+            <button
+              onClick={(e) => handleProfileClick(e.currentTarget)}
+              className="w-10 h-10 rounded-full overflow-hidden border border-blue-200 shadow-sm flex items-center justify-center"
+              aria-label="Open profile"
+            >
+              <NextImage
+                src={avatarSrc}
+                alt="Profile avatar"
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -394,6 +484,15 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           )}
         </div>
       </div>
+
+      {/* User Menu */}
+      {isClient && isAuthenticated && (
+        <UserMenu
+          isOpen={isUserMenuOpen}
+          onClose={closeUserMenu}
+          anchorPosition={anchorPosition}
+        />
+      )}
 
       {/* Footer */}
       <Footer />

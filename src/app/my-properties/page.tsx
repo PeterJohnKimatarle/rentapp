@@ -7,15 +7,14 @@ import ImageEditModal from '@/components/ImageEditModal';
 import { getUserCreatedProperties, updateProperty, getPropertyById, deleteProperty, PropertyFormData } from '@/utils/propertyUtils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
-
-type SearchFilters = {
-  propertyType?: string;
-  status?: string;
-  region?: string;
-  ward?: string;
-};
+import { useRouter } from 'next/navigation';
+import { SearchFilters } from '@/components/SearchPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MyPropertiesPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const userId = user?.id;
   const [properties, setProperties] = useState<ReturnType<typeof getUserCreatedProperties>>([]);
   const [editingProperty, setEditingProperty] = useState<PropertyFormData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,33 +31,53 @@ export default function MyPropertiesPage() {
 
   // Load properties on mount
   useEffect(() => {
-    setProperties(getUserCreatedProperties());
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      setProperties(getUserCreatedProperties(userId));
+    } else {
+      setProperties([]);
+    }
+  }, [userId]);
 
   // Update properties when localStorage changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleStorageChange = () => {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
     };
 
     const handlePropertyAdded = () => {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
+      setIsHydrated(true);
     };
 
     const handlePropertyUpdated = () => {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
+      setIsHydrated(true);
     };
 
     const handlePropertyDeleted = () => {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
+      setIsHydrated(true);
     };
     
     // Also check for changes when component mounts/focuses
     const handleFocus = () => {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
     };
 
     // Listen for storage changes
@@ -82,7 +101,7 @@ export default function MyPropertiesPage() {
       window.removeEventListener('propertyDeleted', handlePropertyDeleted);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [userId]);
 
   const applyFilters = useCallback((items: ReturnType<typeof getUserCreatedProperties>, filters: SearchFilters | null) => {
     if (!filters) return items;
@@ -154,11 +173,13 @@ export default function MyPropertiesPage() {
 
   const handleEditClick = (propertyId: string) => {
     try {
-      const property = getPropertyById(propertyId);
+      const property = getPropertyById(propertyId, userId);
       if (property) {
         setEditingProperty(property);
         setIsEditModalOpen(true);
-        setActivePropertyId(propertyId);
+        if (properties.length) {
+          setActivePropertyId(propertyId);
+        }
       }
     } catch (error) {
       console.error('Error loading property for editing:', error);
@@ -167,9 +188,11 @@ export default function MyPropertiesPage() {
 
   const handleSaveProperty = (updatedProperty: PropertyFormData) => {
     if (editingProperty) {
-      const success = updateProperty(editingProperty.id, updatedProperty);
+      const success = updateProperty(editingProperty.id, updatedProperty, userId);
       if (success) {
-        setProperties(getUserCreatedProperties());
+        if (userId) {
+          setProperties(getUserCreatedProperties(userId));
+        }
         setIsEditModalOpen(false);
         setEditingProperty(null);
         setActivePropertyId(editingProperty.id);
@@ -184,7 +207,7 @@ export default function MyPropertiesPage() {
 
   const handleEditImageClick = (propertyId: string) => {
     try {
-      const property = getPropertyById(propertyId);
+      const property = getPropertyById(propertyId, userId);
       if (property) {
         setEditingImageProperty(property);
         setIsImageEditModalOpen(true);
@@ -202,9 +225,11 @@ export default function MyPropertiesPage() {
         ...editingImageProperty,
         images: allImages
       };
-      const success = updateProperty(editingImageProperty.id, updatedProperty);
+      const success = updateProperty(editingImageProperty.id, updatedProperty, userId);
       if (success) {
-        setProperties(getUserCreatedProperties());
+        if (userId) {
+          setProperties(getUserCreatedProperties(userId));
+        }
         setIsImageEditModalOpen(false);
         setEditingImageProperty(null);
         setActivePropertyId(editingImageProperty.id);
@@ -218,9 +243,11 @@ export default function MyPropertiesPage() {
   };
 
   const handleDeleteProperty = (propertyId: string) => {
-    const success = deleteProperty(propertyId);
+    const success = deleteProperty(propertyId, userId);
     if (success) {
-      setProperties(getUserCreatedProperties());
+      if (userId) {
+        setProperties(getUserCreatedProperties(userId));
+      }
       setIsEditModalOpen(false);
       setEditingProperty(null);
       if (activePropertyId === propertyId) {
@@ -239,15 +266,17 @@ export default function MyPropertiesPage() {
 
   const handleStatusChange = (propertyId: string, newStatus: 'available' | 'occupied') => {
     try {
-      const property = getPropertyById(propertyId);
+      const property = getPropertyById(propertyId, userId);
       if (property) {
         const updatedProperty: PropertyFormData = {
           ...property,
           status: newStatus
         };
-        const success = updateProperty(propertyId, updatedProperty);
+        const success = updateProperty(propertyId, updatedProperty, userId);
         if (success) {
-          setProperties(getUserCreatedProperties());
+          if (userId) {
+            setProperties(getUserCreatedProperties(userId));
+          }
           setActivePropertyId(propertyId);
           // Dispatch event to notify other components
           window.dispatchEvent(new CustomEvent('propertyUpdated'));
@@ -258,24 +287,28 @@ export default function MyPropertiesPage() {
     }
   };
 
-  if (!isHydrated) {
-    return (
-      <Layout totalCount={0} filteredCount={0} hasActiveFilters={false}>
+  const renderContent = () => {
+    if (!isHydrated) {
+      return (
         <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
           <div className="text-center py-8">
             <p className="text-gray-500 text-lg">Loading your properties...</p>
           </div>
         </div>
-      </Layout>
-    );
-  }
+      );
+    }
 
-  return (
-    <Layout
-      totalCount={properties.length}
-      filteredCount={filteredProperties.length}
-      hasActiveFilters={hasActiveFilters}
-    >
+    if (!userId) {
+      return (
+        <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">Log in to manage your listed properties.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
         {/* Properties Grid */}
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
@@ -296,20 +329,31 @@ export default function MyPropertiesPage() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-lg">
-                {properties.length === 0 && !hasActiveFilters
-                  ? "You haven't listed any properties yet."
-                  : 'No properties match your search.'}
-              </p>
-              <p className="text-gray-400 text-sm mt-2">
-                {properties.length === 0 && !hasActiveFilters
-                  ? 'Start listing your properties to see them here!'
-                  : 'Adjust your filters or try again later.'}
-              </p>
+              {properties.length === 0 && !hasActiveFilters ? (
+                <>
+                  <p className="text-gray-500 text-xl">You haven&apos;t listed any properties yet.</p>
+                  <p className="text-gray-400 text-base mt-1">List properties to see them here.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-500 text-xl">No properties available for now.</p>
+                  <p className="text-gray-400 text-base mt-1">Check back later or adjust your filters.</p>
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
+    );
+  };
+
+  return (
+    <Layout
+      totalCount={properties.length}
+      filteredCount={filteredProperties.length}
+      hasActiveFilters={hasActiveFilters}
+    >
+      {renderContent()}
 
       {/* Edit Property Modal */}
       {isEditModalOpen && editingProperty && (

@@ -16,8 +16,9 @@ const RegisterPage: React.FC = () => {
     password: '',
     confirmPassword: '',
     role: 'tenant' as 'tenant' | 'landlord' | 'broker',
-    bio: ''
+    profileImage: ''
   });
+  const [previewImage, setPreviewImage] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +30,20 @@ const RegisterPage: React.FC = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleProfileImageChange = (file: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setFormData(prev => ({ ...prev, profileImage: result }));
+      setPreviewImage(result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,22 +61,30 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (!formData.profileImage) {
+      setError('Please upload a profile image to continue');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await register({
+      const result = await register({
         name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
         role: formData.role,
-        bio: formData.bio
+        bio: '',
+        profileImage: formData.profileImage
       });
 
-      if (success) {
+      if (result.success) {
         router.push('/profile');
       } else {
-        setError('Registration failed. Please try again.');
+        setError(result.message ?? 'Registration failed. Please try again.');
       }
     } catch {
       setError('Registration failed. Please try again.');
@@ -195,15 +218,30 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bio Field */}
+              {/* Profile Image Upload */}
               <div>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="Tell us about yourself (optional)"
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile image</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border border-dashed border-gray-300">
+                    {previewImage ? (
+                      <img src={previewImage} alt="Profile preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-gray-500 text-xs text-center px-2">No image</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className="inline-flex items-center justify-center px-4 py-2 border border-blue-500 text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 text-sm font-medium">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
+                      />
+                      {previewImage ? 'Change image' : 'Upload image'}
+                    </label>
+                    <p className="mt-2 text-xs text-gray-500">Required. PNG or JPG up to 2MB.</p>
+                  </div>
+                </div>
               </div>
 
               {/* Submit Button */}

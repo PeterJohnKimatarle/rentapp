@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
@@ -20,7 +19,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const [error, setError] = useState('');
   
   const { login } = useAuth();
-  const router = useRouter();
 
   // Prevent background scrolling when popup is open
   usePreventScroll(isOpen);
@@ -31,12 +29,11 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
-        onClose();
-        router.push('/profile');
+      const result = await login(email, password);
+      if (result.success) {
+        handleClose();
       } else {
-        setError('Invalid email or password');
+        setError(result.message ?? 'Invalid email or password');
       }
     } catch {
       setError('Login failed. Please try again.');

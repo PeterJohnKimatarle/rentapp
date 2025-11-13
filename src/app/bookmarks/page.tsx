@@ -6,6 +6,7 @@ import PropertyCard from '@/components/PropertyCard';
 import { getBookmarkedProperties, removeBookmark, DisplayProperty } from '@/utils/propertyUtils';
 import { Heart } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { useAuth } from '@/contexts/AuthContext';
 
 type SearchFilters = {
   propertyType?: string;
@@ -15,7 +16,9 @@ type SearchFilters = {
 };
 
 export default function BookmarksPage() {
-  const [bookmarkedProperties, setBookmarkedProperties] = useState<DisplayProperty[]>(getBookmarkedProperties());
+  const { user } = useAuth();
+  const userId = user?.id;
+  const [bookmarkedProperties, setBookmarkedProperties] = useState<DisplayProperty[]>([]);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<DisplayProperty | null>(null);
   const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
@@ -23,7 +26,9 @@ export default function BookmarksPage() {
   // Update bookmarks when localStorage changes
   useEffect(() => {
     const handleBookmarksChange = () => {
-      setBookmarkedProperties(getBookmarkedProperties());
+      if (userId) {
+        setBookmarkedProperties(getBookmarkedProperties(userId));
+      }
     };
 
     // Listen for bookmark changes
@@ -31,7 +36,9 @@ export default function BookmarksPage() {
     
     // Also check for changes when component mounts/focuses
     const handleFocus = () => {
-      setBookmarkedProperties(getBookmarkedProperties());
+      if (userId) {
+        setBookmarkedProperties(getBookmarkedProperties(userId));
+      }
     };
     
     window.addEventListener('focus', handleFocus);
@@ -40,7 +47,15 @@ export default function BookmarksPage() {
       window.removeEventListener('bookmarksChanged', handleBookmarksChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      setBookmarkedProperties(getBookmarkedProperties(userId));
+    } else {
+      setBookmarkedProperties([]);
+    }
+  }, [userId]);
 
   const applyFilters = useCallback((items: DisplayProperty[], filters: SearchFilters | null) => {
     if (!filters) return items;
@@ -102,9 +117,9 @@ export default function BookmarksPage() {
   };
 
   const handleRemoveBookmark = () => {
-    if (selectedProperty) {
-      removeBookmark(selectedProperty.id);
-      setBookmarkedProperties(getBookmarkedProperties());
+    if (selectedProperty && userId) {
+      removeBookmark(selectedProperty.id, userId);
+      setBookmarkedProperties(getBookmarkedProperties(userId));
       setShowRemoveModal(false);
       setSelectedProperty(null);
     }
@@ -114,6 +129,16 @@ export default function BookmarksPage() {
     setShowRemoveModal(false);
     setSelectedProperty(null);
   };
+
+  if (!userId) {
+    return (
+      <Layout totalCount={0} filteredCount={0} hasActiveFilters={false}>
+        <div className="w-full max-w-6xl mx-auto px-4 py-12 text-center">
+          <p className="text-gray-500 text-lg">Log in to view your bookmarked properties.</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout
@@ -134,15 +159,15 @@ export default function BookmarksPage() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-lg">
+              <p className="text-gray-500 text-xl">
                 {bookmarkedProperties.length === 0 && !hasActiveFilters
                   ? 'No bookmarked properties yet.'
-                  : 'No properties match your search.'}
+                  : 'No properties available for now.'}
               </p>
-              <p className="text-gray-400 text-sm mt-2">
+              <p className="text-gray-400 text-base mt-1">
                 {bookmarkedProperties.length === 0 && !hasActiveFilters
-                  ? 'Start bookmarking properties to see them here!'
-                  : 'Adjust your filters or try again later.'}
+                  ? 'Bookmark properties to see them here.'
+                  : 'Check back later or adjust your filters.'}
               </p>
             </div>
           )}

@@ -1,56 +1,138 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, X, Building, Heart, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { User, X, Building, Heart, Mail, Pencil } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfilePage() {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
-  
+  const { user, updateUser, changePassword } = useAuth();
+
   // Block background scroll when popup is open
   usePreventScroll(isEditPopupOpen || isPasswordPopupOpen);
-  
-  // Static user data
+
   const [userData, setUserData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    bio: 'Passionate about finding the perfect home for everyone.'
+    name: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    bio: '',
+    profileImage: '',
+    role: 'tenant' as 'tenant' | 'landlord' | 'broker'
   });
 
   const [formData, setFormData] = useState(userData);
+  const [saveError, setSaveError] = useState('');
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const derivedFirst = user.firstName ?? user.name?.split(' ')[0] ?? '';
+    const derivedLast = user.lastName ?? user.name?.split(' ').slice(1).join(' ')?.trim() ?? '';
+    setUserData({
+      name: user.name,
+      firstName: derivedFirst,
+      lastName: derivedLast,
+      email: user.email,
+      phone: user.phone ?? '',
+      bio: user.bio ?? '',
+      profileImage: user.profileImage ?? '',
+      role: user.role
+    });
+  }, [user]);
+
+  useEffect(() => {
+    setFormData(userData);
+  }, [userData]);
 
   const handleEdit = () => {
     setIsEditPopupOpen(true);
-    setFormData(userData);
+    setSaveError('');
   };
 
-  const handleSave = () => {
-    setUserData(formData);
-    setIsEditPopupOpen(false);
-    // In a real app, you would save to backend here
-    alert('Profile updated successfully!');
+  const handleSave = async () => {
+    setSaveError('');
+    setIsSavingChanges(true);
+
+    const combinedName = `${formData.firstName} ${formData.lastName}`.trim();
+
+    const result = await updateUser({
+      name: combinedName || formData.name || userData.name,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      bio: formData.bio,
+      profileImage: formData.profileImage,
+      role: formData.role
+    });
+
+    setIsSavingChanges(false);
+
+    if (result.success) {
+      setIsEditPopupOpen(false);
+    } else {
+      setSaveError(result.message ?? 'Unable to update profile. Please try again.');
+    }
   };
 
   const handleCancel = () => {
     setFormData(userData);
     setIsEditPopupOpen(false);
+    setSaveError('');
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      if (field === 'firstName' || field === 'lastName') {
+        const updated = {
+          ...prev,
+          [field]: value,
+        };
+        const combined = `${updated.firstName} ${updated.lastName}`.trim();
+        return {
+          ...updated,
+          name: combined || updated.name,
+        };
+      }
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
+
+  const handleProfileImageChange = async (file: File | null) => {
+    if (!file) return;
+
+    setIsUpdatingImage(true);
+    setSaveError('');
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setFormData(prev => ({
+        ...prev,
+        profileImage: result
+      }));
+      setIsUpdatingImage(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handlePasswordChange = () => {
@@ -60,25 +142,44 @@ export default function ProfilePage() {
       newPassword: '',
       confirmPassword: ''
     });
+    setPasswordError('');
+    setPasswordSuccess('');
   };
 
-  const handlePasswordSave = () => {
+  const handlePasswordSave = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match!');
+      setPasswordError('New passwords do not match.');
       return;
     }
+
     if (passwordData.newPassword.length < 6) {
-      alert('New password must be at least 6 characters long!');
+      setPasswordError('New password must be at least 6 characters long.');
       return;
     }
-    // In a real app, you would validate current password and save new password to backend
-    alert('Password changed successfully!');
-    setIsPasswordPopupOpen(false);
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+
+    setIsChangingPassword(true);
+
+    const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+
+    setIsChangingPassword(false);
+
+    if (result.success) {
+      setPasswordSuccess('Password updated successfully.');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setTimeout(() => {
+        setIsPasswordPopupOpen(false);
+        setPasswordSuccess('');
+      }, 800);
+    } else {
+      setPasswordError(result.message ?? 'Unable to change password.');
+    }
   };
 
   const handlePasswordCancel = () => {
@@ -88,6 +189,8 @@ export default function ProfilePage() {
       newPassword: '',
       confirmPassword: ''
     });
+    setPasswordError('');
+    setPasswordSuccess('');
   };
 
   const handlePasswordInputChange = (field: string, value: string) => {
@@ -96,6 +199,19 @@ export default function ProfilePage() {
       [field]: value
     }));
   };
+
+  if (!user) {
+    return (
+      <Layout>
+        <div className="bg-gray-50 py-16">
+          <div className="max-w-2xl mx-auto px-4 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Profile</h1>
+            <p className="text-gray-600 mb-6">Please log in to view your profile information.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -115,25 +231,33 @@ export default function ProfilePage() {
               <div className="flex items-center space-x-6 mb-6">
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-12 h-12 text-gray-400" />
-                  </div>
+                  {userData.profileImage ? (
+                    <img
+                      src={userData.profileImage}
+                      alt={userData.name}
+                      className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center border-2 border-blue-500">
+                      <User className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
                 </div>
 
                 {/* User Info */}
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-black mb-2">
-                    {userData.firstName} {userData.lastName}
+                    {userData.name || `${userData.firstName} ${userData.lastName}`.trim() || 'Unnamed user'}
                   </h2>
-                  <p className="text-gray-600 mb-1">{userData.email}</p>
-                  <p className="text-gray-600">{userData.phone}</p>
+                  <p className="text-gray-600 mb-1">{userData.email || 'No email provided'}</p>
+                  <p className="text-gray-600">{userData.phone || 'No phone number provided'}</p>
                 </div>
               </div>
 
               {/* Bio Section */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
-                <p className="text-gray-600">{userData.bio}</p>
+                <p className="text-gray-600">{userData.bio || 'No bio available yet.'}</p>
               </div>
 
               {/* Action Buttons */}
@@ -212,15 +336,32 @@ export default function ProfilePage() {
               <div className="flex items-start space-x-4">
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
-                  <button 
-                    className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors duration-200"
-                    onClick={() => {
-                      // Handle image change here
-                      console.log('Change image clicked');
-                    }}
-                  >
-                    <User className="w-14 h-14 text-gray-400" />
-                  </button>
+                  <label className="relative block w-28 h-28 rounded-full overflow-hidden cursor-pointer">
+                    {formData.profileImage ? (
+                      <img
+                        src={formData.profileImage}
+                        alt={formData.name || 'Profile preview'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <User className="w-14 h-14 text-gray-400" />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full p-1.5 flex items-center justify-center">
+                      {isUpdatingImage ? (
+                        <span className="text-[10px] px-1">…</span>
+                      ) : (
+                        <Pencil size={14} />
+                      )}
+                    </div>
+                  </label>
                 </div>
 
                 {/* Basic Info Fields */}
@@ -241,7 +382,7 @@ export default function ProfilePage() {
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     placeholder="Last Name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
                 </div>
 
@@ -251,7 +392,7 @@ export default function ProfilePage() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="Email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
                 </div>
 
@@ -261,8 +402,20 @@ export default function ProfilePage() {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="Phone"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
+                </div>
+
+                <div>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => handleInputChange('role', e.target.value as typeof formData.role)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm bg-white"
+                  >
+                    <option value="tenant">Tenant</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="broker">Broker</option>
+                  </select>
                 </div>
 
                 </div>
@@ -270,6 +423,11 @@ export default function ProfilePage() {
 
               {/* Bio Section */}
               <div className="pt-3 border-t border-gray-200">
+                {saveError && (
+                  <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                    {saveError}
+                  </div>
+                )}
                 <textarea
                   value={formData.bio}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
@@ -283,9 +441,10 @@ export default function ProfilePage() {
               <div className="flex flex-row gap-3 pt-3">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1"
+                  disabled={isSavingChanges}
+                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save
+                  {isSavingChanges ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancel}
@@ -348,13 +507,26 @@ export default function ProfilePage() {
                   />
                 </div>
 
+                {passwordError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                    {passwordError}
+                  </div>
+                )}
+
+                {passwordSuccess && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg text-sm">
+                    {passwordSuccess}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex flex-row gap-3 pt-3">
                   <button
                     onClick={handlePasswordSave}
-                    className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1"
+                    disabled={isChangingPassword}
+                    className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Save
+                    {isChangingPassword ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={handlePasswordCancel}

@@ -21,6 +21,9 @@ export interface PropertyFormData {
   contactEmail: string;
   createdAt: string;
   updatedAt?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
 }
 
 // Combined property interface for display
@@ -46,6 +49,9 @@ export interface DisplayProperty {
   contactPhone?: string;
   contactEmail?: string;
   createdAt?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
 }
 
 // Convert form data to display format
@@ -87,7 +93,10 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
     contactName: formData.contactName,
     contactPhone: formData.contactPhone,
     contactEmail: formData.contactEmail,
-    createdAt: formData.createdAt
+    createdAt: formData.createdAt,
+    ownerId: formData.ownerId,
+    ownerEmail: formData.ownerEmail,
+    ownerName: formData.ownerName
   };
 };
 
@@ -130,11 +139,14 @@ export const getAvailableProperties = (): DisplayProperty[] => {
 // Bookmark utilities
 const BOOKMARKS_STORAGE_KEY = 'rentapp_bookmarks';
 
+const getBookmarksStorageKey = (userId?: string) =>
+  `${BOOKMARKS_STORAGE_KEY}_${userId ?? 'guest'}`;
+
 // Get all bookmarked property IDs
-export const getBookmarkedIds = (): string[] => {
+export const getBookmarkedIds = (userId?: string): string[] => {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(localStorage.getItem(BOOKMARKS_STORAGE_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(getBookmarksStorageKey(userId)) || '[]');
   } catch (error) {
     console.error('Error reading bookmarks:', error);
     return [];
@@ -142,18 +154,19 @@ export const getBookmarkedIds = (): string[] => {
 };
 
 // Check if a property is bookmarked
-export const isBookmarked = (propertyId: string): boolean => {
-  const bookmarkedIds = getBookmarkedIds();
+export const isBookmarked = (propertyId: string, userId?: string): boolean => {
+  const bookmarkedIds = getBookmarkedIds(userId);
   return bookmarkedIds.includes(propertyId);
 };
 
 // Add a property to bookmarks
-export const addBookmark = (propertyId: string): boolean => {
+export const addBookmark = (propertyId: string, userId?: string): boolean => {
   try {
-    const bookmarkedIds = getBookmarkedIds();
+    const key = getBookmarksStorageKey(userId);
+    const bookmarkedIds = getBookmarkedIds(userId);
     if (!bookmarkedIds.includes(propertyId)) {
       bookmarkedIds.push(propertyId);
-      localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarkedIds));
+      localStorage.setItem(key, JSON.stringify(bookmarkedIds));
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('bookmarksChanged'));
       return true;
@@ -166,11 +179,12 @@ export const addBookmark = (propertyId: string): boolean => {
 };
 
 // Remove a property from bookmarks
-export const removeBookmark = (propertyId: string): boolean => {
+export const removeBookmark = (propertyId: string, userId?: string): boolean => {
   try {
-    const bookmarkedIds = getBookmarkedIds();
+    const key = getBookmarksStorageKey(userId);
+    const bookmarkedIds = getBookmarkedIds(userId);
     const updatedIds = bookmarkedIds.filter(id => id !== propertyId);
-    localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(updatedIds));
+    localStorage.setItem(key, JSON.stringify(updatedIds));
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('bookmarksChanged'));
     return true;
@@ -181,23 +195,46 @@ export const removeBookmark = (propertyId: string): boolean => {
 };
 
 // Get all bookmarked properties
-export const getBookmarkedProperties = (): DisplayProperty[] => {
-  const bookmarkedIds = getBookmarkedIds();
+export const getBookmarkedProperties = (userId?: string): DisplayProperty[] => {
+  const bookmarkedIds = getBookmarkedIds(userId);
   const allProperties = getAllProperties();
   return allProperties.filter(property => bookmarkedIds.includes(property.id));
 };
 
 // Get only user-created properties (from localStorage, not static)
-export const getUserCreatedProperties = (): DisplayProperty[] => {
+export const getUserCreatedProperties = (ownerId?: string): DisplayProperty[] => {
   if (typeof window === 'undefined') return [];
+  if (!ownerId) return [];
   
   try {
     const localStorageProperties: PropertyFormData[] = JSON.parse(
       localStorage.getItem('rentapp_properties') || '[]'
     );
+
+    let shouldPersist = false;
+    const enhancedProperties = localStorageProperties.map((property) => {
+      if (!property.ownerId) {
+        if (ownerId) {
+          shouldPersist = true;
+          return {
+            ...property,
+            ownerId,
+            ownerEmail: property.ownerEmail ?? property.contactEmail,
+            ownerName: property.ownerName ?? property.contactName
+          };
+        }
+      }
+      return property;
+    });
+
+    if (shouldPersist) {
+      localStorage.setItem('rentapp_properties', JSON.stringify(enhancedProperties));
+    }
     
     // Convert to display format
-    const convertedProperties = localStorageProperties.map(convertFormDataToDisplayProperty);
+    const convertedProperties = enhancedProperties
+      .filter(property => property.ownerId === ownerId)
+      .map(convertFormDataToDisplayProperty);
     
     // Sort by updatedAt (most recent first), fallback to createdAt if updatedAt doesn't exist
     return convertedProperties.sort((a, b) => {
@@ -212,7 +249,11 @@ export const getUserCreatedProperties = (): DisplayProperty[] => {
 };
 
 // Update an existing property in localStorage
-export const updateProperty = (propertyId: string, updatedProperty: PropertyFormData): boolean => {
+export const updateProperty = (
+  propertyId: string,
+  updatedProperty: PropertyFormData,
+  currentUserId?: string
+): boolean => {
   try {
     const existingProperties: PropertyFormData[] = JSON.parse(
       localStorage.getItem('rentapp_properties') || '[]'
@@ -224,13 +265,24 @@ export const updateProperty = (propertyId: string, updatedProperty: PropertyForm
       console.error('Property not found:', propertyId);
       return false;
     }
-    
-    // Update the property
+
+    const existingProperty = existingProperties[propertyIndex];
+
+    if (existingProperty.ownerId && currentUserId && existingProperty.ownerId !== currentUserId) {
+      console.error('User not authorized to update this property');
+      return false;
+    }
+
+    // Update the property while preserving ownership metadata
     existingProperties[propertyIndex] = {
+      ...existingProperty,
       ...updatedProperty,
-      id: propertyId, // Ensure ID doesn't change
-      createdAt: existingProperties[propertyIndex].createdAt, // Preserve original creation date
-      updatedAt: new Date().toISOString() // Set update timestamp
+      id: propertyId,
+      ownerId: existingProperty.ownerId,
+      ownerEmail: existingProperty.ownerEmail,
+      ownerName: existingProperty.ownerName,
+      createdAt: existingProperty.createdAt,
+      updatedAt: new Date().toISOString()
     };
     
     localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
@@ -246,15 +298,26 @@ export const updateProperty = (propertyId: string, updatedProperty: PropertyForm
 };
 
 // Get a property by ID from localStorage
-export const getPropertyById = (propertyId: string): PropertyFormData | null => {
+export const getPropertyById = (propertyId: string, ownerId?: string): PropertyFormData | null => {
   if (typeof window === 'undefined') return null;
   
   try {
     const localStorageProperties: PropertyFormData[] = JSON.parse(
       localStorage.getItem('rentapp_properties') || '[]'
     );
-    
-    return localStorageProperties.find(p => p.id === propertyId) || null;
+
+    const property = localStorageProperties.find(p => p.id === propertyId);
+
+    if (!property) {
+      return null;
+    }
+
+    if (ownerId && property.ownerId && property.ownerId !== ownerId) {
+      console.warn('Attempt to access property owned by another user');
+      return null;
+    }
+
+    return property;
   } catch (error) {
     console.error('Error reading property:', error);
     return null;
@@ -262,7 +325,7 @@ export const getPropertyById = (propertyId: string): PropertyFormData | null => 
 };
 
 // Delete a property from localStorage
-export const deleteProperty = (propertyId: string): boolean => {
+export const deleteProperty = (propertyId: string, currentUserId?: string): boolean => {
   try {
     const existingProperties: PropertyFormData[] = JSON.parse(
       localStorage.getItem('rentapp_properties') || '[]'
@@ -272,6 +335,13 @@ export const deleteProperty = (propertyId: string): boolean => {
     
     if (propertyIndex === -1) {
       console.error('Property not found:', propertyId);
+      return false;
+    }
+
+    const property = existingProperties[propertyIndex];
+
+    if (property.ownerId && currentUserId && property.ownerId !== currentUserId) {
+      console.error('User not authorized to delete this property');
       return false;
     }
     

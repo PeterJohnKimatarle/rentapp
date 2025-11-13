@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Image, Info, PlusCircle } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Ward data organized by region (most common and well-known wards, alphabetically sorted)
 const wardsByRegion = {
@@ -60,10 +61,14 @@ interface Property {
   contactPhone?: string;
   contactEmail?: string;
   createdAt: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
 }
 
 export default function ListPropertyPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
   const [customWard, setCustomWard] = useState('');
@@ -253,6 +258,12 @@ export default function ListPropertyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      alert('Please log in to list a property.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Create property object
@@ -262,7 +273,10 @@ export default function ListPropertyPage() {
       images: [formData.mainImage, ...formData.additionalImages].filter(img => img), // Combine main and additional images
       region: selectedRegion,
       ward: selectedWard || customWard,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ownerId: user.id,
+      ownerEmail: user.email,
+      ownerName: user.name
     };
 
     // Save to localStorage

@@ -31,10 +31,6 @@ export default function ContactPage() {
     setIsContactPopupOpen(false);
   };
 
-  const handleEmailClick = () => {
-    window.open('mailto:rentappglobal@gmail.com', '_self');
-  };
-
   return (
     <Layout>
         <div className="bg-gray-50 pt-2 pb-2 min-h-0">
@@ -54,17 +50,7 @@ export default function ContactPage() {
               <div className="space-y-3 max-w-4xl w-full">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-600 mb-1 text-center">Get in Touch</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div 
-                    onClick={handleEmailClick}
-                    className="bg-white px-6 py-3 rounded-xl shadow-lg border border-blue-500 border-2 shadow-blue-100 cursor-pointer hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold text-black">Email</h3>
-                      <p className="text-gray-600">rentappglobal@gmail.com</p>
-                    </div>
-                  </div>
-
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div 
                       onClick={handlePhoneCardClick}
                       className="bg-white px-6 py-3 rounded-xl shadow-lg border border-blue-500 border-2 shadow-blue-100 cursor-pointer hover:bg-blue-50 transition-colors"
