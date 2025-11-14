@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   const { user, updateUser, changePassword } = useAuth();
+  const isStaffUser = user?.role === 'staff';
 
   // Block background scroll when popup is open
   usePreventScroll(isEditPopupOpen || isPasswordPopupOpen);
@@ -22,7 +23,7 @@ export default function ProfilePage() {
     phone: '',
     bio: '',
     profileImage: '',
-    role: 'tenant' as 'tenant' | 'landlord' | 'broker'
+    role: 'tenant' as 'tenant' | 'landlord' | 'broker' | 'staff'
   });
 
   const [formData, setFormData] = useState(userData);
@@ -354,7 +355,7 @@ export default function ProfilePage() {
                       className="hidden"
                       onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
                     />
-                    <div className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full p-1.5 flex items-center justify-center">
+                    <div className="absolute bottom-2 right-3 bg-black/60 text-white rounded-full p-1.5 flex items-center justify-center">
                       {isUpdatingImage ? (
                         <span className="text-[10px] px-1">…</span>
                       ) : (
@@ -415,6 +416,7 @@ export default function ProfilePage() {
                     <option value="tenant">Tenant</option>
                     <option value="landlord">Landlord</option>
                     <option value="broker">Broker</option>
+                    {isStaffUser && <option value="staff">Staff</option>}
                   </select>
                 </div>
 

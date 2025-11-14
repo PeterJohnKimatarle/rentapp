@@ -11,7 +11,7 @@ interface User {
   phone?: string;
   bio?: string;
   profileImage?: string;
-  role: 'tenant' | 'landlord' | 'broker';
+  role: 'tenant' | 'landlord' | 'broker' | 'staff';
 }
 
 interface AuthResult {
@@ -57,6 +57,22 @@ const loadStoredUsers = (): StoredUser[] => {
 const saveStoredUsers = (users: StoredUser[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
+
+const sanitizeStoredUser = (stored: StoredUser): User => {
+  const { password: _unusedPassword, ...rest } = stored;
+  void _unusedPassword;
+
+  const derivedFirst = rest.firstName ?? rest.name?.split(' ')[0] ?? '';
+  const derivedLast = rest.lastName ?? rest.name?.split(' ').slice(1).join(' ') ?? '';
+
+  return {
+    ...rest,
+    firstName: derivedFirst || undefined,
+    lastName: derivedLast || undefined,
+    name: (rest.name ?? `${derivedFirst} ${derivedLast}`).trim() || rest.email,
+    profileImage: rest.profileImage || '/images/reed-richards.png',
+  };
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -116,16 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         storedUsers[matchedIndex] = migratedUser;
         saveStoredUsers(storedUsers);
 
-        const { password: _legacyPassword, profileImage, ...legacyRest } = migratedUser;
-        const derivedFirst = legacyRest.firstName ?? legacyRest.name?.split(' ')[0] ?? '';
-        const derivedLast = legacyRest.lastName ?? legacyRest.name?.split(' ').slice(1).join(' ') ?? '';
-        const legacySafeUser: User = {
-          ...legacyRest,
-          firstName: derivedFirst || undefined,
-          lastName: derivedLast || undefined,
-          name: (legacyRest.name ?? `${derivedFirst} ${derivedLast}`).trim() || legacyRest.email,
-          profileImage: profileImage || '/images/reed-richards.png',
-        };
+        const legacySafeUser = sanitizeStoredUser(migratedUser);
 
         setUser(legacySafeUser);
         localStorage.setItem(SESSION_KEY, JSON.stringify(legacySafeUser));
@@ -144,17 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      const { password: _password, profileImage, ...restUser } = matchedUser;
-      const derivedFirst = restUser.firstName ?? restUser.name?.split(' ')[0] ?? '';
-      const derivedLast = restUser.lastName ?? restUser.name?.split(' ').slice(1).join(' ') ?? '';
-
-      const safeUser: User = {
-        ...restUser,
-        firstName: derivedFirst || undefined,
-        lastName: derivedLast || undefined,
-        name: (restUser.name ?? `${derivedFirst} ${derivedLast}`).trim() || restUser.email,
-        profileImage: profileImage || '/images/reed-richards.png',
-      };
+      const safeUser = sanitizeStoredUser(matchedUser);
 
       setUser(safeUser);
       localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
@@ -286,9 +283,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       storedUsers[userIndex] = updatedRecord;
       saveStoredUsers(storedUsers);
 
-      const { password: _pw, ...safeUser } = updatedRecord;
-      setUser(safeUser);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
+      const safeUserWithoutPassword = sanitizeStoredUser(updatedRecord);
+      setUser(safeUserWithoutPassword);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(safeUserWithoutPassword));
       setIsLoading(false);
       return { success: true };
     } catch (error) {

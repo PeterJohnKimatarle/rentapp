@@ -7,12 +7,16 @@ import ImageEditModal from '@/components/ImageEditModal';
 import { getUserCreatedProperties, updateProperty, getPropertyById, deleteProperty, PropertyFormData } from '@/utils/propertyUtils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
-import { useRouter } from 'next/navigation';
-import { SearchFilters } from '@/components/SearchPopup';
 import { useAuth } from '@/contexts/AuthContext';
 
+type SearchFilters = {
+  propertyType?: string;
+  status?: string;
+  region?: string;
+  ward?: string;
+};
+
 export default function MyPropertiesPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const userId = user?.id;
   const [properties, setProperties] = useState<ReturnType<typeof getUserCreatedProperties>>([]);

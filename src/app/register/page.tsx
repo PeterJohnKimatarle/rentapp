@@ -15,7 +15,7 @@ const RegisterPage: React.FC = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'tenant' as 'tenant' | 'landlord' | 'broker',
+    role: 'tenant' as 'tenant' | 'landlord' | 'broker' | 'staff',
     profileImage: ''
   });
   const [previewImage, setPreviewImage] = useState<string>('');

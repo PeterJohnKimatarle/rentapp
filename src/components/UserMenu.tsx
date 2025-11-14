@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LogOut, MessageCircle, User } from 'lucide-react';
+import { MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserMenuProps {
@@ -52,6 +52,8 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
     };
   }, [isOpen, onClose]);
 
+  const displayFirstName = user?.firstName || user?.name?.split(' ')[0] || 'Guest User';
+
   if (!isOpen) return null;
 
   return (
@@ -66,7 +68,7 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
       >
         <div className="relative p-5 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
           <p className="text-sm tracking-wide text-blue-100 font-semibold mb-2">Logged in as</p>
-          <h3 className="text-2xl font-bold leading-tight">{user?.name || 'Guest User'}</h3>
+          <h3 className="text-2xl font-bold leading-tight">{displayFirstName}</h3>
           <p className="text-blue-100 text-sm">{user?.email || 'No email provided'}</p>
         </div>
 

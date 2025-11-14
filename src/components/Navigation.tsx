@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn } from 'lucide-react';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -15,7 +15,8 @@ interface NavigationProps {
 
 export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onHomeClick }: NavigationProps) {
   const pathname = usePathname();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const isStaff = user?.role === 'staff';
   
   // Handle navigation item clicks in popup mode
   const handleNavClick = () => {
@@ -159,6 +160,23 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           <Building size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">My Properties</span>
         </Link>
+
+        {isStaff && (
+          <Link 
+            href="/staff" 
+            onClick={handleNavClick}
+            className={`flex items-center space-x-3 ${
+              variant === 'popup' 
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                : pathname === '/staff' 
+                  ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                  : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+            }`}
+          >
+            <ShieldCheck size={20} className="flex-shrink-0" />
+            <span className="text-base font-medium">Staff Portal</span>
+          </Link>
+        )}
         
         <Link 
           href="/profile" 

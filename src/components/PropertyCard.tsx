@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Image, X, Clock, Trash2, Minus, Heart, Pencil, Radio } from 'lucide-react';
+import { MapPin, Image, Clock, Minus, Heart, Pencil, Radio } from 'lucide-react';
 import { Property } from '@/data/properties';
 import { DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,8 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false }: PropertyCardProps) {
+  const { user } = useAuth();
+  const userId = user?.id;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFromHomescreen, setIsFromHomescreen] = useState(false);
@@ -39,12 +41,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [bookmarked, setBookmarked] = useState(false);
   const preloadedImagesRef = useRef<Set<number>>(new Set());
   const [showActionPopup, setShowActionPopup] = useState(false);
-  const [showStatusPopup, setShowStatusPopup] = useState(false);
-  const statusLabel = property.status === 'available' ? 'Available' : 'Occupied';
-
-  const { user } = useAuth();
-  const userId = user?.id;
-
   const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>(property.status);
   const [pendingImages, setPendingImages] = useState(false);
   const [pendingDetails, setPendingDetails] = useState(false);

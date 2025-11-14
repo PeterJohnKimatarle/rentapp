@@ -109,7 +109,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
   const handleBackClick = () => {
     // Use browser history for the listing page, services page, and new pages
-    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register') {
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff') {
       // Check if there's history to go back to
       if (window.history.length > 1) {
         router.back();
@@ -141,6 +141,8 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         return 'Profile';
       case '/register':
         return 'Registration';
+      case '/staff':
+        return 'Staff Portal';
       default:
         return 'Rentapp';
     }
