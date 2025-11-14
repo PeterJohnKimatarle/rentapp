@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface LoginPopupProps {
@@ -19,6 +20,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const [error, setError] = useState('');
   
   const { login } = useAuth();
+  const router = useRouter();
 
   // Prevent background scrolling when popup is open
   usePreventScroll(isOpen);
@@ -32,6 +34,8 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
       const result = await login(email, password);
       if (result.success) {
         handleClose();
+        // Redirect all users (staff, admin, members) to homepage after login
+        router.push('/');
       } else {
         setError(result.message ?? 'Invalid email or password');
       }

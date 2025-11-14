@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageCircle, User } from 'lucide-react';
+import { MessageCircle, User, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface UserMenuProps {
   isOpen: boolean;
@@ -12,6 +13,10 @@ interface UserMenuProps {
 
 export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuProps) {
   const { user, logout } = useAuth();
+  const router = useRouter();
+  const isStaff = user?.role === 'staff';
+  const isApprovedStaff = isStaff && user?.isApproved === true;
+  const isAdmin = user?.role === 'admin';
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
 
   const positionStyle = useMemo(() => {
@@ -19,7 +24,7 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
       return { visibility: 'hidden' } as React.CSSProperties;
     }
     return {
-      top: `${anchorPosition.top}px`,
+      top: `${Math.max(anchorPosition.top - 2, 16)}px`,
       right: `${Math.max(anchorPosition.right - 24, 16)}px`,
       width: 'min(280px, calc(100vw - 32px))',
       minWidth: '220px',
@@ -54,6 +59,38 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
 
   const displayFirstName = user?.firstName || user?.name?.split(' ')[0] || 'Guest User';
 
+  // Get user role display info
+  const getUserRoleBanner = () => {
+    if (isAdmin) {
+      return {
+        text: 'ADMIN',
+        bgColor: 'bg-red-500',
+        textColor: 'text-white'
+      };
+    }
+    if (isApprovedStaff) {
+      return {
+        text: 'STAFF',
+        bgColor: 'bg-purple-500',
+        textColor: 'text-white'
+      };
+    }
+    if (isStaff && !isApprovedStaff) {
+      return {
+        text: 'STAFF (PENDING)',
+        bgColor: 'bg-orange-500',
+        textColor: 'text-white'
+      };
+    }
+    return {
+      text: 'MEMBER',
+      bgColor: 'bg-blue-500',
+      textColor: 'text-white'
+    };
+  };
+
+  const roleBanner = getUserRoleBanner();
+
   if (!isOpen) return null;
 
   return (
@@ -63,13 +100,18 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
       onClick={handleBackdropClick}
     >
       <div
-        className="absolute bg-gray-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-500 shadow-blue-100"
+        className="absolute bg-blue-200 rounded-2xl shadow-2xl overflow-hidden outline-none"
         style={positionStyle}
       >
-        <div className="relative p-5 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
-          <p className="text-sm tracking-wide text-blue-100 font-semibold mb-2">Logged in as</p>
+        <div className="relative p-5 bg-gray-500 text-white">
+          <div className="flex items-center gap-3 flex-wrap mb-0.5">
+            <p className="text-sm tracking-wide text-gray-100 font-semibold">Logged in as</p>
+            <div className={`inline-block ${roleBanner.bgColor} ${roleBanner.textColor} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider`}>
+              {roleBanner.text}
+            </div>
+          </div>
           <h3 className="text-2xl font-bold leading-tight">{displayFirstName}</h3>
-          <p className="text-blue-100 text-sm">{user?.email || 'No email provided'}</p>
+          <p className="text-gray-100 text-sm mt-0.5">{user?.email || 'No email provided'}</p>
         </div>
 
         <div className="p-5 space-y-4">
@@ -85,6 +127,30 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 <User size={18} />
                 View profile
               </button>
+              {isApprovedStaff && (
+                <button
+                  className="w-full px-4 py-3 rounded-xl bg-purple-500 text-white hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/staff';
+                  }}
+                >
+                  <ShieldCheck size={18} />
+                  Staff Portal
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  className="w-full px-4 py-3 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/admin';
+                  }}
+                >
+                  <ShieldCheck size={18} />
+                  Admin Portal
+                </button>
+              )}
               <button
                 className="w-full pl-4 pr-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
                 onClick={() => {
@@ -128,9 +194,14 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 <button
                   className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors"
                   onClick={() => {
+                    const wasAdmin = isAdmin;
                     logout();
                     setShowConfirmLogout(false);
                     onClose();
+                    // Redirect admin users to homepage after logout
+                    if (wasAdmin) {
+                      router.push('/');
+                    }
                   }}
                 >
                   Yes

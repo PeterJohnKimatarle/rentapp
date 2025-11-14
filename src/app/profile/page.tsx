@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, X, Building, Heart, Mail, Pencil } from 'lucide-react';
+import { User, X, Building, Heart, Mail, Pencil, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +11,9 @@ export default function ProfilePage() {
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   const { user, updateUser, changePassword } = useAuth();
   const isStaffUser = user?.role === 'staff';
+  const isAdminUser = user?.role === 'admin';
+  const [userType, setUserType] = useState<'member' | 'staff' | 'admin'>('member');
+  const [isUserTypeExpanded, setIsUserTypeExpanded] = useState(false);
 
   // Block background scroll when popup is open
   usePreventScroll(isEditPopupOpen || isPasswordPopupOpen);
@@ -23,7 +26,7 @@ export default function ProfilePage() {
     phone: '',
     bio: '',
     profileImage: '',
-    role: 'tenant' as 'tenant' | 'landlord' | 'broker' | 'staff'
+    role: 'tenant' as 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin'
   });
 
   const [formData, setFormData] = useState(userData);
@@ -54,6 +57,15 @@ export default function ProfilePage() {
       profileImage: user.profileImage ?? '',
       role: user.role
     });
+    
+    // Map role to userType for the collapsible section
+    if (user.role === 'staff') {
+      setUserType('staff');
+    } else if (user.role === 'admin') {
+      setUserType('admin');
+    } else {
+      setUserType('member');
+    }
   }, [user]);
 
   useEffect(() => {
@@ -71,6 +83,22 @@ export default function ProfilePage() {
 
     const combinedName = `${formData.firstName} ${formData.lastName}`.trim();
 
+    // Map userType to role
+    let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
+    let isApprovedStatus: boolean | undefined;
+    
+    if (userType === 'member') {
+      finalRole = 'tenant'; // Default to tenant for members
+      isApprovedStatus = undefined; // No approval needed for members
+    } else if (userType === 'staff') {
+      finalRole = 'staff';
+      // If user is already approved staff, keep approval. Otherwise set to false (pending)
+      isApprovedStatus = (isStaffUser && user?.isApproved === true) ? true : false;
+    } else {
+      finalRole = 'admin';
+      isApprovedStatus = undefined; // No approval needed for admin
+    }
+
     const result = await updateUser({
       name: combinedName || formData.name || userData.name,
       firstName: formData.firstName,
@@ -79,13 +107,16 @@ export default function ProfilePage() {
       phone: formData.phone,
       bio: formData.bio,
       profileImage: formData.profileImage,
-      role: formData.role
+      role: finalRole,
+      isApproved: isApprovedStatus
     });
 
     setIsSavingChanges(false);
 
     if (result.success) {
       setIsEditPopupOpen(false);
+      // Reload page to reflect role changes
+      window.location.reload();
     } else {
       setSaveError(result.message ?? 'Unable to update profile. Please try again.');
     }
@@ -407,20 +438,78 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value as typeof formData.role)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm bg-white"
-                  >
-                    <option value="tenant">Tenant</option>
-                    <option value="landlord">Landlord</option>
-                    <option value="broker">Broker</option>
-                    {isStaffUser && <option value="staff">Staff</option>}
-                  </select>
                 </div>
+              </div>
 
-                </div>
+              {/* User Type Section - Full Width */}
+              <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsUserTypeExpanded(!isUserTypeExpanded)}
+                    className="flex items-center justify-end gap-2 w-full text-sm font-medium text-gray-700 mb-0.5 cursor-pointer"
+                  >
+                    <span>User Type</span>
+                    <ChevronRight 
+                      size={16} 
+                      className={`text-gray-500 transition-transform duration-200 ${isUserTypeExpanded ? 'rotate-90' : ''}`}
+                    />
+                  </button>
+                  {isUserTypeExpanded && (
+                    <div className="space-y-2 mb-4">
+                      <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors whitespace-nowrap ${
+                        isAdminUser
+                          ? 'cursor-not-allowed opacity-50 bg-gray-100'
+                          : 'cursor-pointer hover:bg-gray-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="userType"
+                          value="member"
+                          checked={userType === 'member'}
+                          onChange={(e) => setUserType(e.target.value as 'member' | 'staff' | 'admin')}
+                          className="w-4 h-4 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                          disabled={isAdminUser}
+                        />
+                        <span className={`ml-3 text-sm whitespace-nowrap ${isAdminUser ? 'text-gray-500' : 'text-gray-700'}`}>
+                          Member {isAdminUser ? '(Not available)' : '(Tenant, Landlord or Broker)'}
+                        </span>
+                      </label>
+                      <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors whitespace-nowrap ${
+                        isAdminUser
+                          ? 'cursor-not-allowed opacity-50 bg-gray-100'
+                          : 'cursor-pointer hover:bg-gray-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="userType"
+                          value="staff"
+                          checked={userType === 'staff'}
+                          onChange={(e) => setUserType(e.target.value as 'member' | 'staff' | 'admin')}
+                          className="w-4 h-4 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                          disabled={isAdminUser}
+                        />
+                        <span className={`ml-3 text-sm whitespace-nowrap ${isAdminUser ? 'text-gray-500' : 'text-gray-700'}`}>
+                          Staff {isAdminUser ? '(Not available)' : '(Requires an admin approval)'}
+                        </span>
+                      </label>
+                      <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors whitespace-nowrap ${
+                        isAdminUser 
+                          ? 'cursor-pointer hover:bg-gray-50' 
+                          : 'cursor-not-allowed opacity-50 bg-gray-100'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="userType"
+                          value="admin"
+                          checked={userType === 'admin'}
+                          onChange={(e) => setUserType(e.target.value as 'member' | 'staff' | 'admin')}
+                          className="w-4 h-4 text-gray-400 focus:ring-gray-400 flex-shrink-0"
+                          disabled={!isAdminUser}
+                        />
+                        <span className="ml-3 text-sm text-gray-500 whitespace-nowrap">Admin {!isAdminUser && '(This option is locked)'}</span>
+                      </label>
+                    </div>
+                  )}
               </div>
 
               {/* Bio Section */}

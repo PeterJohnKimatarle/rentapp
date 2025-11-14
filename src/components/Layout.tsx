@@ -109,7 +109,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
   const handleBackClick = () => {
     // Use browser history for the listing page, services page, and new pages
-    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff') {
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff' || pathname === '/admin') {
       // Check if there's history to go back to
       if (window.history.length > 1) {
         router.back();
@@ -143,6 +143,8 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         return 'Registration';
       case '/staff':
         return 'Staff Portal';
+      case '/admin':
+        return 'Admin portal';
       default:
         return 'Rentapp';
     }
@@ -253,7 +255,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           {isClient && isAuthenticated && (
             <button
               onClick={(e) => handleProfileClick(e.currentTarget)}
-              className="w-9 h-9 rounded-full overflow-hidden border border-blue-200 shadow-sm flex items-center justify-center"
+              className="relative w-9 h-9 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
               aria-label="Open profile"
             >
               <NextImage
@@ -261,8 +263,15 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                 alt="Profile avatar"
                 width={36}
                 height={36}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
               />
+              {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white leading-none ${
+                  user?.role === 'admin' ? 'bg-red-500' : 'bg-purple-500'
+                } ${user?.role === 'staff' ? 'pl-[1px]' : ''}`}>
+                  {user?.role === 'admin' ? 'A' : 'S'}
+                </div>
+              )}
             </button>
           )}
           <button 
@@ -305,7 +314,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           {isClient && isAuthenticated && (
             <button
               onClick={(e) => handleProfileClick(e.currentTarget)}
-              className="w-10 h-10 rounded-full overflow-hidden border border-blue-200 shadow-sm flex items-center justify-center"
+              className="relative w-10 h-10 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
               aria-label="Open profile"
             >
               <NextImage
@@ -313,8 +322,15 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                 alt="Profile avatar"
                 width={40}
                 height={40}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
               />
+              {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white leading-none ${
+                  user?.role === 'admin' ? 'bg-red-500' : 'bg-purple-500'
+                } ${user?.role === 'staff' ? 'pl-[1px]' : ''}`}>
+                  {user?.role === 'admin' ? 'A' : 'S'}
+                </div>
+              )}
             </button>
           )}
         </div>
@@ -403,7 +419,14 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                   </div>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    const wasAdmin = user?.role === 'admin';
+                    logout();
+                    // Redirect admin users to homepage after logout
+                    if (wasAdmin) {
+                      router.push('/');
+                    }
+                  }}
                   className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
                   <LogOut size={16} />

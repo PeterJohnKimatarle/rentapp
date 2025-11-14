@@ -11,7 +11,8 @@ interface User {
   phone?: string;
   bio?: string;
   profileImage?: string;
-  role: 'tenant' | 'landlord' | 'broker' | 'staff';
+  role: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
+  isApproved?: boolean; // For staff: true when approved by admin
 }
 
 interface AuthResult {
@@ -26,6 +27,10 @@ interface AuthContextType {
   register: (userData: Omit<User, 'id'> & { password: string }) => Promise<AuthResult>;
   updateUser: (updates: Partial<Omit<User, 'id'>>) => Promise<AuthResult>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
+  getAllStaff: () => User[];
+  approveStaff: (staffId: string) => Promise<AuthResult>;
+  disapproveStaff: (staffId: string) => Promise<AuthResult>;
+  deleteUser: (userId: string) => Promise<AuthResult>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -198,7 +203,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: userData.phone,
         bio: userData.bio,
         profileImage,
-        role: userData.role
+        role: userData.role,
+        // Staff accounts require admin approval
+        isApproved: userData.role === 'staff' ? false : undefined
       };
 
       const storedUserRecord: StoredUser = {
@@ -278,6 +285,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         bio: updates.bio ?? currentUser.bio,
         profileImage: updates.profileImage ?? currentUser.profileImage,
         role: updates.role ?? currentUser.role,
+        isApproved: updates.isApproved !== undefined ? updates.isApproved : currentUser.isApproved,
       };
 
       storedUsers[userIndex] = updatedRecord;
@@ -351,6 +359,121 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const getAllStaff = (): User[] => {
+    const storedUsers = loadStoredUsers();
+    return storedUsers
+      .filter((stored) => stored.role === 'staff')
+      .map((stored) => sanitizeStoredUser(stored));
+  };
+
+  const approveStaff = async (staffId: string): Promise<AuthResult> => {
+    try {
+      if (!user || user.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Only admins can approve staff accounts.'
+        };
+      }
+
+      const storedUsers = loadStoredUsers();
+      const staffIndex = storedUsers.findIndex((u) => u.id === staffId && u.role === 'staff');
+
+      if (staffIndex === -1) {
+        return {
+          success: false,
+          message: 'Staff member not found.'
+        };
+      }
+
+      storedUsers[staffIndex] = {
+        ...storedUsers[staffIndex],
+        isApproved: true
+      };
+
+      saveStoredUsers(storedUsers);
+      return { success: true };
+    } catch (error) {
+      console.error('Approve staff error:', error);
+      return {
+        success: false,
+        message: 'Failed to approve staff account.'
+      };
+    }
+  };
+
+  const disapproveStaff = async (staffId: string): Promise<AuthResult> => {
+    try {
+      if (!user || user.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Only admins can disapprove staff accounts.'
+        };
+      }
+
+      const storedUsers = loadStoredUsers();
+      const staffIndex = storedUsers.findIndex((u) => u.id === staffId && u.role === 'staff');
+
+      if (staffIndex === -1) {
+        return {
+          success: false,
+          message: 'Staff member not found.'
+        };
+      }
+
+      storedUsers[staffIndex] = {
+        ...storedUsers[staffIndex],
+        isApproved: false
+      };
+
+      saveStoredUsers(storedUsers);
+      return { success: true };
+    } catch (error) {
+      console.error('Disapprove staff error:', error);
+      return {
+        success: false,
+        message: 'Failed to disapprove staff account.'
+      };
+    }
+  };
+
+  const deleteUser = async (userId: string): Promise<AuthResult> => {
+    try {
+      if (!user || user.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Only admins can delete users.'
+        };
+      }
+
+      // Prevent deleting yourself
+      if (userId === user.id) {
+        return {
+          success: false,
+          message: 'You cannot delete your own account.'
+        };
+      }
+
+      const storedUsers = loadStoredUsers();
+      const filteredUsers = storedUsers.filter((u) => u.id !== userId);
+
+      if (filteredUsers.length === storedUsers.length) {
+        return {
+          success: false,
+          message: 'User not found.'
+        };
+      }
+
+      saveStoredUsers(filteredUsers);
+      return { success: true };
+    } catch (error) {
+      console.error('Delete user error:', error);
+      return {
+        success: false,
+        message: 'Failed to delete user.'
+      };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem(SESSION_KEY);
@@ -363,6 +486,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     updateUser,
     changePassword,
+    getAllStaff,
+    approveStaff,
+    disapproveStaff,
+    deleteUser,
     logout,
     isLoading
   };

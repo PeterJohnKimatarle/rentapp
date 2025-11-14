@@ -17,6 +17,8 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuth();
   const isStaff = user?.role === 'staff';
+  const isApprovedStaff = isStaff && user?.isApproved === true;
+  const isAdmin = user?.role === 'admin';
   
   // Handle navigation item clicks in popup mode
   const handleNavClick = () => {
@@ -161,7 +163,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           <span className="text-base font-medium">My Properties</span>
         </Link>
 
-        {isStaff && (
+        {isApprovedStaff && (
           <Link 
             href="/staff" 
             onClick={handleNavClick}
@@ -175,6 +177,23 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           >
             <ShieldCheck size={20} className="flex-shrink-0" />
             <span className="text-base font-medium">Staff Portal</span>
+          </Link>
+        )}
+
+        {isAdmin && (
+          <Link 
+            href="/admin" 
+            onClick={handleNavClick}
+            className={`flex items-center space-x-3 ${
+              variant === 'popup' 
+                ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+                : pathname === '/admin' 
+                  ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
+                  : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+            }`}
+          >
+            <ShieldCheck size={20} className="flex-shrink-0" />
+            <span className="text-base font-medium">Admin Portal</span>
           </Link>
         )}
         

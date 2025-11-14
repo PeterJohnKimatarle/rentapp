@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, ChevronRight, Pencil } from 'lucide-react';
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 
 const RegisterPage: React.FC = () => {
+  const [registrationType, setRegistrationType] = useState<'member' | 'staff' | 'admin'>('member');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,7 +16,7 @@ const RegisterPage: React.FC = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'tenant' as 'tenant' | 'landlord' | 'broker' | 'staff',
+    role: 'tenant' as 'tenant' | 'landlord' | 'broker',
     profileImage: ''
   });
   const [previewImage, setPreviewImage] = useState<string>('');
@@ -24,6 +25,7 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isRegisterAsExpanded, setIsRegisterAsExpanded] = useState(false);
   
   const { register } = useAuth();
   const router = useRouter();
@@ -66,9 +68,23 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    // Prevent admin registration
+    if (registrationType === 'admin') {
+      setError('Admin registration is not available. Please select Member or Staff.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Map registration type to role
+      let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff';
+      if (registrationType === 'member') {
+        finalRole = 'tenant'; // Default to tenant for members
+      } else {
+        finalRole = 'staff';
+      }
+
       const result = await register({
         name: `${formData.firstName} ${formData.lastName}`,
         firstName: formData.firstName,
@@ -76,13 +92,17 @@ const RegisterPage: React.FC = () => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role: formData.role,
+        role: finalRole,
         bio: '',
         profileImage: formData.profileImage
       });
 
       if (result.success) {
-        router.push('/profile');
+        if (finalRole === 'staff') {
+          // Show message that staff account needs approval
+          alert('Staff account created! Your account is pending admin approval. You will be able to access staff features once approved.');
+        }
+        router.push('/');
       } else {
         setError(result.message ?? 'Registration failed. Please try again.');
       }
@@ -173,6 +193,58 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Register As Section */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterAsExpanded(!isRegisterAsExpanded)}
+                  className="flex items-center justify-end gap-2 w-full text-sm font-medium text-gray-700 mb-3 cursor-pointer"
+                >
+                  <span>Register as</span>
+                  <ChevronRight 
+                    size={16} 
+                    className={`text-gray-500 transition-transform duration-200 ${isRegisterAsExpanded ? 'rotate-90' : ''}`}
+                  />
+                </button>
+                {isRegisterAsExpanded && (
+                  <div className="space-y-2">
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="registrationType"
+                        value="member"
+                        checked={registrationType === 'member'}
+                        onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Member (Tenant, Landlord, or Broker)</span>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="registrationType"
+                        value="staff"
+                        checked={registrationType === 'staff'}
+                        onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Staff (Requires admin approval)</span>
+                    </label>
+                  <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-not-allowed opacity-50 bg-gray-100">
+                    <input
+                      type="radio"
+                      name="registrationType"
+                      value="admin"
+                      checked={registrationType === 'admin'}
+                      onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                      className="w-4 h-4 text-gray-400 focus:ring-gray-400"
+                      disabled
+                    />
+                    <span className="ml-3 text-sm text-gray-500">Admin (This option is locked)</span>
+                  </label>
+                  </div>
+                )}
+              </div>
 
               {/* Password Field */}
               <div>
@@ -219,28 +291,28 @@ const RegisterPage: React.FC = () => {
               </div>
 
               {/* Profile Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Profile image</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border border-dashed border-gray-300">
+              <div style={{ transform: 'translateX(-20%)' }}>
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Profile image</label>
+                <div className="flex flex-col items-center gap-2">
+                  <label className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border border-dashed border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
+                    />
                     {previewImage ? (
-                      <img src={previewImage} alt="Profile preview" className="w-full h-full object-cover" />
+                      <>
+                        <img src={previewImage} alt="Profile preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <Pencil size={20} className="text-white" />
+                        </div>
+                      </>
                     ) : (
-                      <span className="text-gray-500 text-xs text-center px-2">No image</span>
+                      <span className="text-gray-500 text-xs text-center px-2">Upload image</span>
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <label className="inline-flex items-center justify-center px-4 py-2 border border-blue-500 text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 text-sm font-medium">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
-                      />
-                      {previewImage ? 'Change image' : 'Upload image'}
-                    </label>
-                    <p className="mt-2 text-xs text-gray-500">Required. PNG or JPG up to 2MB.</p>
-                  </div>
+                  </label>
+                  <p className="text-xs text-gray-500 text-center">Required. PNG or JPG up to 2MB.</p>
                 </div>
               </div>
 

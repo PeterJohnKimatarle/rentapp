@@ -4,14 +4,44 @@ import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShieldCheck, ClipboardList, Users, Activity } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function StaffPortalPage() {
-  const { isAuthenticated, user } = useAuth();
-  const isStaff = user?.role === 'staff';
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const router = useRouter();
+  const wasAuthenticatedRef = useRef(isAuthenticated);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const isStaff = user?.role === 'staff';
+  const isApproved = user?.isApproved === true;
+
+  useEffect(() => {
+    // Detect logout transition
+    if (wasAuthenticatedRef.current && !isAuthenticated && !isLoading) {
+      setIsLoggingOut(true);
+      // Redirect to homepage after brief delay
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, isLoading, router]);
 
   const renderContent = () => {
+    // Show loading during logout transition
+    if (isLoggingOut || (isLoading && wasAuthenticatedRef.current)) {
+      return (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+          <div className="animate-pulse">
+            <ShieldCheck size={48} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (!isAuthenticated) {
       return (
         <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-8 text-center">
@@ -38,6 +68,23 @@ export default function StaffPortalPage() {
           <p className="text-gray-600">
             You are signed in as a public user. Staff-only tools will appear here once your
             account has the appropriate access level.
+          </p>
+        </div>
+      );
+    }
+
+    // Check if staff is approved
+    if (isStaff && !isApproved) {
+      return (
+        <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-8 text-center">
+          <ShieldCheck size={48} className="mx-auto text-orange-500 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Pending Approval</h2>
+          <p className="text-gray-600 mb-4">
+            Your staff account registration is pending admin approval. You will be able to access
+            staff features and the portal once an administrator approves your account.
+          </p>
+          <p className="text-sm text-gray-500">
+            Please wait for admin approval or contact support if you need urgent access.
           </p>
         </div>
       );
