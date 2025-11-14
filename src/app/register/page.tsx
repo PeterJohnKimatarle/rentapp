@@ -68,21 +68,17 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    // Prevent admin registration
-    if (registrationType === 'admin') {
-      setError('Admin registration is not available. Please select Member or Staff.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       // Map registration type to role
-      let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff';
+      let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
       if (registrationType === 'member') {
         finalRole = 'tenant'; // Default to tenant for members
-      } else {
+      } else if (registrationType === 'staff') {
         finalRole = 'staff';
+      } else {
+        finalRole = 'admin';
       }
 
       const result = await register({
@@ -230,17 +226,16 @@ const RegisterPage: React.FC = () => {
                       />
                       <span className="ml-3 text-sm text-gray-700">Staff (Requires admin approval)</span>
                     </label>
-                  <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-not-allowed opacity-50 bg-gray-100">
+                  <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                     <input
                       type="radio"
                       name="registrationType"
                       value="admin"
                       checked={registrationType === 'admin'}
                       onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
-                      className="w-4 h-4 text-gray-400 focus:ring-gray-400"
-                      disabled
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="ml-3 text-sm text-gray-500">Admin (This option is locked)</span>
+                    <span className="ml-3 text-sm text-gray-700">Admin</span>
                   </label>
                   </div>
                 )}

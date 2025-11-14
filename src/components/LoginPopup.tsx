@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -18,12 +18,55 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   
   const { login } = useAuth();
   const router = useRouter();
 
   // Prevent background scrolling when popup is open
   usePreventScroll(isOpen);
+
+  // Handle popup position adjustment when inputs are focused
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleFocus = () => setIsInputFocused(true);
+    const handleBlur = () => {
+      // Small delay to check if another input is being focused
+      setTimeout(() => {
+        const activeElement = document.activeElement;
+        if (activeElement !== emailInputRef.current && activeElement !== passwordInputRef.current) {
+          setIsInputFocused(false);
+        }
+      }, 100);
+    };
+
+    const emailInput = emailInputRef.current;
+    const passwordInput = passwordInputRef.current;
+
+    if (emailInput) {
+      emailInput.addEventListener('focus', handleFocus);
+      emailInput.addEventListener('blur', handleBlur);
+    }
+    if (passwordInput) {
+      passwordInput.addEventListener('focus', handleFocus);
+      passwordInput.addEventListener('blur', handleBlur);
+    }
+
+    return () => {
+      if (emailInput) {
+        emailInput.removeEventListener('focus', handleFocus);
+        emailInput.removeEventListener('blur', handleBlur);
+      }
+      if (passwordInput) {
+        passwordInput.removeEventListener('focus', handleFocus);
+        passwordInput.removeEventListener('blur', handleBlur);
+      }
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +104,13 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
       style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+      <div 
+        ref={popupRef}
+        className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col transition-transform duration-300 ease-in-out"
+        style={{
+          transform: isInputFocused ? 'translateY(-150px)' : 'translateY(0)',
+        }}
+      >
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
           <h3 className="text-xl font-semibold text-black">Login to Rentapp</h3>
@@ -90,6 +139,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
+                  ref={emailInputRef}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -105,6 +155,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
+                  ref={passwordInputRef}
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
