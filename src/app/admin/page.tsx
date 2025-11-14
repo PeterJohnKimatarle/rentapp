@@ -3,9 +3,21 @@
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, Users, ClipboardList, Settings, UserCheck, Check, Trash2 } from 'lucide-react';
+import { ShieldCheck, Users, Settings, UserCheck, Check, Trash2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { getAllProperties } from '@/utils/propertyUtils';
+
+interface User {
+  id: string;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  role: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
+  isApproved?: boolean;
+}
 
 export default function AdminPage() {
   const { isAuthenticated, user, getAllStaff, approveStaff, disapproveStaff, deleteUser, isLoading } = useAuth();
@@ -13,11 +25,20 @@ export default function AdminPage() {
   const wasAuthenticatedRef = useRef(isAuthenticated);
   const isAdmin = user?.role === 'admin';
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
-  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [staffMembers, setStaffMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showDisapproveFor, setShowDisapproveFor] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [totalProperties, setTotalProperties] = useState(0);
+
+  useEffect(() => {
+    // Load total properties count
+    if (isAdmin && typeof window !== 'undefined') {
+      const properties = getAllProperties();
+      setTotalProperties(properties.length);
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     // Detect logout transition
@@ -285,7 +306,7 @@ export default function AdminPage() {
   };
 
   return (
-    <Layout>
+    <Layout totalCount={totalProperties}>
       <div className="bg-gray-50 py-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">{renderContent()}</div>
       </div>

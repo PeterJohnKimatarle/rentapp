@@ -3,7 +3,7 @@
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, ClipboardList, Users, Activity } from 'lucide-react';
+import { ShieldCheck, ClipboardList, Users, Activity, Archive, Clock } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -111,6 +111,26 @@ export default function StaffPortalPage() {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <Archive size={24} className="text-blue-500" />
+              <h3 className="text-lg font-semibold text-gray-900">Closed properties</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Views and manages properties that have been rented successfully.
+            </p>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <Clock size={24} className="text-blue-500" />
+              <h3 className="text-lg font-semibold text-gray-900">Follow up properties</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Track properties that require follow-up actions or attention.
+            </p>
+          </div>
+
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <ClipboardList size={24} className="text-blue-500" />

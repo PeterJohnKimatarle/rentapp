@@ -237,7 +237,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
               <h1 className="text-xl font-bold text-booking-blue">
                 {getPageTitle()}
                 {countLabel && (
-                  <span className="ml-0.5 text-lg font-medium">[{countLabel}]</span>
+                  <span className="ml-1 text-lg font-medium">[{countLabel}]</span>
                 )}
               </h1>
             </button>
