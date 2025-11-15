@@ -26,7 +26,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isImpersonating } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const [anchorPosition, setAnchorPosition] = useState<{ top: number; right: number } | null>(null);
@@ -234,10 +234,15 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
               onClick={handleBackClick}
               className="cursor-pointer"
             >
-              <h1 className="text-xl font-bold text-booking-blue">
-                {getPageTitle()}
-                {countLabel && (
-                  <span className="ml-1 text-lg font-medium">[{countLabel}]</span>
+              <h1 className="text-xl font-bold text-booking-blue flex items-center gap-1">
+                <span>
+                  {getPageTitle()}
+                  {countLabel && (
+                    <span className="ml-1 text-lg font-medium">[{countLabel}]</span>
+                  )}
+                </span>
+                {isImpersonating && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
                 )}
               </h1>
             </button>
@@ -248,7 +253,12 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             className="flex items-center gap-0 cursor-pointer"
           >
             <NextImage src="/icon.png" alt="Rentapp Logo" width={32} height={32} />
-            <h1 className="text-xl font-bold text-booking-blue">Rentapp</h1>
+            <h1 className="text-xl font-bold text-booking-blue flex items-center gap-1">
+              Rentapp
+              {isImpersonating && (
+                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </h1>
           </button>
         )}
         <div className="flex items-center gap-2">
@@ -296,7 +306,12 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           className="flex items-center gap-0 cursor-pointer"
         >
           <NextImage src="/icon.png" alt="Rentapp Logo" width={40} height={40} />
-          <h1 className="text-2xl font-bold text-booking-blue">Rentapp</h1>
+          <h1 className="text-2xl font-bold text-booking-blue flex items-center gap-1">
+            Rentapp
+            {isImpersonating && (
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            )}
+          </h1>
         </button>
         <div className="flex items-center gap-4">
           <div 

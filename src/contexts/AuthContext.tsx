@@ -28,17 +28,23 @@ interface AuthContextType {
   updateUser: (updates: Partial<Omit<User, 'id'>>) => Promise<AuthResult>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
   getAllStaff: () => User[];
+  getAllUsers: () => User[];
   approveStaff: (staffId: string) => Promise<AuthResult>;
   disapproveStaff: (staffId: string) => Promise<AuthResult>;
   deleteUser: (userId: string) => Promise<AuthResult>;
+  deleteOwnAccount: () => Promise<AuthResult>;
+  loginAs: (userId: string) => Promise<AuthResult>;
+  endSession: () => Promise<AuthResult>;
   logout: () => void;
   isLoading: boolean;
+  isImpersonating: boolean;
 }
 
 type StoredUser = User & { password: string };
 
 const SESSION_KEY = 'rentapp_user';
 const USERS_KEY = 'rentapp_users';
+const ORIGINAL_ADMIN_KEY = 'rentapp_original_admin';
 
 const loadStoredUsers = (): StoredUser[] => {
   if (typeof window === 'undefined') return [];
@@ -93,6 +99,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImpersonating, setIsImpersonating] = useState(false);
 
   // Check for existing session on mount
   useEffect(() => {
@@ -105,6 +112,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem(SESSION_KEY);
       }
     }
+    // Check if impersonating on mount
+    setIsImpersonating(typeof window !== 'undefined' && !!localStorage.getItem(ORIGINAL_ADMIN_KEY));
     setIsLoading(false);
   }, []);
 
@@ -366,6 +375,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .map((stored) => sanitizeStoredUser(stored));
   };
 
+  const getAllUsers = (): User[] => {
+    const storedUsers = loadStoredUsers();
+    return storedUsers.map((stored) => sanitizeStoredUser(stored));
+  };
+
   const approveStaff = async (staffId: string): Promise<AuthResult> => {
     try {
       if (!user || user.role !== 'admin') {
@@ -474,9 +488,125 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteOwnAccount = async (): Promise<AuthResult> => {
+    try {
+      if (!user) {
+        return {
+          success: false,
+          message: 'You must be logged in to delete your account.'
+        };
+      }
+
+      const storedUsers = loadStoredUsers();
+      const filteredUsers = storedUsers.filter((u) => u.id !== user.id);
+
+      if (filteredUsers.length === storedUsers.length) {
+        return {
+          success: false,
+          message: 'User not found.'
+        };
+      }
+
+      saveStoredUsers(filteredUsers);
+      
+      // Logout after successful deletion
+      setUser(null);
+      localStorage.removeItem(SESSION_KEY);
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('accountDeleted', { detail: user.id }));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Delete own account error:', error);
+      return {
+        success: false,
+        message: 'Failed to delete account.'
+      };
+    }
+  };
+
+  const loginAs = async (userId: string): Promise<AuthResult> => {
+    try {
+      if (!user || user.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Only admins can log in as other users.'
+        };
+      }
+
+      // Prevent logging in as yourself
+      if (userId === user.id) {
+        return {
+          success: false,
+          message: 'You are already logged in as this user.'
+        };
+      }
+
+      const storedUsers = loadStoredUsers();
+      const targetUser = storedUsers.find((u) => u.id === userId);
+
+      if (!targetUser) {
+        return {
+          success: false,
+          message: 'User not found.'
+        };
+      }
+
+      // Store the original admin user before logging in as another user
+      const originalAdmin = sanitizeStoredUser(storedUsers.find((u) => u.id === user.id) || user as StoredUser);
+      localStorage.setItem(ORIGINAL_ADMIN_KEY, JSON.stringify(originalAdmin));
+      setIsImpersonating(true);
+
+      // Log out current admin and log in as target user
+      const safeUser = sanitizeStoredUser(targetUser);
+      setUser(safeUser);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Login as error:', error);
+      return {
+        success: false,
+        message: 'Failed to log in as user.'
+      };
+    }
+  };
+
+  const endSession = async (): Promise<AuthResult> => {
+    try {
+      const originalAdminJson = typeof window !== 'undefined' ? localStorage.getItem(ORIGINAL_ADMIN_KEY) : null;
+      
+      if (!originalAdminJson) {
+        return {
+          success: false,
+          message: 'No admin session found to restore.'
+        };
+      }
+
+      const originalAdmin = JSON.parse(originalAdminJson);
+      
+      // Restore the original admin session
+      setUser(originalAdmin);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(originalAdmin));
+      localStorage.removeItem(ORIGINAL_ADMIN_KEY);
+      setIsImpersonating(false);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('End session error:', error);
+      return {
+        success: false,
+        message: 'Failed to end session.'
+      };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(ORIGINAL_ADMIN_KEY);
+    setIsImpersonating(false);
   };
 
   const value: AuthContextType = {
@@ -487,11 +617,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateUser,
     changePassword,
     getAllStaff,
+    getAllUsers,
     approveStaff,
     disapproveStaff,
     deleteUser,
+    deleteOwnAccount,
+    loginAs,
+    endSession,
     logout,
-    isLoading
+    isLoading,
+    isImpersonating
   };
 
   return (

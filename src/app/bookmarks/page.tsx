@@ -16,7 +16,7 @@ type SearchFilters = {
 };
 
 export default function BookmarksPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const userId = user?.id;
   const [bookmarkedProperties, setBookmarkedProperties] = useState<DisplayProperty[]>([]);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -130,6 +130,12 @@ export default function BookmarksPage() {
     setSelectedProperty(null);
   };
 
+  // Wait silently during loading - don't show anything
+  if (isLoading) {
+    return null;
+  }
+
+  // Only show login message after loading is complete
   if (!userId) {
     return (
       <Layout totalCount={0} filteredCount={0} hasActiveFilters={false}>

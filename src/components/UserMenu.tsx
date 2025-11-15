@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageCircle, User, ShieldCheck } from 'lucide-react';
+import { MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -127,30 +127,6 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 <User size={18} />
                 View profile
               </button>
-              {isApprovedStaff && (
-                <button
-                  className="w-full px-4 py-3 rounded-xl bg-purple-500 text-white hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => {
-                    onClose();
-                    window.location.href = '/staff';
-                  }}
-                >
-                  <ShieldCheck size={18} />
-                  Staff Portal
-                </button>
-              )}
-              {isAdmin && (
-                <button
-                  className="w-full px-4 py-3 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => {
-                    onClose();
-                    window.location.href = '/admin';
-                  }}
-                >
-                  <ShieldCheck size={18} />
-                  Admin Portal
-                </button>
-              )}
               <button
                 className="w-full pl-4 pr-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
                 onClick={() => {

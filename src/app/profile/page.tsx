@@ -1,22 +1,26 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, X, Building, Heart, Mail, Pencil, ChevronRight } from 'lucide-react';
+import { User, X, Building, Heart, Mail, Pencil, ChevronRight, MoreVertical, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
-  const { user, updateUser, changePassword } = useAuth();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { user, updateUser, changePassword, deleteOwnAccount, isLoading } = useAuth();
+  const router = useRouter();
   const isStaffUser = user?.role === 'staff';
   const isAdminUser = user?.role === 'admin';
   const [userType, setUserType] = useState<'member' | 'staff' | 'admin'>('member');
   const [isUserTypeExpanded, setIsUserTypeExpanded] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Block background scroll when popup is open
-  usePreventScroll(isEditPopupOpen || isPasswordPopupOpen);
+  usePreventScroll(isEditPopupOpen || isPasswordPopupOpen || showDeleteConfirm);
 
   const [userData, setUserData] = useState({
     name: '',
@@ -232,6 +236,27 @@ export default function ProfilePage() {
     }));
   };
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    const result = await deleteOwnAccount();
+    setIsDeleting(false);
+    
+    if (result.success) {
+      setShowDeleteConfirm(false);
+      setIsEditPopupOpen(false);
+      // Redirect to homepage after account deletion
+      router.push('/');
+    } else {
+      alert(result.message ?? 'Failed to delete account. Please try again.');
+    }
+  };
+
+  // Wait silently during loading - don't show anything
+  if (isLoading) {
+    return null;
+  }
+
+  // Only show login message after loading is complete
   if (!user) {
     return (
       <Layout>
@@ -347,18 +372,25 @@ export default function ProfilePage() {
 
       {/* Edit Profile Popup */}
       {isEditPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            handleCancel();
+          }
+        }}>
+          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10 relative">
               <h3 className="text-xl font-semibold text-black">Edit Profile</h3>
               <button
-                onClick={handleCancel}
-                className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowDeleteConfirm(true);
+                }}
+                className="absolute right-2 text-gray-700 px-2 py-2 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+                title="Delete Account"
               >
-                <X size={20} />
+                <MoreVertical size={24} />
               </button>
             </div>
             <div className="p-4 overflow-y-auto flex-1">
@@ -492,21 +524,16 @@ export default function ProfilePage() {
                           Staff {isAdminUser ? '(Not available)' : '(Requires an admin approval)'}
                         </span>
                       </label>
-                      <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors whitespace-nowrap ${
-                        isAdminUser 
-                          ? 'cursor-pointer hover:bg-gray-50' 
-                          : 'cursor-not-allowed opacity-50 bg-gray-100'
-                      }`}>
+                      <label className="flex items-center p-3 border border-gray-300 rounded-lg transition-colors whitespace-nowrap cursor-pointer hover:bg-gray-50">
                         <input
                           type="radio"
                           name="userType"
                           value="admin"
                           checked={userType === 'admin'}
                           onChange={(e) => setUserType(e.target.value as 'member' | 'staff' | 'admin')}
-                          className="w-4 h-4 text-gray-400 focus:ring-gray-400 flex-shrink-0"
-                          disabled={!isAdminUser}
+                          className="w-4 h-4 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                         />
-                        <span className="ml-3 text-sm text-gray-500 whitespace-nowrap">Admin {!isAdminUser && '(This option is locked)'}</span>
+                        <span className="ml-3 text-sm text-gray-700 whitespace-nowrap">Admin</span>
                       </label>
                     </div>
                   )}
@@ -545,6 +572,52 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Popup */}
+      {showDeleteConfirm && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDeleteConfirm(false);
+            }
+            e.stopPropagation();
+          }}
+        >
+          <div 
+            className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center mb-4">
+                <Trash2 size={48} className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Account</h3>
+              <p className="text-white/80 text-sm">Are you sure you want to delete your account? This action cannot be undone.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? 'Deleting...' : 'Yes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                No
+              </button>
             </div>
           </div>
         </div>

@@ -3,19 +3,44 @@
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, ClipboardList, Users, Activity, Archive, Clock } from 'lucide-react';
+import { ShieldCheck, Archive, Clock, Menu, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { getAllProperties } from '@/utils/propertyUtils';
+
+type ViewType = 'closed' | 'followup';
 
 export default function StaffPortalPage() {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, isImpersonating } = useAuth();
   const router = useRouter();
   const wasAuthenticatedRef = useRef(isAuthenticated);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [currentView, setCurrentView] = useState<ViewType>('closed');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [closedProperties, setClosedProperties] = useState(0);
+  const [followUpProperties, setFollowUpProperties] = useState(0);
 
   const isStaff = user?.role === 'staff';
   const isApproved = user?.isApproved === true;
+
+  useEffect(() => {
+    // Load data when approved staff
+    if (isApproved && typeof window !== 'undefined') {
+      // Closed properties: For now, no properties are marked as closed
+      // This will be implemented when staff can mark properties as closed/rented
+      setClosedProperties(0);
+      
+      // Follow up properties are those with status 'available'
+      const properties = getAllProperties();
+      const followUp = properties.filter(p => p.status === 'available');
+      setFollowUpProperties(followUp.length);
+    } else {
+      // Reset counts when not approved
+      setClosedProperties(0);
+      setFollowUpProperties(0);
+    }
+  }, [isApproved]);
 
   useEffect(() => {
     // Detect logout transition
@@ -30,16 +55,14 @@ export default function StaffPortalPage() {
   }, [isAuthenticated, isLoading, router]);
 
   const renderContent = () => {
-    // Show loading during logout transition
+    // Wait silently during loading - don't show anything
     if (isLoggingOut || (isLoading && wasAuthenticatedRef.current)) {
-      return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
-          <div className="animate-pulse">
-            <ShieldCheck size={48} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      );
+      return null;
+    }
+
+    // Wait silently for auth to finish loading - don't show anything
+    if (isLoading) {
+      return null;
     }
 
     if (!isAuthenticated) {
@@ -91,85 +114,108 @@ export default function StaffPortalPage() {
     }
 
     return (
-      <div className="space-y-8">
-        <section className="bg-white border border-blue-200 rounded-xl shadow-sm p-6">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <p className="text-sm uppercase tracking-wide text-blue-500 font-semibold">Welcome</p>
-              <h2 className="text-3xl font-bold text-gray-900 mt-1">Rentapp Staff Portal</h2>
-              <p className="text-gray-600 mt-2 max-w-2xl">
-                This area will evolve into the control center for internal teams—approving property
-                listings, supporting customers, and monitoring platform activity.
-              </p>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-900">
-              <p className="font-semibold">Signed in as</p>
-              <p>{user?.firstName || user?.name?.split(' ')[0] || user?.email}</p>
-              <p className="uppercase tracking-wide text-xs mt-1">Role: Staff</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
+      <div className="space-y-6 relative">
+        {/* Closed Properties View */}
+        {currentView === 'closed' && (
+          <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-6 flex-wrap">
               <Archive size={24} className="text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Closed properties</h3>
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
+                Closed Properties
+                {isImpersonating && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+                )}
+              </h3>
+              <p className="text-lg font-medium text-gray-900">[{closedProperties}]</p>
             </div>
-            <p className="text-sm text-gray-600">
-              Views and manages properties that have been rented successfully.
-            </p>
-          </div>
+            {closedProperties === 0 ? (
+              <p className="text-gray-600 text-center py-8">No closed properties found.</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Properties list will go here in the future */}
+                <p className="text-gray-600 text-center py-4">Property details will be displayed here.</p>
+              </div>
+            )}
+          </section>
+        )}
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
+        {/* Follow Up Properties View */}
+        {currentView === 'followup' && (
+          <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-6 flex-wrap">
               <Clock size={24} className="text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Follow up properties</h3>
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
+                Follow Up Properties
+                {isImpersonating && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+                )}
+              </h3>
+              <p className="text-lg font-medium text-gray-900">[{followUpProperties}]</p>
             </div>
-            <p className="text-sm text-gray-600">
-              Track properties that require follow-up actions or attention.
-            </p>
-          </div>
+            {followUpProperties === 0 ? (
+              <p className="text-gray-600 text-center py-8">No follow up properties found.</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Properties list will go here in the future */}
+                <p className="text-gray-600 text-center py-4">Property details will be displayed here.</p>
+              </div>
+            )}
+          </section>
+        )}
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <ClipboardList size={24} className="text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Pending approvals</h3>
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="fixed top-[58%] -translate-y-1/2 right-6 w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg hover:bg-purple-600 transition-all duration-200 flex items-center justify-center z-40 hover:scale-110"
+          title="Staff Menu"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Menu Popup */}
+        {isMenuOpen && (
+          <>
+            <div
+              className="fixed top-[58%] -translate-y-[55px] right-24 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 min-w-[200px] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-2">
+                <button
+                  onClick={() => {
+                    setCurrentView('closed');
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                    currentView === 'closed'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Archive size={20} />
+                  Closed Properties
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentView('followup');
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                    currentView === 'followup'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Clock size={20} />
+                  Follow Up Properties
+                </button>
+              </div>
             </div>
-            <p className="text-sm text-gray-600">
-              Future space for reviewing new property submissions before they go live.
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <Users size={24} className="text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Customer snapshots</h3>
-            </div>
-            <p className="text-sm text-gray-600">
-              Placeholder for user overviews, account status, and quick escalation tools.
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <Activity size={24} className="text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Platform health</h3>
-            </div>
-            <p className="text-sm text-gray-600">
-              Slot for analytics, alerts, and operational runbooks once monitoring is wired up.
-            </p>
-          </div>
-        </section>
-
-        <section className="bg-white border border-dashed border-gray-300 rounded-xl p-6 text-center">
-          <p className="text-sm uppercase tracking-wide text-gray-500 font-semibold">Roadmap</p>
-          <h3 className="text-xl font-semibold text-gray-900 mt-1 mb-3">Next steps for this portal</h3>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            As the backend lands, we can wire these tiles into real data, add role management, and
-            create task-specific pages for operations, compliance, and support teams.
-          </p>
-        </section>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsMenuOpen(false)}
+            />
+          </>
+        )}
       </div>
     );
   };
@@ -184,4 +230,3 @@ export default function StaffPortalPage() {
     </Layout>
   );
 }
-

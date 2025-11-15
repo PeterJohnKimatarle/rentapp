@@ -17,7 +17,7 @@ type SearchFilters = {
 };
 
 export default function MyPropertiesPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const userId = user?.id;
   const [properties, setProperties] = useState<ReturnType<typeof getUserCreatedProperties>>([]);
   const [editingProperty, setEditingProperty] = useState<PropertyFormData | null>(null);
@@ -292,16 +292,16 @@ export default function MyPropertiesPage() {
   };
 
   const renderContent = () => {
-    if (!isHydrated) {
-      return (
-        <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">
-          <div className="text-center py-8">
-            <p className="text-gray-500 text-lg">Loading your properties...</p>
-          </div>
-        </div>
-      );
+    // Wait silently during loading - don't show anything
+    if (isLoading) {
+      return null;
     }
 
+    if (!isHydrated) {
+      return null;
+    }
+
+    // Only show login message after loading is complete
     if (!userId) {
       return (
         <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4">

@@ -210,7 +210,10 @@ const RegisterPage: React.FC = () => {
                         name="registrationType"
                         value="member"
                         checked={registrationType === 'member'}
-                        onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                        onChange={(e) => {
+                          setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
+                          setIsRegisterAsExpanded(false);
+                        }}
                         className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="ml-3 text-sm text-gray-700">Member (Tenant, Landlord, or Broker)</span>
@@ -221,7 +224,10 @@ const RegisterPage: React.FC = () => {
                         name="registrationType"
                         value="staff"
                         checked={registrationType === 'staff'}
-                        onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                        onChange={(e) => {
+                          setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
+                          setIsRegisterAsExpanded(false);
+                        }}
                         className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="ml-3 text-sm text-gray-700">Staff (Requires admin approval)</span>
@@ -232,7 +238,10 @@ const RegisterPage: React.FC = () => {
                       name="registrationType"
                       value="admin"
                       checked={registrationType === 'admin'}
-                      onChange={(e) => setRegistrationType(e.target.value as 'member' | 'staff' | 'admin')}
+                      onChange={(e) => {
+                        setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
+                        setIsRegisterAsExpanded(false);
+                      }}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="ml-3 text-sm text-gray-700">Admin</span>

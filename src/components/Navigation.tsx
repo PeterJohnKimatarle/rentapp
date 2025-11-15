@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 
 interface NavigationProps {
   variant?: 'default' | 'popup';
@@ -15,10 +16,21 @@ interface NavigationProps {
 
 export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onHomeClick }: NavigationProps) {
   const pathname = usePathname();
-  const { isAuthenticated, user } = useAuth();
+  const router = useRouter();
+  const { isAuthenticated, user, endSession, isImpersonating } = useAuth();
   const isStaff = user?.role === 'staff';
   const isApprovedStaff = isStaff && user?.isApproved === true;
   const isAdmin = user?.role === 'admin';
+  const [isEndingSession, setIsEndingSession] = useState(false);
+
+  const handleEndSession = async () => {
+    setIsEndingSession(true);
+    const result = await endSession();
+    if (result.success) {
+      router.push('/admin');
+    }
+    setIsEndingSession(false);
+  };
   
   // Handle navigation item clicks in popup mode
   const handleNavClick = () => {
@@ -195,6 +207,26 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             <ShieldCheck size={20} className="flex-shrink-0" />
             <span className="text-base font-medium">Admin Portal</span>
           </Link>
+        )}
+
+        {isImpersonating && (
+          <button
+            onClick={() => {
+              if (variant === 'popup' && onItemClick) {
+                onItemClick();
+              }
+              handleEndSession();
+            }}
+            disabled={isEndingSession}
+            className={`flex items-center space-x-3 ${
+              variant === 'popup' 
+                ? 'text-red-600 hover:text-red-700 px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed' 
+                : 'text-red-600 hover:text-red-700 hover:bg-yellow-500 rounded-lg px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed'
+            }`}
+          >
+            <LogOut size={20} className="flex-shrink-0" />
+            <span className="text-base font-medium">{isEndingSession ? 'Ending...' : 'End Session'}</span>
+          </button>
         )}
         
         <Link 
