@@ -11,10 +11,11 @@ interface NavigationProps {
   onItemClick?: () => void;
   onSearchClick?: () => void;
   onLoginClick?: () => void;
+  onLogoutClick?: () => void;
   onHomeClick?: () => void;
 }
 
-export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onHomeClick }: NavigationProps) {
+export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onLogoutClick, onHomeClick }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, user, endSession, isImpersonating, logout } = useAuth();
@@ -268,14 +269,18 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         {isAuthenticated && (
           <button
             onClick={() => {
-              if (variant === 'popup' && onItemClick) {
-                onItemClick();
-              }
-              const wasAdmin = isAdmin;
-              logout();
-              // Redirect admin users to homepage after logout
-              if (wasAdmin) {
-                router.push('/');
+              if (onLogoutClick) {
+                onLogoutClick();
+              } else {
+                // Fallback to direct logout if no handler provided
+                if (variant === 'popup' && onItemClick) {
+                  onItemClick();
+                }
+                const wasAdmin = isAdmin;
+                logout();
+                if (wasAdmin) {
+                  router.push('/');
+                }
               }
             }}
             className={`flex items-center space-x-3 ${

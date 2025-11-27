@@ -33,19 +33,9 @@ export default function BookmarksPage() {
 
     // Listen for bookmark changes
     window.addEventListener('bookmarksChanged', handleBookmarksChange);
-    
-    // Also check for changes when component mounts/focuses
-    const handleFocus = () => {
-      if (userId) {
-        setBookmarkedProperties(getBookmarkedProperties(userId));
-      }
-    };
-    
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('bookmarksChanged', handleBookmarksChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [userId]);
 

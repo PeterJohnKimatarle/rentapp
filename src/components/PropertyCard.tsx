@@ -34,7 +34,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [imageError, setImageError] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isShareSpinning, setIsShareSpinning] = useState(false);
-  const [isViewed, setIsViewed] = useState(false);
   const [lastViewedId, setLastViewedId] = useState<string | null>(null);
   const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
   const [showRemoveBookmarkPopup, setShowRemoveBookmarkPopup] = useState(false);
@@ -45,18 +44,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>(property.status);
   const [pendingImages, setPendingImages] = useState(false);
   const [pendingDetails, setPendingDetails] = useState(false);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const [titleFontSize, setTitleFontSize] = useState(24); // Start with 1.5rem (24px)
+  const headerRef = useRef<HTMLHeadingElement>(null);
+  const [headerFontSize, setHeaderFontSize] = useState(24); // Start with 1.5rem (24px)
 
   useEffect(() => {
     setPendingStatus(property.status);
   }, [property.status]);
 
-  // Adjust font size to fit text on one line
+  // Adjust header font size to fit content on one line
   useEffect(() => {
-    if (!isDetailsOpen || !titleRef.current) return;
+    if (!isDetailsOpen || !headerRef.current) return;
 
-    const element = titleRef.current;
+    const element = headerRef.current;
     const container = element.parentElement;
     if (!container) return;
 
@@ -66,18 +65,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
     // Check if text overflows
     const checkFit = () => {
-      if (element.scrollWidth > container.offsetWidth && fontSize > 14) {
-        fontSize = Math.max(14, fontSize - 1); // Decrease by 1px, minimum 14px
+      if (element.scrollWidth > container.offsetWidth && fontSize > 12) {
+        fontSize = Math.max(12, fontSize - 1); // Decrease by 1px, minimum 12px
         element.style.fontSize = `${fontSize}px`;
         requestAnimationFrame(checkFit);
       } else {
-        setTitleFontSize(fontSize);
+        setHeaderFontSize(fontSize);
       }
     };
 
     // Small delay to ensure DOM is updated
     setTimeout(checkFit, 10);
-  }, [isDetailsOpen, property.title]);
+  }, [isDetailsOpen, property]);
 
   const isSubmitDisabled =
     pendingStatus === property.status && !pendingImages && !pendingDetails;
@@ -140,11 +139,22 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     }).format(price).replace('TZS', 'Tshs');
   };
 
+  const formatPropertyType = (propertyType?: string) => {
+    if (!propertyType) return 'Property';
+    const typeMap: { [key: string]: string } = {
+      '1-bdrm-apartment': '1 Bdrm Apartment',
+      '2-bdrm-apartment': '2 Bdrm Apartment',
+      '3-bdrm-apartment': '3 Bdrm Apartment',
+      '4-bdrm-apartment': '4 Bdrm Apartment',
+      '5-bdrm-apartment': '5 Bdrm Apartment',
+      'commercial-building-frame': 'Commercial Building (Frame)',
+    };
+    return typeMap[propertyType] || propertyType.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   const handleImageClick = () => {
     setIsLightboxOpen(true);
     setCurrentImageIndex(0);
-    // Mark as viewed when image is clicked
-    setIsViewed(true);
   };
 
   const handleDetailsClick = (e: React.MouseEvent) => {
@@ -154,8 +164,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     setCurrentImageIndex(0);
     setSavedScrollPosition(0); // Reset scroll position to top
     setIsDetailsOpen(true);
-    // Mark as viewed when details are opened
-    setIsViewed(true);
   };
 
   const handleShareClick = (e: React.MouseEvent) => {
@@ -382,7 +390,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           </div>
 
           {/* Property Details */}
-          <div className="flex-1 p-1.5 sm:p-3 md:p-4 lg:p-6 min-w-0 overflow-hidden cursor-pointer" onClick={handleDetailsClick}>
+          <div className="flex-1 pt-0 pb-1.5 px-1.5 sm:pt-0 sm:pb-3 sm:px-3 md:pt-0 md:pb-4 md:px-4 lg:pt-0 lg:pb-6 lg:px-6 min-w-0 overflow-hidden cursor-pointer" onClick={handleDetailsClick}>
             <div className="flex flex-col mb-2 min-w-0">
               <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-gray-900 mb-0 truncate flex items-center gap-1 min-w-0">
                 <span className="truncate">{property.title}</span>
@@ -402,8 +410,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <MapPin size={12} className="mr-1 flex-shrink-0" />
               <span className="truncate min-w-0">{property.location}</span>
             </div>
-            <div className="text-sm sm:text-base text-gray-500 mb-1 flex items-baseline ml-1 min-w-0 overflow-hidden">
-              <Clock size={14} className="mr-0.5 flex-shrink-0" style={{ transform: 'translateY(0.25px)' }} />
+            <div className="text-sm sm:text-base text-gray-500 mb-1 flex items-center ml-1 min-w-0 overflow-hidden">
+              <Clock size={14} className="mr-0.5 flex-shrink-0" />
               <span className="truncate">Updated: {getRelativeTime(property.updatedAt)}</span>
             </div>
             {hideBookmark && (onStatusChange || onEditClick || onEditImageClick) && (
@@ -444,7 +452,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             bathrooms: property.bathrooms,
             area: property.area,
             images: property.images,
-            description: property.description
+            description: property.description,
+            propertyType: 'propertyType' in property ? property.propertyType : undefined
           }
         }}
       />
@@ -469,7 +478,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       {isDetailsOpen && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
-          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={(e) => e.stopPropagation()}
         >
            <div 
@@ -479,36 +488,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
            >
              {/* Header */}
              <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0" style={{ backgroundColor: '#0071c2' }}>
-               <h2 className="text-xl font-semibold text-white px-4" style={{ borderBottom: '2px solid #eab308' }}>Property Details</h2>
+               <h2 
+                 ref={headerRef}
+                 className="font-semibold text-white px-4 whitespace-nowrap"
+                 style={{ fontSize: `${headerFontSize}px`, lineHeight: '1.2' }}
+               >
+                 {'propertyType' in property ? formatPropertyType(property.propertyType) : 'Property'}
+               </h2>
              </div>
 
              {/* Content - Scrollable */}
-             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-4 px-6 pb-6">
+             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-1 px-6 pb-6">
                <div className="space-y-6">
-                   {/* Property Title */}
-                   <div className="mb-1 overflow-hidden">
-                     <h2 
-                       ref={titleRef}
-                       className="text-2xl font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" 
-                       style={{ fontSize: `${titleFontSize}px`, lineHeight: '1.2' }}
-                     >
-                       {(() => {
-                         let displayTitle = property.title;
-                         // Check if property has propertyType field and it's commercial-building-frame
-                         if ('propertyType' in property && property.propertyType === 'commercial-building-frame') {
-                           // Replace (Frame) with [Frame] if it exists
-                           displayTitle = displayTitle.replace(/\(Frame\)/g, '[Frame]');
-                           // If title ends with " Frame" or "Building Frame", replace with " [Frame]"
-                           if (!displayTitle.includes('[Frame]') && !displayTitle.includes('(Frame)')) {
-                             displayTitle = displayTitle.replace(/\s+Frame\s*$/i, ' [Frame]');
-                             displayTitle = displayTitle.replace(/\bBuilding\s+Frame\b/i, 'Building [Frame]');
-                           }
-                         }
-                         return displayTitle;
-                       })()}
-                     </h2>
-                   </div>
-
                  {/* Property Information - Same as Homepage */}
                  <div className="space-y-2">
                    {/* Status */}

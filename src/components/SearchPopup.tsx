@@ -133,7 +133,7 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', minHeight: '100vh', height: '100%', overscrollBehavior: 'contain' }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', minHeight: '100vh', height: '100%', overscrollBehavior: 'contain', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onWheel={preventWheel}
       onTouchMove={handleOverlayTouchMove}
       onTouchStart={onTouchStart}

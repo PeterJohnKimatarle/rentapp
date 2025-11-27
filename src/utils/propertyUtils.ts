@@ -1,5 +1,10 @@
 import { properties as staticProperties } from '@/data/properties';
 
+// Cache for getAllProperties to improve performance
+let propertiesCache: DisplayProperty[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 100; // 100ms cache to batch rapid calls
+
 // Interface for properties saved from the form (localStorage)
 export interface PropertyFormData {
   id: string;
@@ -100,9 +105,22 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
   };
 };
 
+// Invalidate the properties cache (call this when properties are added/updated/deleted)
+export const invalidatePropertiesCache = () => {
+  propertiesCache = null;
+  cacheTimestamp = 0;
+};
+
 // Get all properties (static + localStorage)
 export const getAllProperties = (): DisplayProperty[] => {
-  // Get static properties
+  const now = Date.now();
+  
+  // Return cached result if available and fresh
+  if (propertiesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    return propertiesCache;
+  }
+
+  // Get static properties (this is fast, no need to cache)
   const staticProps: DisplayProperty[] = staticProperties.map(prop => ({
     ...prop,
     plan: prop.plan as '3+' | '6+' | '12+'
@@ -119,11 +137,17 @@ export const getAllProperties = (): DisplayProperty[] => {
   // Combine and sort by creation date (newest first)
   const allProperties = [...convertedProperties, ...staticProps];
   
-  return allProperties.sort((a, b) => {
+  const sortedProperties = allProperties.sort((a, b) => {
     const dateA = new Date(a.updatedAt || a.createdAt || '');
     const dateB = new Date(b.updatedAt || b.createdAt || '');
     return dateB.getTime() - dateA.getTime();
   });
+
+  // Cache the result
+  propertiesCache = sortedProperties;
+  cacheTimestamp = now;
+  
+  return sortedProperties;
 };
 
 // Get properties by status
@@ -287,6 +311,9 @@ export const updateProperty = (
     
     localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
     
+    // Invalidate cache
+    invalidatePropertiesCache();
+    
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('propertyUpdated', { detail: updatedProperty }));
     
@@ -349,6 +376,9 @@ export const deleteProperty = (propertyId: string, currentUserId?: string): bool
     existingProperties.splice(propertyIndex, 1);
     
     localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
+    
+    // Invalidate cache
+    invalidatePropertiesCache();
     
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('propertyDeleted', { detail: propertyId }));

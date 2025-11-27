@@ -46,7 +46,20 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const editProfileScrollRef = useRef<HTMLDivElement | null>(null);
   const passwordScrollRef = useRef<HTMLDivElement | null>(null);
+  
+  const handleEditProfileInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const inputEl = e.currentTarget;
+    // Defer to allow viewport resize due to keyboard before scrolling
+    setTimeout(() => {
+      // Scroll the input into view within the popup
+      inputEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      // Nudge the container slightly for extra space
+      editProfileScrollRef.current?.scrollBy({ top: -24, behavior: 'smooth' });
+    }, 0);
+  };
+
   const handlePasswordInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputEl = e.currentTarget;
     // Defer to allow viewport resize due to keyboard before scrolling
@@ -63,6 +76,32 @@ export default function ProfilePage() {
 
   // Dynamically add bottom padding equal to the virtual keyboard height (when present)
   const [keyboardInset, setKeyboardInset] = useState(0);
+  const [editProfileKeyboardInset, setEditProfileKeyboardInset] = useState(0);
+  
+  useEffect(() => {
+    if (!isEditPopupOpen) {
+      setEditProfileKeyboardInset(0);
+      return;
+    }
+    const vv = typeof window !== 'undefined'
+      ? (window as Window & { visualViewport?: VisualViewport }).visualViewport
+      : undefined;
+    if (!vv) return;
+    const handleResize = () => {
+      // Amount of viewport covered by keyboard (rough estimate)
+      const covered = Math.max(0, window.innerHeight - vv.height);
+      // Add a small buffer so last input and buttons stay above keyboard
+      setEditProfileKeyboardInset(covered > 0 ? covered + 32 : 0);
+    };
+    handleResize();
+    vv.addEventListener('resize', handleResize);
+    vv.addEventListener('scroll', handleResize);
+    return () => {
+      vv.removeEventListener('resize', handleResize);
+      vv.removeEventListener('scroll', handleResize);
+    };
+  }, [isEditPopupOpen]);
+
   useEffect(() => {
     if (!isPasswordPopupOpen) {
       setKeyboardInset(0);
@@ -159,8 +198,13 @@ export default function ProfilePage() {
 
     if (result.success) {
       setIsEditPopupOpen(false);
-      // Reload page to reflect role changes
-      window.location.reload();
+      // Only reload if role changed (user context updates automatically otherwise)
+      const roleChanged = finalRole !== user?.role;
+      if (roleChanged) {
+        // Role change requires reload to update permissions/UI
+        window.location.reload();
+      }
+      // Otherwise, user state is already updated by updateUser, no reload needed
     } else {
       setSaveError(result.message ?? 'Unable to update profile. Please try again.');
     }
@@ -314,13 +358,6 @@ export default function ProfilePage() {
     <Layout>
       <div className="bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-black mb-4">
-              My Profile
-            </h1>
-          </div>
-
           {/* Profile Card */}
           <div className="bg-white rounded-lg shadow-sm mb-8 border border-blue-500 border-2 shadow-blue-100">
             <div className="p-8">
@@ -344,7 +381,7 @@ export default function ProfilePage() {
                 {/* User Info */}
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-black mb-2">
-                    {userData.name || `${userData.firstName} ${userData.lastName}`.trim() || 'Unnamed user'}
+                    {userData.firstName || userData.name?.split(' ')[0] || 'Unnamed user'}
                   </h2>
                   <p className="text-gray-600 mb-1">{userData.email || 'No email provided'}</p>
                   <p className="text-gray-600">{userData.phone || 'No phone number provided'}</p>
@@ -433,7 +470,11 @@ export default function ProfilePage() {
                 <MoreVertical size={24} />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto flex-1">
+            <div 
+              ref={editProfileScrollRef}
+              className="p-4 overflow-y-auto flex-1"
+              style={{ paddingBottom: editProfileKeyboardInset || 16 }}
+            >
             
             <div className="space-y-3">
               {/* Profile Image and Basic Info Section */}
@@ -475,6 +516,7 @@ export default function ProfilePage() {
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    onFocus={handleEditProfileInputFocus}
                     placeholder="First Name"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
@@ -485,6 +527,7 @@ export default function ProfilePage() {
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    onFocus={handleEditProfileInputFocus}
                     placeholder="Last Name"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
@@ -495,6 +538,7 @@ export default function ProfilePage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    onFocus={handleEditProfileInputFocus}
                     placeholder="Email"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
@@ -505,6 +549,7 @@ export default function ProfilePage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onFocus={handleEditProfileInputFocus}
                     placeholder="Phone"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
                   />
@@ -589,6 +634,7 @@ export default function ProfilePage() {
                 <textarea
                   value={formData.bio}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
+                  onFocus={handleEditProfileInputFocus}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
                   placeholder="Bio"

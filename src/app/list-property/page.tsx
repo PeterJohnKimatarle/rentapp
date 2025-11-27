@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Image, Info, PlusCircle } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
+import { invalidatePropertiesCache } from '@/utils/propertyUtils';
 
 // Ward data organized by region (most common and well-known wards, alphabetically sorted)
 const wardsByRegion = {
@@ -115,6 +116,7 @@ export default function ListPropertyPage() {
       
       existingProperties.push(property);
       localStorage.setItem('rentapp_properties', JSON.stringify(existingProperties));
+      invalidatePropertiesCache(); // Invalidate cache for instant updates
       console.log('Property saved successfully');
       return true; // Success
     } catch (error) {
@@ -130,6 +132,7 @@ export default function ListPropertyPage() {
           const recentProperties = existingProperties.slice(-10); // Keep last 10
           recentProperties.push(property);
           localStorage.setItem('rentapp_properties', JSON.stringify(recentProperties));
+          invalidatePropertiesCache(); // Invalidate cache for instant updates
           console.log('Property saved after removing old properties');
           return true; // Success after cleanup
         } catch (quotaError) {

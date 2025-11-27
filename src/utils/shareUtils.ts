@@ -16,6 +16,7 @@ export interface ShareOptions {
     area: number;
     images: string[];
     description?: string;
+    propertyType?: string;
   };
 }
 

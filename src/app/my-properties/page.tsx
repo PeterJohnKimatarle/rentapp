@@ -77,13 +77,6 @@ export default function MyPropertiesPage() {
       setIsHydrated(true);
     };
     
-    // Also check for changes when component mounts/focuses
-    const handleFocus = () => {
-      if (userId) {
-        setProperties(getUserCreatedProperties(userId));
-      }
-    };
-
     // Listen for storage changes
     window.addEventListener('storage', handleStorageChange);
     
@@ -95,15 +88,12 @@ export default function MyPropertiesPage() {
     
     // Listen for property deleted event
     window.addEventListener('propertyDeleted', handlePropertyDeleted);
-    
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('propertyAdded', handlePropertyAdded);
       window.removeEventListener('propertyUpdated', handlePropertyUpdated);
       window.removeEventListener('propertyDeleted', handlePropertyDeleted);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [userId]);
 

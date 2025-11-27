@@ -30,11 +30,6 @@ export default function Home() {
       setProperties(getAllProperties());
     };
     
-    // Also check for changes when component mounts/focuses
-    const handleFocus = () => {
-      setProperties(getAllProperties());
-    };
-
     // Listen for storage changes
     window.addEventListener('storage', handleStorageChange);
     
@@ -43,14 +38,11 @@ export default function Home() {
     
     // Listen for property updated event
     window.addEventListener('propertyUpdated', handlePropertyUpdated);
-    
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('propertyAdded', handlePropertyAdded);
       window.removeEventListener('propertyUpdated', handlePropertyUpdated);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

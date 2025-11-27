@@ -41,9 +41,8 @@ export default function Footer() {
       {/* Gesture Info Popup */}
       {isGestureInfoOpen && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-          onClick={() => setIsGestureInfoOpen(false)}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         >
           <div 
             className="rounded-xl max-w-72 w-full py-6 px-6 shadow-2xl overflow-hidden"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Share2, Copy, MessageCircle, Facebook, Mail, Smartphone, Link, Send } from 'lucide-react';
+import { Share2, Copy, MessageCircle, Facebook, Mail, Smartphone, Link, Send } from 'lucide-react';
 import { ShareManager, ShareOptions } from '@/utils/shareUtils';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
@@ -17,6 +17,44 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
 
   // Block background scroll when popup is open
   usePreventScroll(isOpen);
+
+  // Format property title to ensure parentheses are included for commercial building (frame)
+  const formatPropertyTitle = (title: string, propertyType?: string) => {
+    if (!title) return title;
+    
+    // If propertyType is commercial-building-frame, format the title
+    if (propertyType === 'commercial-building-frame') {
+      // Ensure Frame has parentheses
+      if (title.toLowerCase().includes('frame')) {
+        if (!title.includes('(') && !title.includes('[')) {
+          // Replace "Frame" at the end with "(Frame)"
+          if (/\bFrame\s*$/i.test(title)) {
+            return title.replace(/\s+Frame\s*$/i, ' (Frame)');
+          }
+          // Replace "Building Frame" with "Building (Frame)"
+          if (/\bBuilding\s+Frame\b/i.test(title)) {
+            return title.replace(/\bBuilding\s+Frame\b/i, 'Building (Frame)');
+          }
+        }
+      } else {
+        // If title doesn't include "Frame", add it
+        return title + ' (Frame)';
+      }
+    }
+    
+    // Fallback: Check if title has commercial and frame but missing parentheses
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('commercial') && lowerTitle.includes('frame') && !title.includes('(') && !title.includes('[')) {
+      if (/\bFrame\s*$/i.test(title)) {
+        return title.replace(/\s+Frame\s*$/i, ' (Frame)');
+      }
+      if (/\bBuilding\s+Frame\b/i.test(title)) {
+        return title.replace(/\bBuilding\s+Frame\b/i, 'Building (Frame)');
+      }
+    }
+    
+    return title;
+  };
 
   if (!isOpen) return null;
 
@@ -112,34 +150,25 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
       onClick={(e) => e.stopPropagation()}
     >
       <div 
-        className="rounded-xl max-w-md w-full p-6 shadow-lg overflow-hidden"
+        className="rounded-xl max-w-md w-full shadow-lg overflow-hidden"
         style={{ backgroundColor: '#0071c2' }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white px-4" style={{ borderBottom: '2px solid #eab308' }}>
-            Share Property
+        <div className="flex items-center justify-center pt-2 pb-2 px-6">
+          <h3 className="text-2xl font-semibold text-white px-4">
+            Share this property
           </h3>
-          <button
-            onClick={onClose}
-            className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-            onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-            onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Property Preview */}
-        <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+        <div className="mb-6 mt-4 p-4 mx-6 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
           <div className="flex items-center space-x-3">
             {/* Property Image */}
             <div className="flex-shrink-0">
               <img
                 src={shareOptions.property.images[0]}
-                alt={`${shareOptions.property.bedrooms} bedroom apartment in ${shareOptions.property.location}`}
+                alt={shareOptions.property.title}
                 className="w-24 h-24 rounded-lg object-cover border-2 border-yellow-500"
               />
             </div>
@@ -147,7 +176,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
             {/* Property Details */}
             <div className="flex-1 min-w-0">
               <div className="text-white font-medium text-sm mb-1">
-                {shareOptions.property.bedrooms} Bedroom Apartment
+                {formatPropertyTitle(shareOptions.property.title, shareOptions.property.propertyType)}
               </div>
               <div className="text-white/90 text-xs mb-2">
                 {shareOptions.property.location}
@@ -164,7 +193,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
         </div>
 
         {/* Share Options */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 px-6">
           {shareButtons.filter(button => button.show).map((button) => {
             const IconComponent = button.icon;
             const isButtonLoading = isLoading === button.id;
@@ -188,7 +217,7 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
         </div>
 
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-white/20">
+        <div className="mt-6 pt-4 px-6 pb-6 border-t border-white/20">
           <div className="text-white/80 text-xs text-center mb-4">
             Share this amazing property with friends and family
           </div>

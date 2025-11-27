@@ -11,7 +11,7 @@ import { getAllProperties } from '@/utils/propertyUtils';
 type ViewType = 'closed' | 'followup';
 
 export default function StaffPortalPage() {
-  const { isAuthenticated, user, isLoading, isImpersonating } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const router = useRouter();
   const wasAuthenticatedRef = useRef(isAuthenticated);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);

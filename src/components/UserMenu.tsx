@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { MessageCircle, User, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserMenuProps {
@@ -11,6 +12,7 @@ interface UserMenuProps {
 }
 
 export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuProps) {
+  const router = useRouter();
   const { user } = useAuth();
   const isStaff = user?.role === 'staff';
   const isApprovedStaff = isStaff && user?.isApproved === true;
@@ -31,6 +33,8 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
 
   const handleBackdropClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
       if (event.target === event.currentTarget) {
         onClose();
       }
@@ -93,14 +97,28 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
   return (
     <div
       className="fixed inset-0 z-[70]"
-      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+      style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={handleBackdropClick}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+        }
+      }}
     >
       <div
         className="absolute bg-blue-200 rounded-2xl shadow-2xl overflow-hidden outline-none"
         style={positionStyle}
+        onClick={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
       >
-        <div className="relative p-5 bg-gray-500 text-white">
+        <div className="relative p-5 bg-blue-500 text-white">
           <div className="flex items-center gap-3 flex-wrap mb-0.5">
             <p className="text-sm tracking-wide text-gray-100 font-semibold">Logged in as</p>
             <div className={`inline-block ${roleBanner.bgColor} ${roleBanner.textColor} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider`}>
@@ -118,7 +136,7 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 className="w-full px-4 py-3 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                 onClick={() => {
                   onClose();
-                  window.location.href = '/profile';
+                  router.push('/profile');
                 }}
               >
                 <User size={18} />
@@ -128,7 +146,7 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 className="w-full pl-4 pr-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
                 onClick={() => {
                   onClose();
-                  window.location.href = '/contact';
+                  router.push('/contact');
                 }}
               >
                 <MessageCircle size={18} />

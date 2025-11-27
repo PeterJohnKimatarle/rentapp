@@ -23,6 +23,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -34,14 +35,16 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const avatarSrc = user?.profileImage && user.profileImage.trim() !== '' ? user.profileImage : '/images/reed-richards.png';
 
   const countLabel = useMemo(() => {
-    if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
-      return `${filteredCount}/${totalCount}`;
-    }
-    if (typeof totalCount === 'number') {
+    // Show total count for admin portal
+    if (pathname === '/admin' && typeof totalCount === 'number') {
       return `${totalCount}`;
     }
+    // Show filtered count when there are active filters
+    if (hasActiveFilters && typeof filteredCount === 'number') {
+      return `${filteredCount}`;
+    }
     return null;
-  }, [filteredCount, hasActiveFilters, totalCount]);
+  }, [filteredCount, hasActiveFilters, totalCount, pathname]);
 
   // Touch event handlers for swipe gestures - using refs for performance
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -126,8 +129,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   }, [isMobileMenuOpen, isSearchPopupOpen]);
 
   const handleLogoClick = () => {
-    // Force page reload to get fresh data
-    window.location.href = '/';
+    router.push('/');
   };
 
   const handleBackClick = () => {
@@ -178,7 +180,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   };
 
   // Prevent body scroll when menu is open
-  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen);
+  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen || showLogoutConfirm);
 
   const updateAnchorPosition = useCallback((element: HTMLElement | null) => {
     if (!element) {
@@ -244,7 +246,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       onTouchEnd={onTouchEnd}
     >
       {/* Mobile Header */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
+      <div className="xl:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
         {shouldShowBackButton() ? (
           <div className="flex items-center gap-1">
             <button 
@@ -278,6 +280,9 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             <NextImage src="/icon.png" alt="Rentapp Logo" width={48} height={48} />
             <h1 className="text-2xl font-bold text-booking-blue flex items-center gap-1 mt-1 -ml-1">
               Rentapp
+              {countLabel && (
+                <span className="text-xl font-medium mt-0.5">[{countLabel}]</span>
+              )}
               {isImpersonating && (
                 <span className="w-2 h-2 bg-red-500 rounded-full"></span>
               )}
@@ -309,7 +314,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           )}
           <button 
             onClick={handleSearchClick}
-            className="p-2 text-gray-600 hover:text-booking-blue transition-colors cursor-pointer"
+            className={`p-2 transition-colors cursor-pointer ${hasActiveFilters ? 'text-green-500 hover:text-green-600' : 'text-gray-600 hover:text-booking-blue'}`}
           >
             <Search size={24} />
           </button>
@@ -323,7 +328,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden xl:flex fixed top-0 left-0 right-0 h-16 items-center justify-between bg-white border-b border-gray-200 px-6 z-30 shadow-sm">
+      <div className="hidden xl:flex fixed top-0 left-0 right-0 h-14 items-center justify-between bg-white border-b border-gray-200 px-6 z-30 shadow-sm">
         <button 
           onClick={handleLogoClick}
           className="flex items-center cursor-pointer -ml-3"
@@ -331,6 +336,9 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           <NextImage src="/icon.png" alt="Rentapp Logo" width={56} height={56} />
           <h1 className="text-3xl font-bold text-booking-blue flex items-center gap-1 mt-1 -ml-1">
             Rentapp
+            {countLabel && (
+              <span className="text-2xl font-medium mt-0.5">[{countLabel}]</span>
+            )}
             {isImpersonating && (
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
             )}
@@ -341,7 +349,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             onClick={handleSearchClick}
             className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
           >
-            <Search size={20} className="text-gray-500 mr-3" />
+            <Search size={20} className={`mr-3 ${hasActiveFilters ? 'text-green-500' : 'text-gray-500'}`} />
             <input
               type="text"
               placeholder="Search for properties..."
@@ -378,7 +386,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       {isMobileMenuOpen && (
         <div 
           className="xl:hidden fixed inset-0 z-[60]"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Popup Content */}
@@ -403,6 +411,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                 onItemClick={() => setIsMobileMenuOpen(false)} 
                 onSearchClick={handleSearchClick} 
                 onLoginClick={() => setIsLoginPopupOpen(true)}
+                onLogoutClick={() => setShowLogoutConfirm(true)}
                 onHomeClick={() => {
                   setIsMobileMenuOpen(false);
                   setIsSearchPopupOpen(false);
@@ -426,10 +435,10 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         </div>
       )}
 
-      <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-16">
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-14">
         {/* Left Panel - Navigation (Desktop) */}
-        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
-          <Navigation onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} />
+        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-14 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 3.5rem)' }}>
+          <Navigation onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} onLogoutClick={() => setShowLogoutConfirm(true)} />
         </div>
 
         {/* Center Panel - Main Content */}
@@ -440,7 +449,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         </div>
 
         {/* Right Panel - User Profile & Actions (Desktop) */}
-        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
+        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-14 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 3.5rem)' }}>
           {isAuthenticated ? (
             <div className="space-y-6">
               {/* User Profile Card */}
@@ -457,14 +466,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    const wasAdmin = user?.role === 'admin';
-                    logout();
-                    // Redirect admin users to homepage after logout
-                    if (wasAdmin) {
-                      router.push('/');
-                    }
-                  }}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
                   <LogOut size={16} />
@@ -571,6 +573,67 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         isOpen={isLoginPopupOpen}
         onClose={() => setIsLoginPopupOpen(false)}
       />
+
+      {/* Logout Confirmation Popup */}
+      {showLogoutConfirm && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[70] p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-white.rounded-xl');
+            // Close if clicking outside the modal
+            if (!modal) {
+              setShowLogoutConfirm(false);
+            }
+          }}
+          onTouchEnd={(e) => {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-white.rounded-xl');
+            // Close if touching outside the modal
+            if (!modal) {
+              setShowLogoutConfirm(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+          >
+            <div className="text-center p-4 pb-4">
+              <p className="text-gray-900 text-base">Are you sure you want to logout ?</p>
+            </div>
+            <div className="relative">
+              <div className="w-full h-px bg-gray-300"></div>
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const wasAdmin = user?.role === 'admin';
+                    setShowLogoutConfirm(false);
+                    setIsMobileMenuOpen(false);
+                    logout();
+                    // Redirect admin users to homepage after logout
+                    if (wasAdmin) {
+                      router.push('/');
+                    }
+                  }}
+                  className="flex-1 py-3 text-center text-red-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  Logout
+                </button>
+                <div className="w-px bg-gray-300"></div>
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-3 text-center text-gray-600 hover:text-gray-700 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
