@@ -1,0 +1,576 @@
+'use client';
+
+import { ReactNode, useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import NextImage from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import Navigation from './Navigation';
+import Footer from './Footer';
+import SearchPopup from './SearchPopup';
+import { Menu, X, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginPopup from './LoginPopup';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
+import UserMenu from './UserMenu';
+
+interface LayoutProps {
+  children: ReactNode;
+  totalCount?: number;
+  filteredCount?: number;
+  hasActiveFilters?: boolean;
+}
+
+export default function Layout({ children, totalCount, filteredCount, hasActiveFilters = false }: LayoutProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, logout, isImpersonating } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const [anchorPosition, setAnchorPosition] = useState<{ top: number; right: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const avatarSrc = user?.profileImage && user.profileImage.trim() !== '' ? user.profileImage : '/images/reed-richards.png';
+
+  const countLabel = useMemo(() => {
+    if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
+      return `${filteredCount}/${totalCount}`;
+    }
+    if (typeof totalCount === 'number') {
+      return `${totalCount}`;
+    }
+    return null;
+  }, [filteredCount, hasActiveFilters, totalCount]);
+
+  // Touch event handlers for swipe gestures - using refs for performance
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchEndRef = useRef<{ x: number; y: number } | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchEndRef.current = null;
+    touchStartRef.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    // Use ref to avoid re-renders - no state updates during move
+    touchEndRef.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    const touchStart = touchStartRef.current;
+    const touchEnd = touchEndRef.current;
+    
+    if (!touchStart || !touchEnd) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+    
+    // Check if image lightbox is open by looking for bg-black bg-opacity-90 (unique to lightbox)
+    const imageLightbox = document.querySelector('.bg-black.bg-opacity-90.z-50');
+    if (imageLightbox) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+    
+    const distanceX = touchStart.x - touchEnd.x;
+    const distanceY = touchStart.y - touchEnd.y;
+    const isLeftSwipe = distanceX > minSwipeDistance;
+    const isRightSwipe = distanceX < -minSwipeDistance;
+    const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
+
+    // Only handle horizontal swipes
+    if (isVerticalSwipe) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+
+    if (isLeftSwipe) {
+      // Right to left swipe - open navigation menu if closed
+      // Don't open menu if search popup is already open
+      if (isSearchPopupOpen && !isMobileMenuOpen) {
+        touchStartRef.current = null;
+        touchEndRef.current = null;
+        return;
+      }
+      
+      // Open menu if closed
+      if (!isMobileMenuOpen) {
+        setIsMobileMenuOpen(true);
+      }
+    } else if (isRightSwipe) {
+      // Left to right swipe - open search popup or close navigation menu
+      // Don't open search if menu is already open
+      if (isMobileMenuOpen && !isSearchPopupOpen) {
+        // Close navigation menu
+        setIsMobileMenuOpen(false);
+      } else if (!isSearchPopupOpen) {
+        // Open search popup
+        setIsSearchPopupOpen(true);
+      }
+    }
+    
+    // Reset refs after handling
+    touchStartRef.current = null;
+    touchEndRef.current = null;
+  }, [isMobileMenuOpen, isSearchPopupOpen]);
+
+  const handleLogoClick = () => {
+    // Force page reload to get fresh data
+    window.location.href = '/';
+  };
+
+  const handleBackClick = () => {
+    // Use browser history for the listing page, services page, and new pages
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff' || pathname === '/admin') {
+      // Check if there's history to go back to
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        // Fallback to home page if no history
+        router.push('/');
+      }
+    } else {
+      // For other pages, always go to home page
+      router.push('/');
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/my-properties':
+        return 'My Properties';
+      case '/bookmarks':
+        return 'Bookmarks';
+      case '/list-property':
+        return 'Listing...';
+      case '/services':
+        return 'Our Services';
+      case '/contact':
+        return 'Contact Info';
+      case '/about':
+        return 'About Us';
+      case '/profile':
+        return 'Profile';
+      case '/register':
+        return 'Registration';
+      case '/staff':
+        return 'Staff Portal';
+      case '/admin':
+        return 'Admin portal';
+      default:
+        return 'Rentapp';
+    }
+  };
+
+  const shouldShowBackButton = () => {
+    return pathname !== '/';
+  };
+
+  // Prevent body scroll when menu is open
+  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen);
+
+  const updateAnchorPosition = useCallback((element: HTMLElement | null) => {
+    if (!element) {
+      setAnchorPosition(null);
+      return;
+    }
+    const rect = element.getBoundingClientRect();
+    setAnchorPosition({
+      top: rect.bottom + window.scrollY + 8,
+      right: window.innerWidth - rect.right + window.scrollX,
+    });
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsUserMenuOpen(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isUserMenuOpen || !anchorElement) return;
+
+    const handleReposition = () => updateAnchorPosition(anchorElement);
+
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [isUserMenuOpen, anchorElement, updateAnchorPosition]);
+
+  const handleProfileClick = (target: HTMLElement) => {
+    if (isUserMenuOpen && anchorElement === target) {
+      setIsUserMenuOpen(false);
+      return;
+    }
+
+    setAnchorElement(target);
+    updateAnchorPosition(target);
+    setIsUserMenuOpen(true);
+  };
+
+  const closeUserMenu = () => {
+    setIsUserMenuOpen(false);
+  };
+
+  const handleSearchClick = () => {
+    closeUserMenu();
+    setIsSearchPopupOpen(true);
+  };
+
+  return (
+    <div 
+      className="min-h-screen flex flex-col overflow-x-hidden"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Mobile Header */}
+      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between z-30 shadow-sm">
+        {shouldShowBackButton() ? (
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={handleBackClick}
+              className="cursor-pointer"
+            >
+              <ArrowLeft size={24} className="text-booking-blue" />
+            </button>
+            <button 
+              onClick={handleBackClick}
+              className="cursor-pointer"
+            >
+              <h1 className="text-xl font-bold text-booking-blue flex items-center gap-1">
+                <span>
+                {getPageTitle()}
+                {countLabel && (
+                    <span className="ml-1 text-lg font-medium">[{countLabel}]</span>
+                  )}
+                </span>
+                {isImpersonating && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+                )}
+              </h1>
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center cursor-pointer -ml-3"
+          >
+            <NextImage src="/icon.png" alt="Rentapp Logo" width={48} height={48} />
+            <h1 className="text-2xl font-bold text-booking-blue flex items-center gap-1 mt-1 -ml-1">
+              Rentapp
+              {isImpersonating && (
+                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </h1>
+          </button>
+        )}
+        <div className="flex items-center gap-2">
+          {isClient && isAuthenticated && (
+            <button
+              onClick={(e) => handleProfileClick(e.currentTarget)}
+              className="relative w-9 h-9 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
+              aria-label="Open profile"
+            >
+              <NextImage
+                src={avatarSrc}
+                alt="Profile avatar"
+                width={36}
+                height={36}
+                className="w-full h-full object-cover rounded-full"
+              />
+              {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white leading-none ${
+                  user?.role === 'admin' ? 'bg-red-500' : 'bg-purple-500'
+                } ${user?.role === 'staff' ? 'pl-[1px]' : ''}`}>
+                  {user?.role === 'admin' ? 'A' : 'S'}
+                </div>
+              )}
+            </button>
+          )}
+          <button 
+            onClick={handleSearchClick}
+            className="p-2 text-gray-600 hover:text-booking-blue transition-colors cursor-pointer"
+          >
+            <Search size={24} />
+          </button>
+                 <button
+                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                   className="p-2 text-gray-600 hover:text-booking-blue transition-colors cursor-pointer"
+                 >
+            <Menu size={24} />
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden xl:flex fixed top-0 left-0 right-0 h-16 items-center justify-between bg-white border-b border-gray-200 px-6 z-30 shadow-sm">
+        <button 
+          onClick={handleLogoClick}
+          className="flex items-center cursor-pointer -ml-3"
+        >
+          <NextImage src="/icon.png" alt="Rentapp Logo" width={56} height={56} />
+          <h1 className="text-3xl font-bold text-booking-blue flex items-center gap-1 mt-1 -ml-1">
+            Rentapp
+            {isImpersonating && (
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            )}
+          </h1>
+        </button>
+        <div className="flex items-center gap-4">
+          <div 
+            onClick={handleSearchClick}
+            className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+          >
+            <Search size={20} className="text-gray-500 mr-3" />
+            <input
+              type="text"
+              placeholder="Search for properties..."
+              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
+              readOnly
+            />
+          </div>
+          {isClient && isAuthenticated && (
+            <button
+              onClick={(e) => handleProfileClick(e.currentTarget)}
+              className="relative w-10 h-10 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
+              aria-label="Open profile"
+            >
+              <NextImage
+                src={avatarSrc}
+                alt="Profile avatar"
+                width={40}
+                height={40}
+                className="w-full h-full object-cover rounded-full"
+              />
+              {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white leading-none ${
+                  user?.role === 'admin' ? 'bg-red-500' : 'bg-purple-500'
+                } ${user?.role === 'staff' ? 'pl-[1px]' : ''}`}>
+                  {user?.role === 'admin' ? 'A' : 'S'}
+                </div>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu Popup */}
+      {isMobileMenuOpen && (
+        <div 
+          className="xl:hidden fixed inset-0 z-[60]"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Popup Content */}
+          <div
+            ref={menuRef}
+            className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-2xl max-w-72 w-full max-h-[80vh] overflow-y-auto"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-3 right-4 text-white transition-colors rounded-lg cursor-pointer h-10 w-10 flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
+              >
+                <X size={20} />
+              </button>
+              <Navigation 
+                variant="popup" 
+                onItemClick={() => setIsMobileMenuOpen(false)} 
+                onSearchClick={handleSearchClick} 
+                onLoginClick={() => setIsLoginPopupOpen(true)}
+                onHomeClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsSearchPopupOpen(false);
+                  setIsLoginPopupOpen(false);
+                  
+                  // Close any property details modals or other popups with z-50 class
+                  const allModals = document.querySelectorAll('.z-50');
+                  allModals.forEach(modal => {
+                    const closeButton = modal.querySelector('button, [onclick*="Close"], [onclick*="close"]');
+                    if (closeButton && closeButton instanceof HTMLElement) {
+                      closeButton.click();
+                    }
+                  });
+                  
+                  // Navigate to home page
+                  router.push('/');
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-16">
+        {/* Left Panel - Navigation (Desktop) */}
+        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
+          <Navigation onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} />
+        </div>
+
+        {/* Center Panel - Main Content */}
+        <div className="flex-1 bg-gray-50 min-w-0 xl:ml-64 xl:mr-80">
+          <main>
+            {children}
+          </main>
+        </div>
+
+        {/* Right Panel - User Profile & Actions (Desktop) */}
+        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-16 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 4rem)' }}>
+          {isAuthenticated ? (
+            <div className="space-y-6">
+              {/* User Profile Card */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">
+                      {user?.name?.charAt(0) || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{user?.name || 'User'}</h3>
+                    <p className="text-sm text-gray-600">{user?.role || 'Member'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const wasAdmin = user?.role === 'admin';
+                    logout();
+                    // Redirect admin users to homepage after logout
+                    if (wasAdmin) {
+                      router.push('/');
+                    }
+                  }}
+                  className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={() => router.push('/my-properties')}
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  My Properties
+                </button>
+                <button
+                  onClick={() => router.push('/bookmarks')}
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Bookmarks
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Welcome Card */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Rentapp!</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Join our community to access all features and manage your properties.
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setIsLoginPopupOpen(true)}
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <LogIn size={16} />
+                    <span>Login</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/register')}
+                    className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <UserPlus size={16} />
+                    <span>Register</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Features Preview */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-900">What you can do:</h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Search and browse properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Save favorite properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>List your own properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Connect with landlords & tenants</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* User Menu */}
+      {isClient && isAuthenticated && (
+        <UserMenu
+          isOpen={isUserMenuOpen}
+          onClose={closeUserMenu}
+          anchorPosition={anchorPosition}
+        />
+      )}
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Search Popup */}
+      <SearchPopup 
+        isOpen={isSearchPopupOpen} 
+        onClose={() => setIsSearchPopupOpen(false)} 
+      />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={() => setIsLoginPopupOpen(false)}
+      />
+    </div>
+  );
+}
