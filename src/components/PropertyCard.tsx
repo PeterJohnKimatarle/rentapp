@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Image, Clock, Minus, Heart, Pencil, Radio, Share2 } from 'lucide-react';
+import { MapPin, Image, Clock, Minus, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Property } from '@/data/properties';
 import { DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +27,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const userId = user?.id;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [previewImageIndex, setPreviewImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isArrowHovered, setIsArrowHovered] = useState(false);
   const [isFromHomescreen, setIsFromHomescreen] = useState(false);
   const [savedScrollPosition, setSavedScrollPosition] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -107,6 +110,44 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     }
   }, [property.images]);
 
+  // Reset preview index when property changes (desktop only)
+  useEffect(() => {
+    setPreviewImageIndex(0);
+  }, [property.id]);
+
+  // Ensure preview index stays at 0 on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1280) {
+        setPreviewImageIndex(0);
+        setIsHovered(false);
+        setIsArrowHovered(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    // Check on mount
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Preload adjacent images for smoother navigation
+  useEffect(() => {
+    const preloadImage = (index: number) => {
+      if (index >= 0 && index < property.images.length && !preloadedImagesRef.current.has(index)) {
+        const img = new window.Image();
+        img.src = property.images[index];
+        preloadedImagesRef.current.add(index);
+      }
+    };
+
+    // Preload previous and next images
+    const prevIndex = previewImageIndex > 0 ? previewImageIndex - 1 : property.images.length - 1;
+    const nextIndex = previewImageIndex < property.images.length - 1 ? previewImageIndex + 1 : 0;
+    
+    preloadImage(prevIndex);
+    preloadImage(nextIndex);
+  }, [previewImageIndex, property.images]);
+
   // Prevent body scrolling when popup is open
   usePreventScroll(isDetailsOpen || showBookmarkPopup || showRemoveBookmarkPopup || showSharePopup);
 
@@ -132,11 +173,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   }, [property.id, userId]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-TZ', {
+    const formatted = new Intl.NumberFormat('en-TZ', {
       style: 'currency',
       currency: 'TZS',
       minimumFractionDigits: 0,
-    }).format(price).replace('TZS', 'Tshs');
+    }).format(price);
+    // Replace TZS or TSh with Tsh (lowercase 's')
+    return formatted.replace(/TZS|TSh/gi, 'Tsh');
   };
 
   const formatPropertyType = (propertyType?: string) => {
@@ -154,7 +197,23 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
   const handleImageClick = () => {
     setIsLightboxOpen(true);
-    setCurrentImageIndex(0);
+    setCurrentImageIndex(previewImageIndex);
+  };
+
+  const handlePreviousImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only work on desktop (xl and above)
+    if (window.innerWidth >= 1280) {
+      setPreviewImageIndex((prev) => (prev > 0 ? prev - 1 : property.images.length - 1));
+    }
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only work on desktop (xl and above)
+    if (window.innerWidth >= 1280) {
+      setPreviewImageIndex((prev) => (prev < property.images.length - 1 ? prev + 1 : 0));
+    }
   };
 
   const handleDetailsClick = (e: React.MouseEvent) => {
@@ -301,7 +360,23 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       <div className={`bg-white rounded-lg transition-shadow duration-200 overflow-hidden ${borderClass}`}>
         <div className="flex flex-row min-w-0">
           {/* Property Image */}
-          <div className="w-44 sm:w-52 md:w-64 lg:w-96 h-52 sm:h-60 md:h-72 lg:h-96 flex-shrink-0 relative">
+          <div 
+            className="w-44 sm:w-52 md:w-64 lg:w-96 h-52 sm:h-60 md:h-72 lg:h-96 xl:h-80 flex-shrink-0 relative"
+            onMouseEnter={() => {
+              // Only handle hover on desktop (xl and above)
+              if (window.innerWidth >= 1280) {
+                setIsHovered(true);
+              }
+            }}
+            onMouseLeave={() => {
+              // Only handle hover on desktop (xl and above)
+              if (window.innerWidth >= 1280) {
+                setIsHovered(false);
+                setIsArrowHovered(false);
+                setPreviewImageIndex(0);
+              }
+            }}
+          >
             {!isImageLoaded && (
               <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
                 <div className="text-gray-500 text-sm">Loading...</div>
@@ -324,39 +399,116 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 </div>
               </div>
             ) : (
-              <img
-                src={property.images[0]}
-                alt={property.title}
-                className="w-full h-full object-cover cursor-pointer"
-                onClick={handleImageClick}
-                onError={() => setImageError(true)}
-                style={{ 
-                  opacity: isImageLoaded ? 1 : 0,
-                  transition: 'opacity 0.3s ease-in-out'
-                }}
-              />
+              <>
+                {/* Mobile: Always show first image, Desktop: Show preview index */}
+                <img
+                  src={property.images[0]}
+                  alt={property.title}
+                  className="w-full h-full object-cover cursor-pointer xl:hidden"
+                  onClick={handleImageClick}
+                  onError={() => setImageError(true)}
+                  style={{ 
+                    opacity: isImageLoaded ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                />
+                <img
+                  src={property.images[previewImageIndex]}
+                  alt={property.title}
+                  className="hidden xl:block w-full h-full object-cover cursor-pointer"
+                  onClick={handleImageClick}
+                  onError={() => setImageError(true)}
+                  style={{ 
+                    opacity: isImageLoaded ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                />
+                {/* Navigation Arrows - Only on Desktop (xl and above) */}
+                {property.images.length > 1 && (
+                  <>
+                    {/* Left Arrow */}
+                    <button
+                      onClick={handlePreviousImage}
+                      onMouseEnter={() => {
+                        if (window.innerWidth >= 1280) setIsArrowHovered(true);
+                      }}
+                      onMouseLeave={() => {
+                        if (window.innerWidth >= 1280) setIsArrowHovered(false);
+                      }}
+                      className={`hidden xl:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-md px-3.5 py-2 shadow-lg transition-opacity duration-200 z-30 items-center justify-center cursor-pointer ${
+                        isHovered ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={26} />
+                    </button>
+                    {/* Right Arrow */}
+                    <button
+                      onClick={handleNextImage}
+                      onMouseEnter={() => {
+                        if (window.innerWidth >= 1280) setIsArrowHovered(true);
+                      }}
+                      onMouseLeave={() => {
+                        if (window.innerWidth >= 1280) setIsArrowHovered(false);
+                      }}
+                      className={`hidden xl:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-md px-3.5 py-2 shadow-lg transition-opacity duration-200 z-30 items-center justify-center cursor-pointer ${
+                        isHovered ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={26} />
+                    </button>
+                  </>
+                )}
+              </>
             )}
             {/* Status Banner */}
-            <div className={`absolute top-1 left-1 px-2 py-0.5 rounded text-xs font-medium border-[1.5px] border-black ${
+            <div className={`absolute top-1 left-1 px-2 py-0.5 xl:px-3 xl:py-1 rounded text-xs xl:text-sm font-medium xl:font-semibold border-[1.5px] border-black ${
               property.status === 'available' 
                 ? 'bg-green-400 text-black' 
                 : 'bg-red-400 text-white'
             }`}>
               {property.status === 'available' ? 'Available' : 'Occupied'}
             </div>
-            <div className="absolute bottom-1 left-1 px-2 py-1 rounded-md flex items-center space-x-0.5 text-white text-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            {/* Image Counter - Mobile: Always visible with icon + count */}
+            <div className="flex xl:hidden absolute bottom-1 left-1 px-2 py-1 rounded-md flex items-center space-x-0.5 text-white text-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image size={16} className="w-4 h-4" />
               <span>{property.images.length}</span>
+            </div>
+            {/* Image Counter - Desktop: With hover behavior */}
+            <div className="hidden xl:flex absolute bottom-0.5 left-1 lg:bottom-2.5 lg:left-1 text-white text-sm xl:text-base px-3 py-2 xl:px-3.5 xl:py-2 rounded-lg shadow-lg items-center space-x-0.5 xl:space-x-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+              {!isArrowHovered && (
+                <>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                  <Image size={16} className="w-4 h-4 xl:w-4.5 xl:h-4.5" />
+                </>
+              )}
+              <span className="font-medium">
+                {isArrowHovered 
+                  ? (property.images.length === 0 ? '0 / 0' : `${previewImageIndex + 1} / ${property.images.length}`)
+                  : property.images.length
+                }
+              </span>
             </div>
             
             {showEditImageIcon && onEditImageClick && null}
             
             {!hideBookmark && (
               <div 
-                className="absolute top-1 right-1 px-2 py-1 rounded-md flex items-center justify-center text-white text-sm cursor-pointer z-20" 
+                className="absolute top-1 right-1 px-2 py-1 xl:px-3 xl:py-1.5 rounded-md flex items-center justify-center text-white text-sm xl:text-base cursor-pointer z-20" 
                 style={{ 
                   backgroundColor: showMinusIcon ? '#ef4444' : 'rgba(0, 0, 0, 0.5)'
+                }}
+                onMouseEnter={(e) => {
+                  if (showMinusIcon) {
+                    (e.currentTarget as HTMLDivElement).style.backgroundColor = '#fca5a5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (showMinusIcon) {
+                    (e.currentTarget as HTMLDivElement).style.backgroundColor = '#ef4444';
+                  }
                 }}
                 onClick={handleBookmarkClick}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -364,7 +516,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               >
                 {showMinusIcon ? (
                   <span 
-                    className="text-xl font-bold w-6 h-6 flex items-center justify-center"
+                    className="text-xl xl:text-2xl font-bold w-6 h-6 xl:w-7 xl:h-7 flex items-center justify-center"
                     style={{ 
                       transform: 'scaleX(1.3)', 
                       userSelect: 'none',
@@ -377,7 +529,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 ) : (
                   <Heart 
                     size={24} 
-                    className="w-6 h-6" 
+                    className="w-6 h-6 xl:w-7 xl:h-7" 
                     style={{ 
                       color: bookmarked ? 'white' : 'white', 
                       fill: bookmarked ? '#ef4444' : 'none',
@@ -808,7 +960,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     setPendingImages(false);
                     setPendingDetails(false);
                   }}
-                  className="w-1/2 bg-red-400/75 hover:bg-red-500/75 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center"
+                  className="w-1/2 text-white text-sm px-4 py-3 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: '#ef4444' }}
                 >
                   Cancel
                 </button>

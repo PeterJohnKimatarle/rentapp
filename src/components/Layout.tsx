@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import SearchPopup from './SearchPopup';
-import { Menu, X, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Menu, Search, ArrowLeft, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginPopup from './LoginPopup';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
@@ -32,6 +32,8 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const [anchorPosition, setAnchorPosition] = useState<{ top: number; right: number } | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const [searchBarPosition, setSearchBarPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   const avatarSrc = user?.profileImage && user.profileImage.trim() !== '' ? user.profileImage : '/images/reed-richards.png';
 
   const countLabel = useMemo(() => {
@@ -188,8 +190,10 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       return;
     }
     const rect = element.getBoundingClientRect();
+    // Use viewport coordinates (without scrollY) for both mobile and desktop
+    // This keeps the modal fixed relative to viewport when scrolling
     setAnchorPosition({
-      top: rect.bottom + window.scrollY + 8,
+      top: rect.bottom + 8,
       right: window.innerWidth - rect.right + window.scrollX,
     });
   }, []);
@@ -235,6 +239,17 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
   const handleSearchClick = () => {
     closeUserMenu();
+    // Calculate search bar position on desktop
+    if (searchBarRef.current && typeof window !== 'undefined' && window.innerWidth >= 1280) {
+      const rect = searchBarRef.current.getBoundingClientRect();
+      setSearchBarPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width
+      });
+    } else {
+      setSearchBarPosition(null);
+    }
     setIsSearchPopupOpen(true);
   };
 
@@ -293,7 +308,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           {isClient && isAuthenticated && (
             <button
               onClick={(e) => handleProfileClick(e.currentTarget)}
-              className="relative w-9 h-9 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
+              className="relative w-9 h-9 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center cursor-pointer"
               aria-label="Open profile"
             >
               <NextImage
@@ -346,6 +361,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         </button>
         <div className="flex items-center gap-4">
           <div 
+            ref={searchBarRef}
             onClick={handleSearchClick}
             className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
           >
@@ -360,7 +376,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           {isClient && isAuthenticated && (
             <button
               onClick={(e) => handleProfileClick(e.currentTarget)}
-              className="relative w-10 h-10 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center"
+              className="relative w-10 h-10 rounded-full overflow-visible border border-blue-200 shadow-sm flex items-center justify-center cursor-pointer"
               aria-label="Open profile"
             >
               <NextImage
@@ -397,15 +413,6 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-3 right-4 text-white transition-colors rounded-lg cursor-pointer h-10 w-10 flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-              >
-                <X size={20} />
-              </button>
               <Navigation 
                 variant="popup" 
                 onItemClick={() => setIsMobileMenuOpen(false)} 
@@ -437,7 +444,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 pt-14">
         {/* Left Panel - Navigation (Desktop) */}
-        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-14 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 3.5rem)' }}>
+        <div className="hidden xl:block xl:w-64 xl:min-w-64 bg-white border-b xl:border-b-0 xl:border-r border-gray-200 flex-shrink-0 xl:fixed xl:top-11 xl:left-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 2.75rem)' }}>
           <Navigation onSearchClick={handleSearchClick} onLoginClick={() => setIsLoginPopupOpen(true)} onLogoutClick={() => setShowLogoutConfirm(true)} />
         </div>
 
@@ -565,7 +572,11 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       {/* Search Popup */}
       <SearchPopup 
         isOpen={isSearchPopupOpen} 
-        onClose={() => setIsSearchPopupOpen(false)} 
+        onClose={() => {
+          setIsSearchPopupOpen(false);
+          setSearchBarPosition(null);
+        }}
+        searchBarPosition={searchBarPosition}
       />
 
       {/* Login Popup */}

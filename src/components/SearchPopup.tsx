@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
 
 // Ward data organized by region (exact match from listing page)
 const wardsByRegion = {
@@ -40,9 +39,10 @@ const wardsByRegion = {
 interface SearchPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  searchBarPosition?: { top: number; left: number; width: number } | null;
 }
 
-export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
+export default function SearchPopup({ isOpen, onClose, searchBarPosition }: SearchPopupProps) {
   const [propertyType, setPropertyType] = useState('');
   const [status, setStatus] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
@@ -59,13 +59,6 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  };
-  
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd({
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY
     });
@@ -130,34 +123,53 @@ export default function SearchPopup({ isOpen, onClose }: SearchPopupProps) {
     dispatchSearchEvent({});
   };
 
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
+  const shouldPositionBelow = isDesktop && searchBarPosition;
+
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', minHeight: '100vh', height: '100%', overscrollBehavior: 'contain', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      className={`fixed inset-0 z-50 ${shouldPositionBelow ? 'xl:p-0' : 'flex items-center justify-center p-4'}`}
+      style={{ 
+        display: shouldPositionBelow ? 'block' : 'flex', 
+        alignItems: shouldPositionBelow ? 'flex-start' : 'center', 
+        justifyContent: shouldPositionBelow ? 'flex-start' : 'center', 
+        touchAction: 'none', 
+        minHeight: '100vh', 
+        height: '100%', 
+        overscrollBehavior: 'contain', 
+        backgroundColor: shouldPositionBelow ? 'transparent' : 'rgba(0, 0, 0, 0.5)'
+      }}
+      onClick={(e) => {
+        if (shouldPositionBelow && e.target === e.currentTarget) {
+          onClose();
+        } else if (!shouldPositionBelow) {
+          onClose();
+        }
+      }}
       onWheel={preventWheel}
       onTouchMove={handleOverlayTouchMove}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div 
-        className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
-        style={{ backgroundColor: '#0071c2' }}
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
+       <div 
+         className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
+         style={{ 
+           backgroundColor: '#0071c2',
+           ...(shouldPositionBelow && searchBarPosition ? {
+             position: 'fixed',
+             top: `${searchBarPosition.top}px`,
+             left: `${searchBarPosition.left - searchBarPosition.width / 2 + 80}px`,
+             width: `${searchBarPosition.width}px`,
+             maxWidth: `${searchBarPosition.width}px`
+           } : {})
+         }}
+         onClick={(e: React.MouseEvent) => e.stopPropagation()}
+       >
         {/* Header */}
-        <div className="flex items-center justify-start mb-6 w-full relative">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">
+        <div className="flex items-center justify-center mb-6 w-full relative">
+          <h1 className="text-2xl sm:text-[1.7rem] font-bold text-white">
             Search Properties
           </h1>
-          <button
-            onClick={onClose}
-            className="absolute right-0 text-white transition-colors rounded-lg p-2 cursor-pointer"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-            onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-            onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Search Form - Stacked Vertically */}

@@ -142,7 +142,7 @@ export default function BookmarksPage() {
       filteredCount={filteredProperties.length}
       hasActiveFilters={hasActiveFilters}
     >
-      <div className="w-full max-w-6xl mx-auto px-1 sm:px-2 lg:px-4">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4 pt-1 sm:pt-2 lg:pt-3">
         {/* Properties Grid */}
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
           {filteredProperties.length > 0 ? (

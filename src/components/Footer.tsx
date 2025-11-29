@@ -51,11 +51,12 @@ export default function Footer() {
           >
             {/* Header */}
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Swipe Gestures</h2>
+              <h2 className="text-2xl font-bold text-white xl:hidden">Swipe Gestures</h2>
+              <h2 className="text-2xl font-bold text-white hidden xl:block">Navigation Guide</h2>
             </div>
 
-            {/* Gesture Information - Simple and Clear */}
-            <div className="space-y-3 text-white">
+            {/* Mobile: Gesture Information */}
+            <div className="space-y-3 text-white xl:hidden">
               {/* Navigation Menu */}
               <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
                 <div className="space-y-3">
@@ -98,6 +99,39 @@ export default function Footer() {
 
               <p className="text-sm text-center mt-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                 💡 Gestures work across the app
+              </p>
+            </div>
+
+            {/* Desktop: Navigation Information */}
+            <div className="space-y-3 text-white hidden xl:block">
+              <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl flex-shrink-0" style={{ color: '#fbbf24' }}>☰</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Navigation Menu</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Click the menu icon in the header</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl flex-shrink-0" style={{ color: '#fbbf24' }}>🔍</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">Search Properties</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Click the search icon or search bar</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl flex-shrink-0" style={{ color: '#fbbf24' }}>👤</span>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-white">User Profile</div>
+                      <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Click your avatar to access your profile</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm text-center mt-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                💡 All features are accessible via the navigation panel
               </p>
             </div>
 

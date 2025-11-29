@@ -282,18 +282,18 @@ export default function AdminPage() {
                       setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
                     }}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute top-0 left-0 h-16 w-12 cursor-pointer z-20 rounded-l-lg hover:bg-red-50 transition-colors"
+                    className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
                     title="Delete staff"
                   >
                     {/* Three dot menu in top left */}
-                    <div className="absolute top-2 left-1 text-gray-700 px-2 py-2 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100">
+                    <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
                       <MoreVertical size={20} />
                     </div>
                   </button>
                   {/* Non-clickable area below delete button */}
-                  <div className="absolute top-16 left-0 w-12 bottom-0 pointer-events-none z-10"></div>
+                  <div className="absolute top-[64px] left-0 w-9 bottom-0 pointer-events-none z-10"></div>
                   <div 
-                    className="p-3 flex items-start justify-between gap-4 flex-wrap pl-12 cursor-pointer relative"
+                    className="p-3 flex items-start justify-between gap-4 flex-wrap pl-9 cursor-pointer relative"
                     onClick={(e) => {
                       // Don't open dropdown if click is on the delete area or the non-clickable zone
                       const target = e.target as HTMLElement;
@@ -444,21 +444,21 @@ export default function AdminPage() {
                         setDeleteConfirm({ id: userItem.id, name: userItem.firstName || userItem.name || 'this user', type: 'user' });
                       }}
                       onMouseDown={(e) => e.stopPropagation()}
-                      className="absolute top-0 left-0 h-16 w-12 cursor-pointer z-20 rounded-l-lg hover:bg-red-50 transition-colors"
+                      className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
                       title="Delete user"
                     >
                       {/* Three dot menu in top left */}
-                      <div className="absolute top-2 left-1 text-gray-700 px-2 py-2 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100">
+                      <div className="absolute top-2 left-1 text-gray-700 px-2 py-2 rounded-lg flex items-center justify-center transition-colors hover:bg-red-200">
                         <MoreVertical size={20} />
                       </div>
                     </button>
                   )}
                   {/* Non-clickable area below delete button */}
                   {userItem.id !== user?.id && (
-                    <div className="absolute top-16 left-0 w-12 bottom-0 pointer-events-none z-10"></div>
+                    <div className="absolute top-[64px] left-0 w-9 bottom-0 pointer-events-none z-10"></div>
                   )}
                   <div 
-                    className={`p-3 flex items-start justify-between gap-4 flex-wrap ${userItem.id !== user?.id ? 'cursor-pointer pl-12' : 'pl-3'} relative`}
+                    className={`p-3 flex items-start justify-between gap-4 flex-wrap ${userItem.id !== user?.id ? 'cursor-pointer pl-9' : 'pl-3'} relative`}
                     onClick={(e) => {
                       if (userItem.id !== user?.id) {
                         // Don't open dropdown if click is on the delete area or the non-clickable zone
@@ -469,7 +469,7 @@ export default function AdminPage() {
                         // Check if click is in the left non-clickable area (between delete button and avatar)
                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
-                        if (clickX < 48) { // 48px = w-12 (12 * 4px)
+                        if (clickX < 36) { // 36px = w-9 (9 * 4px)
                           return;
                         }
                         setOpenUserDropdown(openUserDropdown === userItem.id ? null : userItem.id);

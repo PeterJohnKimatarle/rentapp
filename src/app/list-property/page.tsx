@@ -633,8 +633,8 @@ export default function ListPropertyPage() {
                    // Go back to the previous page
                    router.back();
                  }}
-                 className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12" 
-                 style={{ backgroundColor: 'rgb(239, 68, 68)' }}
+                 className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 h-12" 
+                 style={{ backgroundColor: '#ef4444' }}
                >
                  <span className="text-base">Cancel</span>
                </button>
@@ -831,7 +831,8 @@ export default function ListPropertyPage() {
                     </button>
                     <button
                       type="button"
-                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      className="flex-1 px-4 py-2 text-white rounded-lg font-medium"
+                      style={{ backgroundColor: '#ef4444' }}
                       onClick={() => {
                         // Restore original image and close popup (discard all changes)
                         setTempMainImage(originalMainImage);
@@ -924,6 +925,22 @@ export default function ListPropertyPage() {
                                   e.preventDefault(); // Prevent double-click selection
                                 }
                               }}
+                              onMouseEnter={(e) => {
+                                const button = e.currentTarget as HTMLButtonElement;
+                                button.style.backgroundColor = '#dc2626';
+                                const span = button.querySelector('span') as HTMLElement;
+                                if (span) {
+                                  span.style.color = '#000000';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                const button = e.currentTarget as HTMLButtonElement;
+                                button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                const span = button.querySelector('span') as HTMLElement;
+                                if (span) {
+                                  span.style.color = '#ffffff';
+                                }
+                              }}
                               className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none outline-none focus:outline-none"
                               style={{ 
                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -934,14 +951,17 @@ export default function ListPropertyPage() {
                                 WebkitTouchCallout: 'none',
                                 WebkitTapHighlightColor: 'transparent',
                                 outline: 'none',
-                                touchAction: 'manipulation'
+                                touchAction: 'manipulation',
+                                transition: 'none'
                               }}
                             >
                               <span 
                                 style={{ 
                                   transform: 'scaleX(1.3)', 
                                   display: 'inline-block', 
-                                  userSelect: 'none'
+                                  userSelect: 'none',
+                                  color: '#ffffff',
+                                  transition: 'none'
                                 }}
                               >
                                 −
@@ -986,7 +1006,8 @@ export default function ListPropertyPage() {
                     </button>
                     <button
                       type="button"
-                      className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                      className="flex-1 px-4 py-2 text-white rounded-lg font-medium"
+                      style={{ backgroundColor: '#ef4444' }}
                       onClick={() => {
                         // Restore original images and close popup (discard all changes)
                         setTempAdditionalImages([...originalAdditionalImages]);
@@ -1022,8 +1043,10 @@ export default function ListPropertyPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="text-center mb-4">
-                  <h2 className="text-2xl font-bold text-white mb-1.5">Long Press Gestures</h2>
-                  <p className="text-white/80 text-base"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
+                  <h2 className="text-2xl font-bold text-white mb-1.5 xl:hidden">Long Press Gestures</h2>
+                  <h2 className="text-2xl font-bold text-white mb-1.5 hidden xl:block">Remove All Images</h2>
+                  <p className="text-white/80 text-base xl:hidden"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
+                  <p className="text-white/80 text-base hidden xl:block"><span className="font-bold">Remove all images at once</span><br />right-click any image.</p>
                 </div>
                 <button
                   type="button"

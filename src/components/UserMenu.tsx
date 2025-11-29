@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
-import { MessageCircle, User, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MessageCircle, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -40,6 +40,14 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
       }
     },
     [onClose]
+  );
+
+  const handleBackdropMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    []
   );
 
   useEffect(() => {
@@ -91,29 +99,50 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
   };
 
   const roleBanner = getUserRoleBanner();
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (touchStartY === null) return;
+    
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaY = Math.abs(touchEndY - touchStartY);
+    
+    // Only close if it's a tap (small movement), not a scroll (large movement)
+    if (deltaY < 10 && e.target === e.currentTarget) {
+      onClose();
+    }
+    
+    setTouchStartY(null);
+  }, [touchStartY, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[70]"
-      style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      className="fixed inset-0 z-[70] bg-black/50 xl:bg-transparent"
+      style={{ minHeight: '100vh', height: '100%', pointerEvents: 'auto' }}
       onClick={handleBackdropClick}
-      onTouchEnd={(e) => {
+      onMouseDown={handleBackdropMouseDown}
+      onTouchStart={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
+        handleTouchStart(e);
       }}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) {
-          e.preventDefault();
-        }
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
       }}
     >
       <div
-        className="absolute bg-blue-200 rounded-2xl shadow-2xl overflow-hidden outline-none"
+        className="fixed bg-blue-200 rounded-2xl shadow-2xl overflow-hidden outline-none"
         style={positionStyle}
         onClick={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
@@ -153,13 +182,6 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 Feedback
               </button>
             </div>
-            <button
-              className="w-full px-4 py-3 rounded-xl bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors flex items-center justify-center gap-2 font-medium shadow-sm"
-              onClick={onClose}
-            >
-              <X size={18} />
-              <span>Close</span>
-            </button>
           </div>
         </div>
       </div>
