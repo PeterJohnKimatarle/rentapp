@@ -136,7 +136,7 @@ export default function AboutPage() {
 
 
           {/* Call to Action */}
-          <div className="bg-blue-600 text-white p-8 rounded-lg text-center">
+          <div className="bg-blue-400 text-white p-8 rounded-lg text-center">
             <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
             <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
               Join thousands of satisfied customers who have transformed their property rental experience with Rentapp.

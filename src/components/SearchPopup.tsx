@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 // Ward data organized by region (exact match from listing page)
 const wardsByRegion = {
@@ -43,6 +44,9 @@ interface SearchPopupProps {
 }
 
 export default function SearchPopup({ isOpen, onClose, searchBarPosition }: SearchPopupProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  
   const [propertyType, setPropertyType] = useState('');
   const [status, setStatus] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
@@ -106,13 +110,31 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   if (!isOpen) return null;
 
   const handleSearch = () => {
-    dispatchSearchEvent({
+    const filters = {
       propertyType: propertyType || undefined,
       status: status || undefined,
       region: selectedRegion || undefined,
       ward: selectedWard || undefined
-    });
-    onClose();
+    };
+
+    // Check if current page is homepage, bookmarks, or my-properties
+    const allowedPages = ['/', '/bookmarks', '/my-properties'];
+    const isAllowedPage = allowedPages.includes(pathname);
+
+    if (!isAllowedPage) {
+      // Store filters in sessionStorage and redirect to homepage
+      sessionStorage.setItem('rentapp_search_filters', JSON.stringify(filters));
+      router.push('/');
+      onClose();
+      // Dispatch event after a small delay to ensure homepage has loaded
+      setTimeout(() => {
+        dispatchSearchEvent(filters);
+      }, 100);
+    } else {
+      // On allowed pages, dispatch event normally
+      dispatchSearchEvent(filters);
+      onClose();
+    }
   };
 
   const handleClearFilters = () => {
@@ -120,7 +142,24 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setStatus('');
     setSelectedRegion('');
     setSelectedWard('');
-    dispatchSearchEvent({});
+    
+    // Check if current page is homepage, bookmarks, or my-properties
+    const allowedPages = ['/', '/bookmarks', '/my-properties'];
+    const isAllowedPage = allowedPages.includes(pathname);
+
+    if (!isAllowedPage) {
+      // Store empty filters and redirect to homepage
+      sessionStorage.setItem('rentapp_search_filters', JSON.stringify({}));
+      router.push('/');
+      onClose();
+      // Dispatch event after a small delay to ensure homepage has loaded
+      setTimeout(() => {
+        dispatchSearchEvent({});
+      }, 100);
+    } else {
+      // On allowed pages, dispatch event normally
+      dispatchSearchEvent({});
+    }
   };
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
@@ -151,10 +190,11 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-       <div 
-         className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
+      <div 
+        className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
          style={{ 
            backgroundColor: '#0071c2',
+           pointerEvents: 'auto',
            ...(shouldPositionBelow && searchBarPosition ? {
              position: 'fixed',
              top: `${searchBarPosition.top}px`,
@@ -163,8 +203,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
              maxWidth: `${searchBarPosition.width}px`
            } : {})
          }}
-         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-       >
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-center mb-6 w-full relative">
           <h1 className="text-2xl sm:text-[1.7rem] font-bold text-white">
@@ -180,17 +220,20 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               Property Type
             </label>
             <select 
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+              style={{ 
+                color: '#111827'
+              }}
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
             >
-              <option value="" className="text-gray-400">---</option>
-              <option value="1-bdrm-apartment" className="text-gray-400">1 Bdrm apartment</option>
-              <option value="2-bdrm-apartment" className="text-gray-400">2 Bdrm apartment</option>
-              <option value="3-bdrm-apartment" className="text-gray-400">3 Bdrm apartment</option>
-              <option value="4-bdrm-apartment" className="text-gray-400">4 Bdrm apartment</option>
-              <option value="5-bdrm-apartment" className="text-gray-400">5 Bdrm apartment</option>
-              <option value="commercial-building-frame" className="text-gray-400">Commercial building (Frame)</option>
+              <option value="" style={{ color: '#6b7280' }}>---</option>
+              <option value="1-bdrm-apartment" style={{ color: '#111827' }}>1 Bdrm apartment</option>
+              <option value="2-bdrm-apartment" style={{ color: '#111827' }}>2 Bdrm apartment</option>
+              <option value="3-bdrm-apartment" style={{ color: '#111827' }}>3 Bdrm apartment</option>
+              <option value="4-bdrm-apartment" style={{ color: '#111827' }}>4 Bdrm apartment</option>
+              <option value="5-bdrm-apartment" style={{ color: '#111827' }}>5 Bdrm apartment</option>
+              <option value="commercial-building-frame" style={{ color: '#111827' }}>Commercial building (Frame)</option>
             </select>
           </div>
 

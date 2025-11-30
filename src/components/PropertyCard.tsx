@@ -20,9 +20,10 @@ interface PropertyCardProps {
   onEditClick?: () => void;
   onManageStart?: () => void;
   isActiveProperty?: boolean;
+  showBookmarkConfirmation?: boolean;
 }
 
-export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false, showBookmarkConfirmation = true }: PropertyCardProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -149,7 +150,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   }, [previewImageIndex, property.images]);
 
   // Prevent body scrolling when popup is open
-  usePreventScroll(isDetailsOpen || showBookmarkPopup || showRemoveBookmarkPopup || showSharePopup);
+  usePreventScroll(isDetailsOpen || showBookmarkPopup || showRemoveBookmarkPopup || showSharePopup || showActionPopup);
 
   // Check bookmark status and listen for changes
   useEffect(() => {
@@ -244,6 +245,19 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     e.stopPropagation();
     if (onBookmarkClick) {
       onBookmarkClick();
+    } else if (!showBookmarkConfirmation) {
+      // Directly add/remove bookmark without confirmation
+      if (!userId) {
+        alert('Please log in to save bookmarks.');
+        return;
+      }
+      if (bookmarked) {
+        removeBookmark(property.id, userId);
+        setBookmarked(false);
+      } else {
+        addBookmark(property.id, userId);
+        setBookmarked(true);
+      }
     } else {
       // If already bookmarked, show remove popup, otherwise show save popup
       if (bookmarked) {
@@ -631,15 +645,22 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            // Only close on desktop when clicking the backdrop
+            if (window.innerWidth >= 1280 && e.target === e.currentTarget) {
+              setIsDetailsOpen(false);
+            } else {
+              e.stopPropagation();
+            }
+          }}
         >
            <div 
-             className="rounded-xl max-w-4xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col overflow-hidden"
+             className="rounded-xl max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl w-full max-h-[90vh] sm:max-h-[90vh] max-h-[40vh] shadow-lg flex flex-col overflow-hidden xl:max-w-2xl xl:w-auto"
              style={{ backgroundColor: '#0071c2' }}
              onClick={(e: React.MouseEvent) => e.stopPropagation()}
            >
              {/* Header */}
-             <div className="sticky top-0 flex items-center justify-center p-2 z-10 flex-shrink-0" style={{ backgroundColor: '#0071c2' }}>
+             <div className="sticky top-0 flex items-center justify-center p-2 xl:p-3 z-10 flex-shrink-0" style={{ backgroundColor: '#0071c2' }}>
                <h2 
                  ref={headerRef}
                  className="font-semibold text-white px-4 whitespace-nowrap"
@@ -650,14 +671,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
              </div>
 
              {/* Content - Scrollable */}
-             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-1 px-6 pb-6">
-               <div className="space-y-6">
+             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-1 px-6 pb-6 xl:pt-4 xl:px-10 xl:pb-8">
+               <div className="space-y-6 xl:space-y-8">
                  {/* Property Information - Same as Homepage */}
-                 <div className="space-y-2">
+                 <div className="space-y-2 xl:space-y-3 xl:text-center">
                    {/* Status */}
-                   <div className="text-lg text-white">
+                   <div className="text-lg xl:text-xl text-white xl:flex xl:items-center xl:justify-center">
                      <span className="font-bold">Status:</span> 
-                     <span className={`ml-2 px-3 py-1 rounded text-sm font-medium border-[1.5px] border-black ${
+                     <span className={`ml-2 xl:ml-3 px-3 xl:px-4 py-1 xl:py-1.5 rounded text-sm xl:text-base font-medium border-[1.5px] border-black ${
                        property.status === 'available' 
                          ? 'bg-green-400 text-black' 
                          : 'bg-red-400 text-white'
@@ -665,40 +686,40 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                        {property.status === 'available' ? 'Available' : 'Occupied'}
                      </span>
                    </div>
-                   <div className="text-lg text-white">
-                     <span className="font-bold">Price:</span> {formatPrice(property.price)}/month
+                   <div className="text-lg xl:text-xl text-white">
+                     <span className="font-bold">Price:</span> <span className="ml-1">{formatPrice(property.price)}/month</span>
                    </div>
-                   <div className="text-lg text-white">
-                     <span className="font-bold">Plan:</span> {property.plan} Months
+                   <div className="text-lg xl:text-xl text-white">
+                     <span className="font-bold">Plan:</span> <span className="ml-1">{property.plan} Months</span>
                    </div>
-                   <div className="text-sm text-black bg-yellow-200 px-3 py-1 rounded w-fit flex items-center justify-center border border-black">
-                     <MapPin size={12} className="mr-1 flex-shrink-0" />
+                   <div className="text-sm xl:text-base text-black bg-yellow-200 px-3 xl:px-4 py-1 xl:py-1.5 rounded w-fit flex items-center justify-center border border-black xl:mx-auto">
+                     <MapPin size={12} className="xl:w-4 xl:h-4 mr-1 flex-shrink-0" />
                      <span>{property.location}</span>
                    </div>
-                   <div className="text-sm text-white/80 flex items-center">
-                     <Clock size={12} className="mr-1 flex-shrink-0" />
+                   <div className="text-sm xl:text-base text-white/80 flex items-center xl:justify-center">
+                     <Clock size={12} className="xl:w-4 xl:h-4 mr-1 flex-shrink-0" />
                      <span>Updated: {getRelativeTime(property.updatedAt)}</span>
                    </div>
                  </div>
 
                  {/* Contact Information - Only show if available */}
                  {(property.contactName || property.contactPhone || property.contactEmail) && (
-                   <div className="mt-6">
-                     <h3 className="text-lg font-semibold text-white mb-3 text-center">Contact Information</h3>
-                     <div className="space-y-3 text-center">
+                   <div className="mt-6 xl:mt-8">
+                     <h3 className="text-lg xl:text-xl font-semibold text-white mb-3 xl:mb-4 text-center">Contact Information</h3>
+                     <div className="space-y-3 xl:space-y-4 text-center">
                        {property.contactName && (
-                         <div className="text-white/90">
-                           <strong>Contact:</strong> {property.contactName}
+                         <div className="text-white/90 xl:text-lg">
+                           <strong>Contact:</strong> <span className="ml-1">{property.contactName}</span>
                          </div>
                        )}
                        {property.contactPhone && (
-                         <div className="text-white/90">
-                           <strong>Phone:</strong> {property.contactPhone}
+                         <div className="text-white/90 xl:text-lg">
+                           <strong>Phone:</strong> <span className="ml-1">{property.contactPhone}</span>
                          </div>
                        )}
                        {property.contactEmail && (
-                         <div className="text-white/90">
-                           <strong>Email:</strong> {property.contactEmail}
+                         <div className="text-white/90 xl:text-lg">
+                           <strong>Email:</strong> <span className="ml-1">{property.contactEmail}</span>
                          </div>
                        )}
                      </div>
@@ -709,25 +730,25 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
              </div>
 
              {/* Show Images Button - Fixed at Bottom */}
-             <div className="flex justify-center items-center pt-1 pb-2 px-4 flex-shrink-0">
-               <div className="w-3/4 h-0.5 bg-yellow-500 mb-1"></div>
+             <div className="flex justify-center items-center pt-1 pb-2 px-4 xl:pt-2 xl:pb-3 flex-shrink-0">
+               <div className="w-3/4 xl:w-2/3 h-0.5 bg-yellow-500 mb-1"></div>
              </div>
-            <div className="flex justify-center items-center pb-2 px-4 flex-shrink-0 gap-2">
+            <div className="flex justify-center items-center pb-2 px-4 xl:pb-4 xl:px-6 flex-shrink-0 gap-2 xl:gap-3">
               {/* Share Button moved into details popup and placed first */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShareClick(e);
                 }}
-                className={`text-white transition-colors rounded-lg px-4 py-2 cursor-pointer flex items-center justify-center gap-2 ${isShareSpinning ? 'rotate-[10deg]' : ''}`}
+                className={`text-white transition-colors rounded-lg px-4 py-2 xl:px-5 xl:py-2.5 cursor-pointer flex items-center justify-center gap-2 ${isShareSpinning ? 'rotate-[10deg]' : ''}`}
                 style={{ 
                   backgroundColor: 'rgba(34, 197, 94, 0.9)' /* green-500 */
                 }}
                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
                 onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
               >
-                <Share2 size={16} />
-                <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Share</span>
+                <Share2 size={16} className="xl:w-5 xl:h-5" />
+                <span className="text-sm xl:text-base font-medium" style={{ pointerEvents: 'none' }}>Share</span>
               </button>
                <button
                  onClick={() => {
@@ -743,27 +764,27 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                    }
                    setIsLightboxOpen(true);
                  }}
-                 className="text-white transition-colors rounded-lg px-4 py-2 cursor-pointer flex items-center justify-center"
+                 className="text-white transition-colors rounded-lg px-4 py-2 xl:px-5 xl:py-2.5 cursor-pointer flex items-center justify-center"
                  style={{ 
                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
                  }}
                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                >
-                 <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Show images</span>
+                 <span className="text-sm xl:text-base font-medium" style={{ pointerEvents: 'none' }}>Show images</span>
                </button>
                
                {/* Close Button */}
                <button
                  onClick={() => setIsDetailsOpen(false)}
-                className="text-white transition-colors rounded-lg px-8 py-2 cursor-pointer flex items-center justify-center"
+                className="text-white transition-colors rounded-lg px-8 py-2 xl:px-10 xl:py-2.5 cursor-pointer flex items-center justify-center"
                  style={{ 
                    backgroundColor: 'rgba(239, 68, 68, 0.8)'
                  }}
                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
                >
-                 <span className="text-sm font-medium" style={{ pointerEvents: 'none' }}>Close</span>
+                 <span className="text-sm xl:text-base font-medium" style={{ pointerEvents: 'none' }}>Close</span>
                </button>
              </div>
            </div>
@@ -775,7 +796,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            // Only close on desktop when clicking the backdrop
+            if (window.innerWidth >= 1280 && e.target === e.currentTarget) {
+              setShowBookmarkPopup(false);
+            } else {
+              e.stopPropagation();
+            }
+          }}
         >
           <div 
             className="rounded-lg max-w-sm w-full p-6 shadow-lg"
@@ -813,7 +841,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            // Only close on desktop when clicking the backdrop
+            if (window.innerWidth >= 1280 && e.target === e.currentTarget) {
+              setShowRemoveBookmarkPopup(false);
+            } else {
+              e.stopPropagation();
+            }
+          }}
         >
           <div 
             className="rounded-lg max-w-sm w-full p-6 shadow-lg"

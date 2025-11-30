@@ -131,7 +131,13 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   }, [isMobileMenuOpen, isSearchPopupOpen]);
 
   const handleLogoClick = () => {
-    router.push('/');
+    if (pathname === '/') {
+      // Reload the page if already on homepage
+      window.location.reload();
+    } else {
+      // Redirect to home if not on homepage
+      router.push('/');
+    }
   };
 
   const handleBackClick = () => {
@@ -182,7 +188,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   };
 
   // Prevent body scroll when menu is open
-  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen || showLogoutConfirm);
+  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen || isUserMenuOpen || showLogoutConfirm);
 
   const updateAnchorPosition = useCallback((element: HTMLElement | null) => {
     if (!element) {
@@ -349,10 +355,10 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           className="flex items-center cursor-pointer -ml-3"
         >
           <NextImage src="/icon.png" alt="Rentapp Logo" width={56} height={56} />
-          <h1 className="text-3xl font-bold text-booking-blue flex items-center gap-1 mt-1 -ml-1">
+          <h1 className="text-3xl font-bold text-booking-blue flex items-baseline gap-1 mt-1 -ml-1">
             Rentapp
             {countLabel && (
-              <span className="text-2xl font-medium mt-0.5">[{countLabel}]</span>
+              <span className="text-2xl font-medium leading-none">[{countLabel}]</span>
             )}
             {isImpersonating && (
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
@@ -363,9 +369,9 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           <div 
             ref={searchBarRef}
             onClick={handleSearchClick}
-            className="flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors"
+            className={`flex items-center bg-gray-100 rounded-lg px-4 py-2 w-80 cursor-pointer hover:bg-gray-200 transition-colors ${hasActiveFilters ? 'xl:border-2 xl:border-green-500' : ''}`}
           >
-            <Search size={20} className={`mr-3 ${hasActiveFilters ? 'text-green-500' : 'text-gray-500'}`} />
+            <Search size={20} className={`mr-3 ${hasActiveFilters ? 'text-green-500 xl:text-gray-500' : 'text-gray-500'}`} />
             <input
               type="text"
               placeholder="Search for properties..."

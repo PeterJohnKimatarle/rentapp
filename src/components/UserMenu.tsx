@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageCircle, User } from 'lucide-react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface UserMenuProps {
   isOpen: boolean;
@@ -18,6 +18,9 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
   const isApprovedStaff = isStaff && user?.isApproved === true;
   const isAdmin = user?.role === 'admin';
 
+  // Prevent body scroll when menu is open
+  usePreventScroll(isOpen);
+
   const positionStyle = useMemo(() => {
     if (!anchorPosition) {
       return { visibility: 'hidden' } as React.CSSProperties;
@@ -30,25 +33,6 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
       visibility: 'visible',
     } as React.CSSProperties;
   }, [anchorPosition]);
-
-  const handleBackdropClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.target === event.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
-  const handleBackdropMouseDown = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-    },
-    []
-  );
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -98,54 +82,30 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
     };
   };
 
+  const handleBackdropClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      // Only close on desktop when clicking backdrop
+      if (window.innerWidth >= 1280 && event.target === event.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
   const roleBanner = getUserRoleBanner();
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY);
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (touchStartY === null) return;
-    
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaY = Math.abs(touchEndY - touchStartY);
-    
-    // Only close if it's a tap (small movement), not a scroll (large movement)
-    if (deltaY < 10 && e.target === e.currentTarget) {
-      onClose();
-    }
-    
-    setTouchStartY(null);
-  }, [touchStartY, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-[70] bg-black/50 xl:bg-transparent"
-      style={{ minHeight: '100vh', height: '100%', pointerEvents: 'auto' }}
+      style={{ minHeight: '100vh', height: '100%' }}
       onClick={handleBackdropClick}
-      onMouseDown={handleBackdropMouseDown}
-      onTouchStart={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleTouchStart(e);
-      }}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
     >
       <div
         className="fixed bg-blue-200 rounded-2xl shadow-2xl overflow-hidden outline-none"
         style={positionStyle}
         onClick={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
       >
         <div className="relative p-5 bg-blue-500 text-white">
           <div className="flex items-center gap-3 flex-wrap mb-0.5">
@@ -162,24 +122,28 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
           <div className="space-y-3">
             <div className="space-y-2">
               <button
-                className="w-full px-4 py-3 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center"
                 onClick={() => {
                   onClose();
                   router.push('/profile');
                 }}
               >
-                <User size={18} />
                 View profile
               </button>
               <button
-                className="w-full pl-4 pr-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center"
                 onClick={() => {
                   onClose();
                   router.push('/contact');
                 }}
               >
-                <MessageCircle size={18} />
                 Feedback
+              </button>
+              <button
+                className="xl:hidden w-full px-4 py-3 rounded-xl bg-gray-500 text-white hover:bg-gray-600 transition-colors flex items-center justify-center"
+                onClick={onClose}
+              >
+                Close
               </button>
             </div>
           </div>

@@ -583,7 +583,7 @@ export default function ListPropertyPage() {
          </div>
 
          {/* Submit and Cancel Buttons */}
-         <div className="mt-4 max-w-sm mx-auto">
+         <div className="mt-4 mb-4 xl:mb-8 max-w-sm mx-auto">
            <div className="flex gap-2">
              <div className="flex-1">
                <button 
@@ -775,18 +775,18 @@ export default function ListPropertyPage() {
           {/* Main Image Popup */}
           {showMainImagePopup && (
             <div 
-              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 flex items-center justify-center z-50"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto' }}
             >
               <div 
-                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden" 
-                style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+                className="rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden bg-white" 
+                style={{ maxWidth: '24rem', pointerEvents: 'auto' }}
                 onClick={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
               >
                 {/* Header */}
                 <div className="text-center mb-4">
-                  <h3 className="text-xl font-bold text-white">Main image</h3>
+                  <h3 className="text-xl font-bold text-black">Main image</h3>
                 </div>
                 
                 {/* Image Preview (if temp image exists) */}
@@ -795,7 +795,7 @@ export default function ListPropertyPage() {
                     <img 
                       src={tempMainImage} 
                       alt="Main image preview" 
-                      className="w-full h-32 object-cover rounded border"
+                      className="w-full h-48 sm:h-56 object-cover rounded border"
                     />
                   </div>
                 )}
@@ -811,8 +811,8 @@ export default function ListPropertyPage() {
                   />
                   <button
                     type="button"
-                    className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-                    style={{ backgroundColor: 'white' }}
+                    className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+                    style={{ backgroundColor: '#0071c2' }}
                     onClick={() => {
                       document.getElementById('main-image-upload-popup')?.click();
                     }}
@@ -825,7 +825,6 @@ export default function ListPropertyPage() {
                       type="button"
                       className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
                       onClick={handleMainImagePopupOk}
-                      disabled={!hasMainImageChanges()}
                     >
                       OK
                     </button>
@@ -853,129 +852,154 @@ export default function ListPropertyPage() {
           {/* Other Images Popup */}
           {showOtherImagesPopup && (
             <div 
-              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-              style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 flex items-center justify-center z-50"
+              style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto' }}
             >
               <div 
-                className="rounded-xl w-full mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" 
-                style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+                className={`rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden ${tempAdditionalImages.length > 0 ? 'flex flex-col max-h-[85vh] xl:max-h-[95vh]' : ''} bg-white`}
+                style={{ maxWidth: '24rem', pointerEvents: 'auto', paddingBottom: tempAdditionalImages.length > 0 ? 'env(safe-area-inset-bottom)' : undefined }}
                 onClick={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
               >
-                {/* Header - Fixed */}
-                <div className="p-4 pb-2 flex-shrink-0 relative">
-                  <div className="flex items-center justify-center">
-                    <h3 className="text-xl font-bold text-white">Other images</h3>
-                  </div>
-                  {tempAdditionalImages.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowRemoveAllInfo(true)}
-                      className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center"
-                      title="How to remove all images"
-                    >
-                      <Info size={22} className="text-white" />
-                    </button>
-                  )}
-                </div>
-                
-                {/* Images Preview - Scrollable */}
-                <div className="flex-1 overflow-y-auto px-4">
-                  {tempAdditionalImages.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex flex-col gap-2">
-                        {tempAdditionalImages.map((image, index) => (
-                          <div key={index} className="flex gap-2">
-                            <img 
-                              src={image} 
-                              alt={`Additional ${index + 1}`} 
-                              className="w-3/4 h-32 object-cover rounded border"
-                              onTouchStart={(e) => {
-                                const timer = setTimeout(() => {
-                                  handleImageLongPress(e);
-                                }, 800);
-                                (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = timer;
-                              }}
-                              onTouchEnd={(e) => {
-                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
-                                if (timer) {
-                                  clearTimeout(timer);
-                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
-                                }
-                              }}
-                              onTouchMove={(e) => {
-                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
-                                if (timer) {
-                                  clearTimeout(timer);
-                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
-                                }
-                              }}
-                              onContextMenu={(e) => {
-                                e.preventDefault();
-                                handleImageLongPress(e);
-                              }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeTempAdditionalImage(index)}
-                              onDragStart={(e) => e.preventDefault()}
-                              onMouseDown={(e) => {
-                                // Prevent text selection on mouse down
-                                if (e.detail > 1) {
-                                  e.preventDefault(); // Prevent double-click selection
-                                }
-                              }}
-                              onMouseEnter={(e) => {
-                                const button = e.currentTarget as HTMLButtonElement;
-                                button.style.backgroundColor = '#dc2626';
-                                const span = button.querySelector('span') as HTMLElement;
-                                if (span) {
-                                  span.style.color = '#000000';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                const button = e.currentTarget as HTMLButtonElement;
-                                button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                                const span = button.querySelector('span') as HTMLElement;
-                                if (span) {
-                                  span.style.color = '#ffffff';
-                                }
-                              }}
-                              className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none outline-none focus:outline-none"
-                              style={{ 
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                userSelect: 'none',
-                                WebkitUserSelect: 'none',
-                                MozUserSelect: 'none',
-                                msUserSelect: 'none',
-                                WebkitTouchCallout: 'none',
-                                WebkitTapHighlightColor: 'transparent',
-                                outline: 'none',
-                                touchAction: 'manipulation',
-                                transition: 'none'
-                              }}
-                            >
-                              <span 
-                                style={{ 
-                                  transform: 'scaleX(1.3)', 
-                                  display: 'inline-block', 
-                                  userSelect: 'none',
-                                  color: '#ffffff',
-                                  transition: 'none'
-                                }}
-                              >
-                                −
-                              </span>
-                            </button>
-                          </div>
-                        ))}
+                {tempAdditionalImages.length > 0 ? (
+                  <>
+                    {/* Header - Fixed */}
+                    <div className="px-4 pt-3 flex-shrink-0 relative pb-3 -mx-4 -mt-2">
+                      <div className="flex items-center justify-start relative">
+                        <h3 className="text-xl font-bold text-black leading-tight">Other images</h3>
+                        <button
+                          type="button"
+                          onClick={() => setShowRemoveAllInfo(true)}
+                          className="absolute right-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
+                          title="How to remove all images"
+                          style={{ top: '50%', transform: 'translateY(-50%)' }}
+                        >
+                          <Info size={22} className="text-gray-700" />
+                        </button>
                       </div>
                     </div>
-                  )}
-                </div>
+                    
+                    {/* Images Preview - Scrollable */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-2 -mx-4 min-h-0">
+                      <div className="mb-0">
+                        <div className="flex flex-col gap-2">
+                          {tempAdditionalImages.map((image, index) => (
+                            <div key={index} className="flex gap-2">
+                              <img 
+                                src={image} 
+                                alt={`Additional ${index + 1}`} 
+                                className="w-3/4 xl:w-4/5 h-44 sm:h-48 object-cover rounded border"
+                                onTouchStart={(e) => {
+                                  const timer = setTimeout(() => {
+                                    handleImageLongPress(e);
+                                  }, 800);
+                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = timer;
+                                }}
+                                onTouchEnd={(e) => {
+                                  const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                  if (timer) {
+                                    clearTimeout(timer);
+                                    (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                  }
+                                }}
+                                onTouchMove={(e) => {
+                                  const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                  if (timer) {
+                                    clearTimeout(timer);
+                                    (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                  }
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  handleImageLongPress(e);
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeTempAdditionalImage(index)}
+                                onDragStart={(e) => e.preventDefault()}
+                                onMouseDown={(e) => {
+                                  // Prevent text selection on mouse down
+                                  if (e.detail > 1) {
+                                    e.preventDefault(); // Prevent double-click selection
+                                  }
+                                }}
+                                onMouseEnter={(e) => {
+                                  // Only apply hover effect on desktop
+                                  if (window.innerWidth >= 1280) {
+                                    const button = e.currentTarget as HTMLButtonElement;
+                                    button.style.backgroundColor = '#dc2626';
+                                    const span = button.querySelector('span') as HTMLElement;
+                                    if (span) {
+                                      span.style.color = '#000000';
+                                    }
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  // Only apply hover effect on desktop
+                                  if (window.innerWidth >= 1280) {
+                                    const button = e.currentTarget as HTMLButtonElement;
+                                    button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                    const span = button.querySelector('span') as HTMLElement;
+                                    if (span) {
+                                      span.style.color = '#ffffff';
+                                    }
+                                  }
+                                }}
+                                className="flex-1 xl:flex-none xl:w-[60px] px-4 py-2 xl:px-2 xl:py-1.5 text-white rounded-lg font-medium self-center text-2xl xl:text-xl select-none outline-none focus:outline-none"
+                                style={{ 
+                                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                  userSelect: 'none',
+                                  WebkitUserSelect: 'none',
+                                  MozUserSelect: 'none',
+                                  msUserSelect: 'none',
+                                  WebkitTouchCallout: 'none',
+                                  WebkitTapHighlightColor: 'transparent',
+                                  outline: 'none',
+                                  touchAction: 'manipulation',
+                                  transition: 'none'
+                                }}
+                                onTouchEnd={(e) => {
+                                  // Ensure button resets to default state on mobile after touch
+                                  if (window.innerWidth < 1280) {
+                                    const button = e.currentTarget as HTMLButtonElement;
+                                    button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                                    const span = button.querySelector('span') as HTMLElement;
+                                    if (span) {
+                                      span.style.color = '#ffffff';
+                                    }
+                                  }
+                                }}
+                              >
+                                <span 
+                                  style={{ 
+                                    transform: 'scaleX(1.3)', 
+                                    display: 'inline-block', 
+                                    userSelect: 'none',
+                                    color: '#ffffff',
+                                    transition: 'none'
+                                  }}
+                                >
+                                  −
+                                </span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Header */}
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-bold text-black">Other images</h3>
+                    </div>
+                  </>
+                )}
                 
-                {/* Buttons - Fixed */}
-                <div className="flex flex-col gap-2 p-4 pt-2 flex-shrink-0">
+                {/* Buttons */}
+                <div className={`flex flex-col gap-2 ${tempAdditionalImages.length > 0 ? 'p-4 pt-2 pb-3 flex-shrink-0 -mx-4' : ''}`}>
                   <input
                     type="file"
                     multiple
@@ -986,8 +1010,8 @@ export default function ListPropertyPage() {
                   />
                   <button
                     type="button"
-                    className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-                    style={{ backgroundColor: 'white' }}
+                    className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+                    style={{ backgroundColor: '#0071c2' }}
                     onClick={() => {
                       document.getElementById('additional-images-upload-popup')?.click();
                     }}
@@ -1000,7 +1024,6 @@ export default function ListPropertyPage() {
                       type="button"
                       className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
                       onClick={handleOtherImagesPopupOk}
-                      disabled={!hasOtherImagesChanges()}
                     >
                       OK
                     </button>
@@ -1028,14 +1051,8 @@ export default function ListPropertyPage() {
           {/* Remove All Info Popup */}
           {showRemoveAllInfo && (
             <div 
-              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
               style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setShowRemoveAllInfo(false);
-                }
-                e.stopPropagation();
-              }}
             >
               <div 
                 className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
@@ -1062,27 +1079,21 @@ export default function ListPropertyPage() {
           {/* Delete All Confirmation Popup */}
           {showDeleteAllConfirm && (
             <div 
-              className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
               style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  handleCancelDeleteAll();
-                }
-                e.stopPropagation();
-              }}
             >
               <div 
-                className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
                 style={{ backgroundColor: '#0071c2' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="text-center mb-6">
-                  <div className="flex items-center justify-center mb-4">
+                <div className="text-center mb-4">
+                  <div className="flex items-center justify-center mb-3">
                     <div 
-                      className="w-16 rounded-lg flex items-center justify-center border-white"
+                      className="w-12 rounded-lg flex items-center justify-center border-white"
                       style={{ 
-                        height: '3.5rem',
-                        borderWidth: '3px',
+                        height: '2.5rem',
+                        borderWidth: '2px',
                         borderStyle: 'solid',
                         display: 'flex',
                         alignItems: 'center',
@@ -1090,7 +1101,7 @@ export default function ListPropertyPage() {
                       }}
                     >
                       <span 
-                        className="text-white text-4xl font-bold"
+                        className="text-white text-3xl font-bold"
                         style={{ 
                           transform: 'scaleX(1.3)', 
                           display: 'flex',
@@ -1105,7 +1116,7 @@ export default function ListPropertyPage() {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Remove All Images</h3>
+                  <h3 className="text-lg font-bold text-white mb-1.5">Remove All Images</h3>
                   <p className="text-white/80 text-sm">Are you sure you want to remove all images?</p>
                 </div>
                 <div className="flex gap-3">

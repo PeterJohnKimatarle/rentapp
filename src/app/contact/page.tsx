@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { Phone, X, MessageCircle } from 'lucide-react';
+import { Phone, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
@@ -80,22 +80,20 @@ export default function ContactPage() {
 
         {/* Contact Options Popup */}
         {isContactPopupOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
-            <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
-              <div className="flex justify-between items-center mb-4">
+          <div className="fixed inset-0 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={(e) => {
+            // Only close on desktop when clicking the backdrop
+            if (window.innerWidth >= 1280 && e.target === e.currentTarget) {
+              setIsContactPopupOpen(false);
+            } else {
+              e.stopPropagation();
+            }
+          }}>
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-center items-center mb-4">
                 <h3 className="text-lg font-semibold text-black">Choose Contact Method</h3>
-                <button
-                  onClick={() => setIsContactPopupOpen(false)}
-                  className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-                >
-                  <X size={20} />
-                </button>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-3 mb-4">
                 <button
                   onClick={handleWhatsAppMessage}
                   className="w-full flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
@@ -135,6 +133,16 @@ export default function ContactPage() {
                   </div>
                 </button>
               </div>
+
+              <button
+                onClick={() => setIsContactPopupOpen(false)}
+                className="w-full px-4 py-2 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: '#ef4444', color: 'white' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#dc2626'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#ef4444'}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}

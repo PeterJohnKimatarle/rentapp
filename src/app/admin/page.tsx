@@ -7,6 +7,7 @@ import { ShieldCheck, Users, Settings, UserCheck, Check, Trash2, Menu, X, Chevro
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllProperties } from '@/utils/propertyUtils';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface User {
   id: string;
@@ -100,6 +101,9 @@ export default function AdminPage() {
   const [openUserDropdown, setOpenUserDropdown] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'staff' | 'user' } | null>(null);
   const [isLoggingAs, setIsLoggingAs] = useState(false);
+
+  // Prevent body scroll when delete confirmation popup is open
+  usePreventScroll(deleteConfirm !== null || isLoginPopupOpen);
 
   useEffect(() => {
     // Load total properties count
@@ -678,4 +682,3 @@ export default function AdminPage() {
     </Layout>
   );
 }
-

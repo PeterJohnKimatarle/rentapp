@@ -94,6 +94,24 @@ export default function Home() {
 
     window.addEventListener('rentappSearch', handleSearch as EventListener);
 
+    // Check for stored search filters from redirect
+    const storedFilters = sessionStorage.getItem('rentapp_search_filters');
+    if (storedFilters) {
+      try {
+        const filters = JSON.parse(storedFilters);
+        sessionStorage.removeItem('rentapp_search_filters');
+        const hasFilters = Object.values(filters).some((value) => {
+          if (typeof value === 'string') {
+            return value.trim().length > 0;
+          }
+          return Boolean(value);
+        });
+        setActiveFilters(hasFilters ? filters : null);
+      } catch (e) {
+        console.error('Error parsing stored search filters:', e);
+      }
+    }
+
     return () => {
       window.removeEventListener('rentappSearch', handleSearch as EventListener);
     };
@@ -112,7 +130,7 @@ export default function Home() {
         <div className="space-y-2 sm:space-y-3 lg:space-y-6">
           {filteredProperties.length > 0 ? (
             filteredProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property.id} property={property} showBookmarkConfirmation={false} />
             ))
           ) : (
             <div className="text-center py-8">
