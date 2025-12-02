@@ -7,17 +7,23 @@ import { usePreventScroll } from '@/hooks/usePreventScroll';
 interface ImageEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (mainImage: string, additionalImages: string[]) => void;
   currentImages: string[];
+  onStageChanges?: (mainImage: string, additionalImages: string[]) => void;
 }
 
-export default function ImageEditModal({ isOpen, onClose, onSave, currentImages }: ImageEditModalProps) {
+export default function ImageEditModal({ isOpen, onClose, currentImages, onStageChanges }: ImageEditModalProps) {
   const [showMainImagePopup, setShowMainImagePopup] = useState(false);
   const [showOtherImagesPopup, setShowOtherImagesPopup] = useState(false);
   const [tempMainImage, setTempMainImage] = useState<string>(() => currentImages[0] ?? '');
   const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>(() => currentImages.length > 1 ? currentImages.slice(1) : []);
   const [originalMainImage, setOriginalMainImage] = useState<string>('');
   const [originalAdditionalImages, setOriginalAdditionalImages] = useState<string[]>([]);
+  // Staged changes - only applied when Submit is clicked
+  const [stagedMainImage, setStagedMainImage] = useState<string | null>(null);
+  const [stagedAdditionalImages, setStagedAdditionalImages] = useState<string[] | null>(null);
+  // Popup editing state - separate from main display
+  const [popupMainImage, setPopupMainImage] = useState<string>('');
+  const [popupAdditionalImages, setPopupAdditionalImages] = useState<string[]>([]);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showRemoveAllInfo, setShowRemoveAllInfo] = useState(false);
 
@@ -31,6 +37,9 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       setTempAdditionalImages(currentImages.length > 1 ? currentImages.slice(1) : []);
       setOriginalMainImage(currentImages[0] ?? '');
       setOriginalAdditionalImages(currentImages.length > 1 ? currentImages.slice(1) : []);
+      // Reset staged changes
+      setStagedMainImage(null);
+      setStagedAdditionalImages(null);
     } else {
       // Reset all popups when main modal closes
       setShowMainImagePopup(false);
@@ -40,12 +49,27 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
     }
   }, [isOpen, currentImages]);
 
+  // Initialize popup state when popup opens
+  useEffect(() => {
+    if (showMainImagePopup) {
+      // Use staged value if exists, otherwise use current temp value
+      setPopupMainImage(stagedMainImage !== null ? stagedMainImage : tempMainImage);
+    }
+  }, [showMainImagePopup, stagedMainImage, tempMainImage]);
+
+  useEffect(() => {
+    if (showOtherImagesPopup) {
+      // Use staged value if exists, otherwise use current temp value
+      setPopupAdditionalImages(stagedAdditionalImages !== null ? stagedAdditionalImages : tempAdditionalImages);
+    }
+  }, [showOtherImagesPopup, stagedAdditionalImages, tempAdditionalImages]);
+
   const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setTempMainImage(reader.result as string);
+        setPopupMainImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -63,24 +87,24 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       });
 
       Promise.all(readers).then(results => {
-        setTempAdditionalImages(prev => [...prev, ...results]);
+        setPopupAdditionalImages(prev => [...prev, ...results]);
       });
     }
   };
 
   const removeTempAdditionalImage = (index: number) => {
-    setTempAdditionalImages(prev => prev.filter((_, i) => i !== index));
+    setPopupAdditionalImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleImageLongPress = (e: React.TouchEvent<HTMLImageElement> | React.MouseEvent<HTMLImageElement>) => {
     e.preventDefault();
-    if (tempAdditionalImages.length > 0) {
+    if (popupAdditionalImages.length > 0) {
       setShowDeleteAllConfirm(true);
     }
   };
 
   const handleConfirmDeleteAll = () => {
-    setTempAdditionalImages([]);
+    setPopupAdditionalImages([]);
     setShowDeleteAllConfirm(false);
   };
 
@@ -88,17 +112,19 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
     setShowDeleteAllConfirm(false);
   };
 
-  const hasMainPopupChanges = () => {
-    return tempMainImage !== originalMainImage;
-  };
-
-  const hasOtherImagesChanges = () => {
-    if (tempAdditionalImages.length !== originalAdditionalImages.length) return true;
-    return tempAdditionalImages.some((img, idx) => img !== originalAdditionalImages[idx]);
+  const hasAnyChanges = () => {
+    // Check if there are staged changes
+    const finalMainImage = stagedMainImage !== null ? stagedMainImage : tempMainImage;
+    const finalAdditionalImages = stagedAdditionalImages !== null ? stagedAdditionalImages : tempAdditionalImages;
+    
+    if (finalMainImage !== originalMainImage) return true;
+    if (finalAdditionalImages.length !== originalAdditionalImages.length) return true;
+    return finalAdditionalImages.some((img, idx) => img !== originalAdditionalImages[idx]);
   };
 
   const handleMainImagePopupOk = () => {
-    setOriginalMainImage(tempMainImage);
+    // Stage the changes - don't apply until Submit is clicked
+    setStagedMainImage(popupMainImage);
     setShowMainImagePopup(false);
     // Reset file input
     const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
@@ -106,7 +132,8 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
   };
 
   const handleOtherImagesPopupOk = () => {
-    setOriginalAdditionalImages([...tempAdditionalImages]);
+    // Stage the changes - don't apply until Submit is clicked
+    setStagedAdditionalImages([...popupAdditionalImages]);
     setShowOtherImagesPopup(false);
     // Reset file input
     const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
@@ -114,7 +141,13 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
   };
 
   const handleSave = () => {
-    onSave(tempMainImage, tempAdditionalImages);
+    // Stage changes - don't save yet
+    const finalMainImage = stagedMainImage !== null ? stagedMainImage : tempMainImage;
+    const finalAdditionalImages = stagedAdditionalImages !== null ? stagedAdditionalImages : tempAdditionalImages;
+    
+    if (onStageChanges) {
+      onStageChanges(finalMainImage, finalAdditionalImages);
+    }
     onClose();
   };
 
@@ -139,7 +172,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               style={{ backgroundColor: '#6b7280' }}
             >
               <Image size={20} />
-              <span className="text-base whitespace-nowrap">Change main image ({tempMainImage ? '1' : '0'})</span>
+              <span className="text-base whitespace-nowrap">Change main image ({stagedMainImage !== null ? (stagedMainImage ? '1' : '0') : (tempMainImage ? '1' : '0')})</span>
             </button>
             <button
               type="button"
@@ -148,7 +181,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               style={{ backgroundColor: '#6b7280' }}
             >
               <Image size={20} />
-              <span className="text-base whitespace-nowrap">Other images ({tempAdditionalImages.length})</span>
+              <span className="text-base whitespace-nowrap">Other images ({stagedAdditionalImages !== null ? stagedAdditionalImages.length : tempAdditionalImages.length})</span>
             </button>
           </div>
 
@@ -156,9 +189,9 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
           <div className="flex gap-2">
             <button
               type="button"
-              className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+              className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSave}
-              disabled={!hasMainPopupChanges()}
+              disabled={!hasAnyChanges()}
             >
               Submit
             </button>
@@ -192,11 +225,11 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               <h3 className="text-xl font-bold text-black">Main image</h3>
             </div>
             
-            {/* Image Preview (if temp image exists) */}
-            {tempMainImage && (
+            {/* Image Preview (if popup image exists) */}
+            {popupMainImage && (
               <div className="mb-4">
                 <img 
-                  src={tempMainImage} 
+                  src={popupMainImage} 
                   alt="Main image preview" 
                   className="w-full h-48 sm:h-56 object-cover rounded border"
                 />
@@ -221,7 +254,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                 }}
               >
                 <Image size={20} />
-                <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change main image' : 'Add main image'} ({tempMainImage ? '1' : '0'})</span>
+                <span className="text-base whitespace-nowrap">{popupMainImage ? 'Change main image' : 'Add main image'} ({popupMainImage ? '1' : '0'})</span>
               </button>
               <div className="flex gap-2">
                 <button
@@ -236,8 +269,8 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                   className="flex-1 px-4 py-2 text-white rounded-lg font-medium"
                   style={{ backgroundColor: '#ef4444' }}
                   onClick={() => {
-                    // Restore original image and close popup (discard all changes)
-                    setTempMainImage(originalMainImage);
+                    // Restore to original popup state and close popup (discard changes in popup)
+                    setPopupMainImage(stagedMainImage !== null ? stagedMainImage : tempMainImage);
                     setShowMainImagePopup(false);
                     // Reset file input
                     const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
@@ -260,12 +293,12 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
           onClick={(e) => e.stopPropagation()}
         >
           <div 
-            className={`rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden ${tempAdditionalImages.length > 0 ? 'flex flex-col max-h-[85vh] xl:max-h-[95vh]' : ''} bg-white`}
-            style={{ maxWidth: '24rem', pointerEvents: 'auto', paddingBottom: tempAdditionalImages.length > 0 ? 'env(safe-area-inset-bottom)' : undefined }}
+            className={`rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden ${popupAdditionalImages.length > 0 ? 'flex flex-col max-h-[85vh] xl:max-h-[95vh]' : ''} bg-white`}
+            style={{ maxWidth: '24rem', pointerEvents: 'auto', paddingBottom: popupAdditionalImages.length > 0 ? 'env(safe-area-inset-bottom)' : undefined }}
             onClick={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
           >
-            {tempAdditionalImages.length > 0 ? (
+            {popupAdditionalImages.length > 0 ? (
               <>
             {/* Header - Fixed */}
                 <div className="px-4 pt-3 flex-shrink-0 relative pb-3 -mx-4 -mt-2">
@@ -287,7 +320,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                 <div className="flex-1 overflow-y-auto px-4 pb-2 -mx-4 min-h-0">
                   <div className="mb-0">
                   <div className="flex flex-col gap-2">
-                      {tempAdditionalImages.map((image, index) => (
+                      {popupAdditionalImages.map((image, index) => (
                       <div key={index} className="flex gap-2">
                         <img 
                           src={image} 
@@ -403,7 +436,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
             )}
             
             {/* Buttons */}
-            <div className={`flex flex-col gap-2 ${tempAdditionalImages.length > 0 ? 'p-4 pt-2 pb-3 flex-shrink-0 -mx-4' : ''}`}>
+            <div className={`flex flex-col gap-2 ${popupAdditionalImages.length > 0 ? 'p-4 pt-2 pb-3 flex-shrink-0 -mx-4' : ''}`}>
               <input
                 type="file"
                 multiple
@@ -421,14 +454,13 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                 }}
               >
                 <Image size={20} />
-                <span className="text-base whitespace-nowrap">{tempAdditionalImages.length > 0 ? 'Add more images' : 'Add images'} ({tempAdditionalImages.length})</span>
+                <span className="text-base whitespace-nowrap">{popupAdditionalImages.length > 0 ? 'Add more images' : 'Add images'} ({popupAdditionalImages.length})</span>
               </button>
               <div className="flex gap-2">
                 <button
                   type="button"
                   className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
                   onClick={handleOtherImagesPopupOk}
-                  disabled={!hasOtherImagesChanges()}
                 >
                   OK
                 </button>
@@ -437,8 +469,8 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                   className="flex-1 px-4 py-2 text-white rounded-lg font-medium"
                   style={{ backgroundColor: '#ef4444' }}
                   onClick={() => {
-                    // Restore original images and close popup (discard all changes)
-                    setTempAdditionalImages([...originalAdditionalImages]);
+                    // Restore to original popup state and close popup (discard changes in popup)
+                    setPopupAdditionalImages(stagedAdditionalImages !== null ? stagedAdditionalImages : tempAdditionalImages);
                     setShowOtherImagesPopup(false);
                     // Reset file input
                     const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;

@@ -243,167 +243,216 @@ export default function AdminPage() {
     }
 
     return (
-      <div className="space-y-6 relative">
+      <>
+        {/* Desktop Right Panel - Navigation Menu */}
+        <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-14 xl:right-0 xl:overflow-y-auto xl:z-20" style={{ overflowAnchor: 'none', height: 'calc(100vh - 3.5rem)' }}>
+          <div className="p-6">
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setCurrentView('staff');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'staff'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <UserCheck size={20} />
+                All Staff
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentView('users');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'users'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Users size={20} />
+                All Users
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentView('settings');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'settings'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Settings size={20} />
+                Settings
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Views */}
+        <div className="space-y-6 relative">
 
         {/* All Staff View */}
         {currentView === 'staff' && (
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-6 flex-wrap">
-            <UserCheck size={24} className="text-purple-500" />
-            <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
-              All Staff
-              {isImpersonating && (
-                <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+              <div className="flex items-center gap-2 mb-6 flex-wrap">
+                <UserCheck size={24} className="text-purple-500" />
+                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
+                  All Staff
+                  {isImpersonating && (
+                    <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+                  )}
+                </h3>
+                <p className="text-lg font-medium text-gray-900">[{staffMembers.length}]</p>
+              </div>
+
+              {message && (
+                <div className={`mb-4 p-3 rounded-lg ${
+                  message.type === 'success' 
+                    ? 'bg-green-50 border border-green-200 text-green-700' 
+                    : 'bg-red-50 border border-red-200 text-red-700'
+                }`}>
+                  {message.text}
+                </div>
               )}
-            </h3>
-            <p className="text-lg font-medium text-gray-900">[{staffMembers.length}]</p>
-          </div>
 
-          {message && (
-            <div className={`mb-4 p-3 rounded-lg ${
-              message.type === 'success' 
-                ? 'bg-green-50 border border-green-200 text-green-700' 
-                : 'bg-red-50 border border-red-200 text-red-700'
-            }`}>
-              {message.text}
-            </div>
-          )}
-
-          {staffMembers.length === 0 ? (
-            <p className="text-gray-600 text-center py-8">No staff members found.</p>
-          ) : (
-            <div className="space-y-4">
-              {staffMembers.map((staff) => (
-                <div
-                  key={staff.id}
-                  className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
-                >
-                  {/* Clickable delete area from left edge to avatar */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
-                    title="Delete staff"
-                  >
-                    {/* Three dot menu in top left */}
-                    <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
-                      <MoreVertical size={20} />
-                    </div>
-                  </button>
-                  {/* Non-clickable area below delete button */}
-                  <div className="absolute top-[64px] left-0 w-9 bottom-0 pointer-events-none z-10"></div>
-                  <div 
-                    className="p-3 flex items-start justify-between gap-4 flex-wrap pl-9 cursor-pointer relative"
-                    onClick={(e) => {
-                      // Don't open dropdown if click is on the delete area or the non-clickable zone
-                      const target = e.target as HTMLElement;
-                      if (target.closest('button[title="Delete staff"]')) {
-                        return;
-                      }
-                      // Check if click is in the left non-clickable area (between delete button and avatar)
-                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      const clickX = e.clientX - rect.left;
-                      if (clickX < 48) { // 48px = w-12 (12 * 4px)
-                        return;
-                      }
-                      setOpenStaffDropdown(openStaffDropdown === staff.id ? null : staff.id);
-                    }}
-                  >
-                    <div className="flex items-start gap-3 flex-1">
-                      {/* Profile Image */}
-                      <div className="flex-shrink-0">
-                        {staff.profileImage ? (
-                          <img
-                            src={staff.profileImage}
-                            alt={staff.firstName || staff.name || 'Staff member'}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
-                            <UserIcon className="w-8 h-8 text-gray-400" />
+              {staffMembers.length === 0 ? (
+                <p className="text-gray-600 text-center py-8">No staff members found.</p>
+              ) : (
+                <div className="space-y-4">
+                  {staffMembers.map((staff) => (
+                    <div
+                      key={staff.id}
+                      className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
+                    >
+                      {/* Clickable delete area from left edge to avatar */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
+                        title="Delete staff"
+                      >
+                        {/* Three dot menu in top left */}
+                        <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
+                          <MoreVertical size={20} />
+                        </div>
+                      </button>
+                      {/* Non-clickable area below delete button */}
+                      <div className="absolute top-[64px] left-0 w-9 bottom-0 pointer-events-none z-10"></div>
+                      <div 
+                        className="p-3 flex items-start justify-between gap-4 flex-wrap pl-9 cursor-pointer relative"
+                        onClick={(e) => {
+                          // Don't open dropdown if click is on the delete area or the non-clickable zone
+                          const target = e.target as HTMLElement;
+                          if (target.closest('button[title="Delete staff"]')) {
+                            return;
+                          }
+                          // Check if click is in the left non-clickable area (between delete button and avatar)
+                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          const clickX = e.clientX - rect.left;
+                          if (clickX < 48) { // 48px = w-12 (12 * 4px)
+                            return;
+                          }
+                          setOpenStaffDropdown(openStaffDropdown === staff.id ? null : staff.id);
+                        }}
+                      >
+                        <div className="flex items-start gap-3 flex-1">
+                          {/* Profile Image */}
+                          <div className="flex-shrink-0">
+                            {staff.profileImage ? (
+                              <img
+                                src={staff.profileImage}
+                                alt={staff.firstName || staff.name || 'Staff member'}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
+                                <UserIcon className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1 flex-wrap">
-                          <h4 className="font-semibold text-gray-900">
-                            {staff.firstName || staff.name || 'Unknown'}
-                          </h4>
-                          {staff.isApproved ? (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                              Approved
-                            </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1 flex-wrap">
+                              <h4 className="font-semibold text-gray-900">
+                                {staff.firstName || staff.name || 'Unknown'}
+                              </h4>
+                              {staff.isApproved ? (
+                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                  Approved
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+                                  Pending
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600">{staff.email}</p>
+                            {staff.phone && (
+                              <p className="text-sm text-gray-600">{staff.phone}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center relative">
+                          <ChevronRight 
+                            size={20} 
+                            className={`text-gray-500 transition-transform duration-200 ${openStaffDropdown === staff.id ? 'rotate-90' : ''}`}
+                          />
+                          {openStaffDropdown === staff.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setOpenStaffDropdown(null)} />
+                              <div className="absolute top-0 right-0 mr-2 bg-blue-50 border border-blue-500 border-2 shadow-blue-100 rounded-lg px-4 py-2 space-y-1.5 flex flex-col items-center w-fit z-20 transform -translate-x-[20%]">
+                          {!staff.isApproved ? (
+                            <button
+                              onClick={() => {
+                                handleApprove(staff.id);
+                                setOpenStaffDropdown(null);
+                              }}
+                              disabled={loading}
+                              className="w-full px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                            >
+                              <Check size={16} />
+                              Approve Staff
+                            </button>
                           ) : (
-                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-                              Pending
-                            </span>
+                            <button
+                              onClick={() => {
+                                handleDisapprove(staff.id);
+                                setOpenStaffDropdown(null);
+                              }}
+                              disabled={loading}
+                              className="w-full px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                            >
+                              <X size={16} />
+                              Disapprove Staff
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setOpenStaffDropdown(null);
+                              handleLoginAs(staff.id);
+                            }}
+                            disabled={loading}
+                            className="w-full px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                          >
+                            <LogIn size={16} />
+                            Login as
+                          </button>
+                              </div>
+                            </>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">{staff.email}</p>
-                        {staff.phone && (
-                          <p className="text-sm text-gray-600">{staff.phone}</p>
-                        )}
                       </div>
                     </div>
-                    <div className="flex items-center relative">
-                      <ChevronRight 
-                        size={20} 
-                        className={`text-gray-500 transition-transform duration-200 ${openStaffDropdown === staff.id ? 'rotate-90' : ''}`}
-                      />
-                      {openStaffDropdown === staff.id && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setOpenStaffDropdown(null)} />
-                          <div className="absolute top-0 right-0 mr-2 bg-blue-50 border border-blue-500 border-2 shadow-blue-100 rounded-lg px-4 py-2 space-y-1.5 flex flex-col items-center w-fit z-20 transform -translate-x-[20%]">
-                      {!staff.isApproved ? (
-                        <button
-                          onClick={() => {
-                            handleApprove(staff.id);
-                            setOpenStaffDropdown(null);
-                          }}
-                          disabled={loading}
-                          className="w-full px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                        >
-                          <Check size={16} />
-                          Approve Staff
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            handleDisapprove(staff.id);
-                            setOpenStaffDropdown(null);
-                          }}
-                          disabled={loading}
-                          className="w-full px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                        >
-                          <X size={16} />
-                          Disapprove Staff
-                        </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setOpenStaffDropdown(null);
-                          handleLoginAs(staff.id);
-                        }}
-                        disabled={loading}
-                        className="w-full px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                      >
-                        <LogIn size={16} />
-                        Login as
-                      </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              )}
+            </section>
         )}
 
         {/* All Users View */}
@@ -452,7 +501,7 @@ export default function AdminPage() {
                       title="Delete user"
                     >
                       {/* Three dot menu in top left */}
-                      <div className="absolute top-2 left-1 text-gray-700 px-2 py-2 rounded-lg flex items-center justify-center transition-colors hover:bg-red-200">
+                      <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
                         <MoreVertical size={20} />
                       </div>
                     </button>
@@ -473,7 +522,7 @@ export default function AdminPage() {
                         // Check if click is in the left non-clickable area (between delete button and avatar)
                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
-                        if (clickX < 36) { // 36px = w-9 (9 * 4px)
+                        if (clickX < 48) { // 48px = w-12 (12 * 4px)
                           return;
                         }
                         setOpenUserDropdown(openUserDropdown === userItem.id ? null : userItem.id);
@@ -584,21 +633,22 @@ export default function AdminPage() {
           </div>
         </section>
         )}
+        </div>
 
-        {/* Floating Action Button */}
+        {/* Floating Action Button - Mobile/Tablet Only */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-[58%] -translate-y-1/2 right-6 w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg hover:bg-purple-600 transition-all duration-200 flex items-center justify-center z-40 hover:scale-110"
+          className="xl:hidden fixed top-[58%] -translate-y-1/2 right-6 w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg hover:bg-purple-600 transition-all duration-200 flex items-center justify-center z-40 hover:scale-110"
           title="Admin Menu"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Menu Popup */}
+        {/* Menu Popup - Mobile/Tablet Only */}
         {isMenuOpen && (
           <>
             <div
-              className="fixed top-[58%] -translate-y-[55px] right-24 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 min-w-[200px] overflow-hidden"
+              className="xl:hidden fixed top-[58%] -translate-y-[55px] right-24 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 min-w-[200px] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-2">
@@ -649,18 +699,18 @@ export default function AdminPage() {
 
             {/* Backdrop to close menu when clicking outside */}
             <div
-              className="fixed inset-0 z-30"
+              className="xl:hidden fixed inset-0 z-30"
               onClick={() => setIsMenuOpen(false)}
             />
           </>
         )}
-      </div>
+      </>
     );
   };
 
   return (
     <Layout totalCount={totalProperties}>
-      <div className="bg-gray-50 py-8">
+      <div className="bg-gray-50 pt-4 pb-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">{renderContent()}</div>
       </div>
 

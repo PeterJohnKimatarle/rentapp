@@ -462,6 +462,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         </div>
 
         {/* Right Panel - User Profile & Actions (Desktop) */}
+        {pathname !== '/admin' && (
         <div className="hidden xl:block xl:w-80 xl:min-w-80 bg-white border-l border-gray-200 flex-shrink-0 xl:fixed xl:top-14 xl:right-0 xl:overflow-y-auto xl:z-20 p-6" style={{ overflowAnchor: 'none', height: 'calc(100vh - 3.5rem)' }}>
           {isAuthenticated ? (
             <div className="space-y-6">
@@ -521,10 +522,14 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
                 <div className="space-y-2">
                   <button
                     onClick={() => setIsLoginPopupOpen(true)}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                    className={`w-full py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                      pathname === '/register'
+                        ? 'bg-green-200 text-gray-700 hover:bg-green-300'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
                   >
                     <LogIn size={16} />
-                    <span>Login</span>
+                    <span>Login/Register</span>
                   </button>
                   <button
                     onClick={() => router.push('/register')}
@@ -561,6 +566,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* User Menu */}

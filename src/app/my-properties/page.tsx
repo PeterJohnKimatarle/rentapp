@@ -29,6 +29,8 @@ export default function MyPropertiesPage() {
   const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
+  const [stagedPropertyChanges, setStagedPropertyChanges] = useState<PropertyFormData | null>(null);
+  const [stagedImageChanges, setStagedImageChanges] = useState<{ mainImage: string; additionalImages: string[] } | null>(null);
 
   // Prevent scroll when success messages are shown
   usePreventScroll(showUpdateSuccess || showDeleteSuccess);
@@ -200,6 +202,26 @@ export default function MyPropertiesPage() {
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingProperty(null);
+    // Clear staged changes when modal closes without saving
+    setStagedPropertyChanges(null);
+  };
+
+  const handleStageChanges = (stagedProperty: PropertyFormData) => {
+    // Store staged changes - don't save yet
+    setStagedPropertyChanges(stagedProperty);
+  };
+
+  const handleApplyStagedChanges = () => {
+    // Apply staged property changes when Update button is clicked
+    if (stagedPropertyChanges && editingProperty) {
+      handleSaveProperty(stagedPropertyChanges);
+      setStagedPropertyChanges(null);
+    }
+    // Apply staged image changes when Update button is clicked
+    if (stagedImageChanges && editingImageProperty) {
+      handleSaveImages(stagedImageChanges.mainImage, stagedImageChanges.additionalImages);
+      setStagedImageChanges(null);
+    }
   };
 
   const handleEditImageClick = (propertyId: string) => {
@@ -237,6 +259,13 @@ export default function MyPropertiesPage() {
   const handleCloseImageEditModal = () => {
     setIsImageEditModalOpen(false);
     setEditingImageProperty(null);
+    // Clear staged image changes when modal closes without saving
+    setStagedImageChanges(null);
+  };
+
+  const handleStageImageChanges = (mainImage: string, additionalImages: string[]) => {
+    // Store staged image changes - don't save yet
+    setStagedImageChanges({ mainImage, additionalImages });
   };
 
   const handleDeleteProperty = (propertyId: string) => {
@@ -321,6 +350,10 @@ export default function MyPropertiesPage() {
                   onEditClick={() => handleEditClick(property.id)}
                   onManageStart={() => setActivePropertyId(property.id)}
                   isActiveProperty={activePropertyId === property.id}
+                  onApplyStagedChanges={handleApplyStagedChanges}
+                  stagedImageCount={stagedImageChanges && editingImageProperty?.id === property.id 
+                    ? (stagedImageChanges.mainImage ? 1 : 0) + stagedImageChanges.additionalImages.length 
+                    : undefined}
                 />
               </div>
             ))
@@ -358,8 +391,8 @@ export default function MyPropertiesPage() {
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           property={editingProperty}
-          onSave={handleSaveProperty}
           onDelete={handleDeleteProperty}
+          onStageChanges={handleStageChanges}
         />
       )}
 
@@ -368,8 +401,8 @@ export default function MyPropertiesPage() {
         <ImageEditModal
           isOpen={isImageEditModalOpen}
           onClose={handleCloseImageEditModal}
-          onSave={handleSaveImages}
           currentImages={editingImageProperty.images || []}
+          onStageChanges={handleStageImageChanges}
         />
       )}
 

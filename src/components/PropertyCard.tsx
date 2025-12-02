@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Image, Clock, Minus, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Image, Clock, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Property } from '@/data/properties';
 import { DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,9 +21,11 @@ interface PropertyCardProps {
   onManageStart?: () => void;
   isActiveProperty?: boolean;
   showBookmarkConfirmation?: boolean;
+  onApplyStagedChanges?: () => void;
+  stagedImageCount?: number;
 }
 
-export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false, showBookmarkConfirmation = true }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false, showBookmarkConfirmation = true, onApplyStagedChanges, stagedImageCount }: PropertyCardProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -969,8 +971,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   className="w-full bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                   style={{ border: '1px solid #eab308' }}
                 >
-                  Change images
-                  <Image size={15} />
+                  Change images ({stagedImageCount !== undefined ? stagedImageCount : property.images.length})
                 </button>
               )}
               {onEditClick && (
@@ -989,6 +990,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => {
+                    // Apply staged changes if pendingDetails or pendingImages is true
+                    if ((pendingDetails || pendingImages) && onApplyStagedChanges) {
+                      onApplyStagedChanges();
+                    }
                     if (pendingStatus !== property.status && onStatusChange) {
                       onStatusChange(pendingStatus as 'available' | 'occupied');
                     }

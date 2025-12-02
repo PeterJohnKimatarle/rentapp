@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { getBookmarkedProperties, removeBookmark, DisplayProperty } from '@/utils/propertyUtils';
-import { Heart } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
 

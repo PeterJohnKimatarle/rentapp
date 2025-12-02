@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from '@/components/Layout';
-import { User, X, Building, Heart, Mail, Pencil, ChevronRight, MoreVertical, Trash2 } from 'lucide-react';
+import { User, Building, Heart, Mail, Pencil, ChevronRight, MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
@@ -245,12 +245,68 @@ export default function ProfilePage() {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      const result = typeof reader.result === 'string' ? reader.result : '';
+      const imageData = typeof reader.result === 'string' ? reader.result : '';
       setFormData(prev => ({
         ...prev,
-        profileImage: result
+        profileImage: imageData
+      }));
+      setUserData(prev => ({
+        ...prev,
+        profileImage: imageData
       }));
       setIsUpdatingImage(false);
+      
+      // Wait 2 seconds then save automatically
+      setTimeout(async () => {
+        setIsSavingChanges(true);
+        const combinedName = `${formData.firstName} ${formData.lastName}`.trim();
+        
+        // Map userType to role
+        let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
+        let isApprovedStatus: boolean | undefined;
+        
+        if (userType === 'member') {
+          finalRole = 'tenant';
+          isApprovedStatus = undefined;
+        } else if (userType === 'staff') {
+          finalRole = 'staff';
+          isApprovedStatus = (isStaffUser && user?.isApproved === true) ? true : false;
+        } else {
+          finalRole = 'admin';
+          isApprovedStatus = undefined;
+        }
+
+        const updateResult = await updateUser({
+          name: combinedName || formData.name || userData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          bio: formData.bio,
+          profileImage: imageData,
+          role: finalRole,
+          isApproved: isApprovedStatus
+        });
+
+        setIsSavingChanges(false);
+
+        if (updateResult.success) {
+          setSaveError('');
+          setUserData(prev => ({
+            ...prev,
+            name: combinedName || formData.name || userData.name,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            bio: formData.bio,
+            profileImage: imageData,
+            role: finalRole
+          }));
+        } else {
+          setSaveError(updateResult.message ?? 'Unable to update profile image. Please try again.');
+        }
+      }, 1200);
     };
     reader.readAsDataURL(file);
   };
@@ -357,7 +413,7 @@ export default function ProfilePage() {
   return (
     <Layout>
       <div className="bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl xl:max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Card */}
           <div className="bg-white rounded-lg shadow-sm mb-8 border border-blue-500 border-2 shadow-blue-100">
             <div className="p-8">
@@ -365,17 +421,32 @@ export default function ProfilePage() {
               <div className="flex items-center space-x-6 mb-6">
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
-                  {userData.profileImage ? (
-                    <img
-                      src={userData.profileImage}
-                      alt={userData.name}
-                      className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+                  <label className="relative block w-24 h-24 rounded-full overflow-hidden cursor-pointer">
+                    {userData.profileImage ? (
+                      <img
+                        src={userData.profileImage}
+                        alt={userData.name}
+                        className="w-full h-full object-cover border-2 border-blue-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center border-2 border-blue-500">
+                        <User className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
                     />
-                  ) : (
-                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center border-2 border-blue-500">
-                      <User className="w-12 h-12 text-gray-400" />
+                    <div className="absolute bottom-3 right-3 bg-black/60 text-white rounded-full p-1 flex items-center justify-center">
+                      {isUpdatingImage ? (
+                        <span className="text-[10px] px-1">…</span>
+                      ) : (
+                        <Pencil size={12} className="-rotate-12" />
+                      )}
                     </div>
-                  )}
+                  </label>
                 </div>
 
                 {/* User Info */}
@@ -386,12 +457,6 @@ export default function ProfilePage() {
                   <p className="text-gray-600 mb-1">{userData.email || 'No email provided'}</p>
                   <p className="text-gray-600">{userData.phone || 'No phone number provided'}</p>
                 </div>
-              </div>
-
-              {/* Bio Section */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
-                <p className="text-gray-600">{userData.bio || 'No bio available yet.'}</p>
               </div>
 
               {/* Action Buttons */}
@@ -406,7 +471,7 @@ export default function ProfilePage() {
                   onClick={handleEdit}
                   className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 whitespace-nowrap"
                 >
-                  Edit Profile
+                  Edit Details
                 </button>
               </div>
             </div>
@@ -449,14 +514,25 @@ export default function ProfilePage() {
 
       {/* Edit Profile Popup */}
       {isEditPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            handleCancel();
-          }
-        }}>
-          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10 relative">
-              <h3 className="text-xl font-semibold text-black">Edit Profile</h3>
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={(e) => {
+            // Only close on desktop (screen width >= 1280px) when clicking outside
+            if (window.innerWidth >= 1280) {
+              const target = e.target as HTMLElement;
+              const modal = target.closest('.bg-white.rounded-xl');
+              // Close if clicking outside the modal
+              if (!modal) {
+                handleCancel();
+              }
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[80vh] xl:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-center pt-3 pb-2 px-4 bg-white sticky top-0 z-10 relative">
+              <h3 className="text-2xl font-semibold text-black">Edit Details</h3>
               <button
                 type="button"
                 onClick={(e) => {
@@ -470,47 +546,16 @@ export default function ProfilePage() {
                 <MoreVertical size={24} />
               </button>
             </div>
+            {/* Content */}
             <div 
               ref={editProfileScrollRef}
               className="p-4 overflow-y-auto flex-1"
-              style={{ paddingBottom: editProfileKeyboardInset || 16 }}
+              style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: editProfileKeyboardInset || 16 }}
             >
             
             <div className="space-y-3">
-              {/* Profile Image and Basic Info Section */}
-              <div className="flex items-start space-x-4">
-                {/* Profile Image */}
-                <div className="flex-shrink-0">
-                  <label className="relative block w-28 h-28 rounded-full overflow-hidden cursor-pointer">
-                    {formData.profileImage ? (
-                      <img
-                        src={formData.profileImage}
-                        alt={formData.name || 'Profile preview'}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-14 h-14 text-gray-400" />
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) => handleProfileImageChange(event.target.files?.[0] ?? null)}
-                    />
-                    <div className="absolute bottom-2 right-3 bg-black/60 text-white rounded-full p-1.5 flex items-center justify-center">
-                      {isUpdatingImage ? (
-                        <span className="text-[10px] px-1">…</span>
-                      ) : (
-                        <Pencil size={14} />
-                      )}
-                    </div>
-                  </label>
-                </div>
-
-                {/* Basic Info Fields */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+              {/* Basic Info Fields */}
+              <div className="grid grid-cols-1 gap-2">
                 <div>
                   <input
                     type="text"
@@ -518,7 +563,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
                     onFocus={handleEditProfileInputFocus}
                     placeholder="First Name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
@@ -529,7 +574,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     onFocus={handleEditProfileInputFocus}
                     placeholder="Last Name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
@@ -540,7 +585,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     onFocus={handleEditProfileInputFocus}
                     placeholder="Email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
@@ -551,10 +596,8 @@ export default function ProfilePage() {
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onFocus={handleEditProfileInputFocus}
                     placeholder="Phone"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
-                </div>
-
                 </div>
               </div>
 
@@ -624,22 +667,12 @@ export default function ProfilePage() {
                   )}
               </div>
 
-              {/* Bio Section */}
-              <div className="pt-3 border-t border-gray-200">
-                {saveError && (
-                  <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
-                    {saveError}
-                  </div>
-                )}
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  onFocus={handleEditProfileInputFocus}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
-                  placeholder="Bio"
-                />
-              </div>
+              {/* Error Message */}
+              {saveError && (
+                <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                  {saveError}
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex flex-row gap-3 pt-3">
@@ -666,13 +699,23 @@ export default function ProfilePage() {
       {/* Delete Account Confirmation Popup */}
       {showDeleteConfirm && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-white.rounded-xl, .rounded-xl');
+            // Close if clicking outside the modal
+            if (!modal) {
               setShowDeleteConfirm(false);
             }
-            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-white.rounded-xl, .rounded-xl');
+            // Close if touching outside the modal
+            if (!modal) {
+              setShowDeleteConfirm(false);
+            }
           }}
         >
           <div 
@@ -681,9 +724,6 @@ export default function ProfilePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-6">
-              <div className="flex items-center justify-center mb-4">
-                <Trash2 size={48} className="text-white" />
-              </div>
               <h3 className="text-xl font-bold text-white mb-2">Delete Account</h3>
               <p className="text-white/80 text-sm">Are you sure you want to delete your account? This action cannot be undone.</p>
             </div>
@@ -711,20 +751,27 @@ export default function ProfilePage() {
 
       {/* Change Password Popup */}
       {isPasswordPopupOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }} onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-              <h3 className="text-xl font-semibold text-black">Change Password</h3>
-              <button
-                onClick={handlePasswordCancel}
-                className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
-              >
-                <X size={20} />
-              </button>
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={(e) => {
+            // Only close on desktop (screen width >= 1280px) when clicking outside
+            if (window.innerWidth >= 1280) {
+              const target = e.target as HTMLElement;
+              const modal = target.closest('.bg-white.rounded-xl');
+              // Close if clicking outside the modal
+              if (!modal) {
+                handlePasswordCancel();
+              }
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl max-w-sm w-full max-h-[65vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-center pt-3 pb-2 px-4 bg-white sticky top-0 z-10">
+              <h3 className="text-2xl font-semibold text-black">Change Password</h3>
             </div>
+            {/* Content */}
             <div
               ref={passwordScrollRef}
               className="p-4 overflow-y-auto flex-1"
@@ -737,7 +784,7 @@ export default function ProfilePage() {
                     value={passwordData.currentPassword}
                     onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
                     placeholder="Current Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     onFocus={handlePasswordInputFocus}
                     onBlur={handlePasswordInputBlur}
                   />
@@ -749,7 +796,7 @@ export default function ProfilePage() {
                     value={passwordData.newPassword}
                     onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
                     placeholder="New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     onFocus={handlePasswordInputFocus}
                     onBlur={handlePasswordInputBlur}
                   />
@@ -761,7 +808,7 @@ export default function ProfilePage() {
                     value={passwordData.confirmPassword}
                     onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
                     placeholder="Confirm New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     onFocus={handlePasswordInputFocus}
                     onBlur={handlePasswordInputBlur}
                   />

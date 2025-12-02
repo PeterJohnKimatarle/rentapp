@@ -261,11 +261,13 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             className={`flex items-center space-x-3 ${
               variant === 'popup' 
                 ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer' 
-                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer'
+                : pathname === '/register'
+                  ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2 w-full cursor-pointer'
+                  : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer'
             }`}
           >
             <LogIn size={20} className="flex-shrink-0" />
-            <span className="text-base font-medium">Login</span>
+            <span className="text-base font-medium">Login/Register</span>
           </button>
         )}
         {isAuthenticated && (

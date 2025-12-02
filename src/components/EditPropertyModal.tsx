@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PropertyFormData } from '@/utils/propertyUtils';
-import { Image, MoreVertical, Trash2 } from 'lucide-react';
+import { Image, MoreVertical } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 // Ward data (same as list-property page)
@@ -110,11 +110,11 @@ interface EditPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
   property: PropertyFormData | null;
-  onSave: (updatedProperty: PropertyFormData) => void;
   onDelete?: (propertyId: string) => void;
+  onStageChanges?: (stagedProperty: PropertyFormData) => void;
 }
 
-export default function EditPropertyModal({ isOpen, onClose, property, onSave, onDelete }: EditPropertyModalProps) {
+export default function EditPropertyModal({ isOpen, onClose, property, onDelete, onStageChanges }: EditPropertyModalProps) {
   const [formData, setFormData] = useState<PropertyFormData | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
@@ -124,9 +124,15 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
   const [showOtherImagesPopup, setShowOtherImagesPopup] = useState(false);
   const [tempMainImage, setTempMainImage] = useState<string>('');
   const [tempAdditionalImages, setTempAdditionalImages] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [originalProperty, setOriginalProperty] = useState<PropertyFormData | null>(null);
+  // Staged changes - only applied when Save Changes is clicked
+  const [stagedFormData, setStagedFormData] = useState<PropertyFormData | null>(null);
+  const [stagedRegion, setStagedRegion] = useState<string>('');
+  const [stagedWard, setStagedWard] = useState<string>('');
+  const [stagedCustomWard, setStagedCustomWard] = useState<string>('');
+  const [stagedMainImage, setStagedMainImage] = useState<string>('');
+  const [stagedAdditionalImages, setStagedAdditionalImages] = useState<string[]>([]);
 
   // Initialize form data when property changes
   useEffect(() => {
@@ -145,6 +151,14 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
           setTempMainImage('');
           setTempAdditionalImages([]);
         }
+        
+        // Reset staged changes
+        setStagedFormData(null);
+        setStagedRegion('');
+        setStagedWard('');
+        setStagedCustomWard('');
+        setStagedMainImage('');
+        setStagedAdditionalImages([]);
       } catch (error) {
         console.error('Error initializing edit form:', error);
       }
@@ -156,7 +170,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
 
   const handleInputChange = (field: keyof PropertyFormData, value: string | string[]) => {
     if (!formData) return;
-    setFormData(prev => prev ? ({ ...prev, [field]: value }) : null);
+    // Stage the change - don't update formData directly
+    setStagedFormData(prev => {
+      const base = prev || formData;
+      return { ...base, [field]: value };
+    });
   };
 
   const handleMainImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,14 +213,16 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
   };
 
   const handleMainImagePopupOk = () => {
-    if (!formData) return;
-    setFormData(prev => prev ? ({ ...prev, images: [tempMainImage, ...tempAdditionalImages].filter(img => img) }) : null);
+    // Stage the image changes
+    setStagedMainImage(tempMainImage);
+    setStagedAdditionalImages([...tempAdditionalImages]);
     setShowMainImagePopup(false);
   };
 
   const handleOtherImagesPopupOk = () => {
-    if (!formData) return;
-    setFormData(prev => prev ? ({ ...prev, images: [tempMainImage, ...tempAdditionalImages].filter(img => img) }) : null);
+    // Stage the image changes
+    setStagedMainImage(tempMainImage);
+    setStagedAdditionalImages([...tempAdditionalImages]);
     setShowOtherImagesPopup(false);
   };
 
@@ -214,9 +234,16 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
     setTempAdditionalImages([]);
   };
 
-  // Check if there are any changes
+  // Check if there are any staged changes
   const hasChanges = (): boolean => {
     if (!formData || !originalProperty) return false;
+
+    // Use staged values if they exist, otherwise use current values
+    const currentFormData = stagedFormData || formData;
+    const currentRegion = stagedRegion || selectedRegion;
+    const currentWard = stagedWard || selectedWard || stagedCustomWard || customWard;
+    const currentMainImage = stagedMainImage !== '' ? stagedMainImage : tempMainImage;
+    const currentAdditionalImages = stagedAdditionalImages.length > 0 ? stagedAdditionalImages : tempAdditionalImages;
 
     // Check form fields
     const fieldsToCheck: (keyof PropertyFormData)[] = [
@@ -225,24 +252,24 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
     ];
     
     for (const field of fieldsToCheck) {
-      if (formData[field] !== originalProperty[field]) {
+      if (currentFormData[field] !== originalProperty[field]) {
         return true;
       }
     }
 
     // Check uploaderType separately (normalize empty string to undefined for comparison)
-    const formUploaderType = (formData.uploaderType === 'Broker' || formData.uploaderType === 'Owner') ? formData.uploaderType : undefined;
+    const formUploaderType = (currentFormData.uploaderType === 'Broker' || currentFormData.uploaderType === 'Owner') ? currentFormData.uploaderType : undefined;
     const originalUploaderType = (originalProperty.uploaderType === 'Broker' || originalProperty.uploaderType === 'Owner') ? originalProperty.uploaderType : undefined;
     if (formUploaderType !== originalUploaderType) {
       return true;
     }
 
     // Check region and ward
-    if (selectedRegion !== originalProperty.region) return true;
-    if ((selectedWard || customWard) !== originalProperty.ward) return true;
+    if (currentRegion !== originalProperty.region) return true;
+    if (currentWard !== originalProperty.ward) return true;
 
     // Check images
-    const currentImages = [tempMainImage, ...tempAdditionalImages].filter(img => img);
+    const currentImages = [currentMainImage, ...currentAdditionalImages].filter(img => img);
     const originalImages = originalProperty.images || [];
     
     if (currentImages.length !== originalImages.length) return true;
@@ -260,22 +287,29 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
     e.preventDefault();
     if (!formData || !property || !hasChanges()) return;
 
-    setIsSubmitting(true);
+    // Use staged values if they exist, otherwise use current values
+    const finalFormData = stagedFormData || formData;
+    const finalRegion = stagedRegion || selectedRegion;
+    const finalWard = stagedWard || selectedWard || stagedCustomWard || customWard;
+    const finalMainImage = stagedMainImage !== '' ? stagedMainImage : tempMainImage;
+    const finalAdditionalImages = stagedAdditionalImages.length > 0 ? stagedAdditionalImages : tempAdditionalImages;
 
-    const updatedProperty: PropertyFormData = {
-      ...formData,
+    const stagedProperty: PropertyFormData = {
+      ...finalFormData,
       id: property.id, // Preserve ID
       createdAt: property.createdAt, // Preserve creation date
-      images: [tempMainImage, ...tempAdditionalImages].filter(img => img),
-      region: selectedRegion,
-      ward: selectedWard || customWard,
+      images: [finalMainImage, ...finalAdditionalImages].filter(img => img),
+      region: finalRegion,
+      ward: finalWard,
       // Normalize uploaderType: empty string becomes undefined
-      uploaderType: (formData.uploaderType === 'Broker' || formData.uploaderType === 'Owner') ? formData.uploaderType : undefined,
+      uploaderType: (finalFormData.uploaderType === 'Broker' || finalFormData.uploaderType === 'Owner') ? finalFormData.uploaderType : undefined,
     };
 
-    onSave(updatedProperty);
-    setIsSubmitting(false);
-    // Don't close here - let the parent component handle closing after save
+    // Stage the changes - don't save yet
+    if (onStageChanges) {
+      onStageChanges(stagedProperty);
+    }
+    onClose();
   };
 
   if (!isOpen || !property || !formData) return null;
@@ -325,7 +359,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                 </label>
                 <select 
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                  value={formData.propertyType}
+                  value={(stagedFormData || formData).propertyType}
                   onChange={(e) => handleInputChange('propertyType', e.target.value)}
                   required
                 >
@@ -344,7 +378,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                 </label>
                 <select 
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                  value={formData.status}
+                  value={(stagedFormData || formData).status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
                   required
                 >
@@ -372,8 +406,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                 </label>
                 <select 
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                  value={selectedRegion}
+                  value={stagedRegion || selectedRegion}
                   onChange={(e) => {
+                    setStagedRegion(e.target.value);
+                    setStagedWard('');
+                    setStagedCustomWard('');
                     setSelectedRegion(e.target.value);
                     setSelectedWard('');
                     setCustomWard('');
@@ -419,13 +456,16 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                 </label>
                 <select 
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                  disabled={!selectedRegion}
-                  value={selectedWard}
+                  disabled={!(stagedRegion || selectedRegion)}
+                  value={stagedWard || selectedWard}
                   onChange={(e) => {
                     if (e.target.value === 'other') {
                       setShowWardPopup(true);
+                      setStagedWard('');
                       setSelectedWard('');
                     } else {
+                      setStagedWard(e.target.value);
+                      setStagedCustomWard('');
                       setSelectedWard(e.target.value);
                       setCustomWard('');
                     }
@@ -461,7 +501,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                   type="text"
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
                   placeholder="---"
-                  value={formData.price}
+                  value={(stagedFormData || formData).price}
                   onChange={(e) => {
                     let value = e.target.value.replace(/[^\d]/g, '');
                     if (value) {
@@ -478,7 +518,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                 </label>
                 <select 
                   className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                  value={formData.paymentPlan}
+                  value={(stagedFormData || formData).paymentPlan}
                   onChange={(e) => handleInputChange('paymentPlan', e.target.value)}
                   required
                 >
@@ -506,7 +546,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
               </label>
               <select 
                 className="w-full px-3 py-2  rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                value={formData.uploaderType || ''}
+                value={(stagedFormData || formData).uploaderType || ''}
                 onChange={(e) => handleInputChange('uploaderType', e.target.value)}
                 required
               >
@@ -523,11 +563,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
               <div className="flex-1">
                 <button 
                   type="submit"
-                  disabled={isSubmitting || !hasChanges()}
+                  disabled={!hasChanges()}
                   className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors disabled:cursor-not-allowed h-12" 
                   style={{ backgroundColor: 'rgb(34, 197, 94)' }}
                 >
-                  <span className="text-base">{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
+                  <span className="text-base">Save Changes</span>
                 </button>
               </div>
               <div className="flex-1">
@@ -595,8 +635,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
                       const updatedWards = [...wardsByRegion[regionKey].filter(ward => ward !== 'Other'), customWard.trim(), 'Other'];
                       wardsByRegion[regionKey] = updatedWards;
                       
-                      // Set the selected ward to the custom ward
-                      setSelectedWard(customWard.trim().toLowerCase().replace(/\s+/g, '-'));
+                      // Stage and set the selected ward to the custom ward
+                      const wardValue = customWard.trim().toLowerCase().replace(/\s+/g, '-');
+                      setStagedCustomWard(customWard.trim());
+                      setStagedWard(wardValue);
+                      setSelectedWard(wardValue);
                       setCustomWard('');
                       setShowWardPopup(false);
                     }

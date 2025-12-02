@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -93,26 +93,32 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50"
-      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        const modal = target.closest('.bg-white.rounded-xl');
+        // Close if clicking outside the modal
+        if (!modal) {
+          handleClose();
+        }
+      }}
+      onTouchEnd={(e) => {
+        const target = e.target as HTMLElement;
+        const modal = target.closest('.bg-white.rounded-xl');
+        // Close if touching outside the modal
+        if (!modal) {
+          handleClose();
+        }
+      }}
     >
       <div 
         ref={popupRef}
-        className="bg-white rounded-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-xl max-w-sm w-full max-h-[65vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-          <h3 className="text-xl font-semibold text-black">Login to Rentapp</h3>
-          <button
-            onClick={handleClose}
-            className="text-white transition-colors rounded-lg p-2 cursor-pointer"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-            onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
-            onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
-          >
-            <X size={20} />
-          </button>
+        <div className="flex items-center justify-center pt-3 pb-2 px-4 bg-white sticky top-0 z-10">
+          <h3 className="text-2xl font-semibold text-black">Login to Rentapp</h3>
         </div>
 
         {/* Content */}
@@ -138,7 +144,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email address"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   onFocus={handleInputFocus}
                   required
                 />
@@ -155,7 +161,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   onFocus={handleInputFocus}
                   required
                 />

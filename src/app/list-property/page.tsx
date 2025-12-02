@@ -206,18 +206,6 @@ export default function ListPropertyPage() {
     setTempAdditionalImages([]);
   };
 
-  // Check if there are changes in the main image popup
-  const hasMainImageChanges = () => {
-    return tempMainImage !== originalMainImage;
-  };
-
-  // Check if there are changes in the other images popup
-  const hasOtherImagesChanges = () => {
-    if (tempAdditionalImages.length !== originalAdditionalImages.length) {
-      return true;
-    }
-    return tempAdditionalImages.some((img, idx) => img !== originalAdditionalImages[idx]);
-  };
 
 
   const removeTempAdditionalImage = (index: number) => {
