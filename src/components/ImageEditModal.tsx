@@ -512,8 +512,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold text-white mb-1.5 xl:hidden">Long Press Gestures</h2>
-              <h2 className="text-2xl font-bold text-white mb-1.5 hidden xl:block">Remove All Images</h2>
+              <h2 className="text-2xl font-bold text-white mb-1.5">Remove All Images</h2>
               <p className="text-white/80 text-base xl:hidden"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
               <p className="text-white/80 text-base hidden xl:block"><span className="font-bold">Remove all images at once</span><br />right-click any image.</p>
             </div>
