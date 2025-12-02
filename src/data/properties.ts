@@ -14,6 +14,7 @@ export interface Property {
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
+  uploaderType?: 'Broker' | 'Owner';
 }
 
 export const properties: Property[] = [];

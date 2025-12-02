@@ -67,8 +67,8 @@ function DeleteConfirmPopup({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleCancel();
@@ -77,29 +77,26 @@ function DeleteConfirmPopup({
       }}
     >
       <div 
-        className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
-        style={{ backgroundColor: '#0071c2' }}
+        className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+        style={{ backgroundColor: 'white' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-4">
-            <Trash2 size={48} className="text-white" />
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">Delete Property</h3>
-          <p className="text-white/80 text-sm">Are you sure you want to delete this property?</p>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-bold text-black mb-1.5">Delete this property</h3>
+          <p className="text-gray-600 text-sm">Are you sure you want to delete this property?</p>
         </div>
         <div className="flex gap-3">
           <button
             type="button"
             onClick={handleConfirm}
-            className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+            className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
           >
             Yes
           </button>
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-gray-800 rounded-lg font-medium transition-colors"
           >
             No
           </button>
@@ -224,7 +221,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
     // Check form fields
     const fieldsToCheck: (keyof PropertyFormData)[] = [
       'title', 'description', 'price', 'bedrooms', 'bathrooms', 'squareFootage', 
-      'contactName', 'contactPhone', 'contactEmail', 'status', 'propertyType', 'paymentPlan'
+      'contactName', 'contactPhone', 'contactEmail', 'status', 'propertyType', 'paymentPlan', 'uploaderType'
     ];
     
     for (const field of fieldsToCheck) {
@@ -276,16 +273,16 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ minHeight: '100vh', height: '100%', touchAction: 'none' }}
     >
       <div 
-        className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-white rounded-xl max-w-md w-full max-h-[90vh] xl:max-h-[95vh] overflow-y-auto shadow-2xl"
         style={{ touchAction: 'pan-y' }}
       >
         {/* Header */}
         <div className="sticky top-0 bg-white pt-2 pb-2 px-4 flex items-center justify-center z-10 relative">
-          <h2 className="text-2xl font-bold text-gray-900 px-4" style={{ borderBottom: '2.5px solid #eab308', paddingBottom: '0', lineHeight: '1.2', display: 'inline-block' }}>Edit Details</h2>
+          <h2 className="text-2xl font-bold text-gray-900 px-4" style={{ paddingBottom: '0', lineHeight: '1.2', display: 'inline-block' }}>Edit Details</h2>
           {onDelete && (
             <button
               type="button"
@@ -311,7 +308,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
           </div>
 
           {/* Basic Information Card */}
-          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-[22.5rem] xl:max-w-sm mx-auto">
             <div className="grid grid-cols-4 gap-2">
               <div className="col-span-2">
                 <label className="block text-base font-bold text-white mb-2 text-center">
@@ -358,7 +355,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
           </div>
 
           {/* Location Card */}
-          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-[22.5rem] xl:max-w-sm mx-auto">
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-base font-bold text-white mb-2 text-center">
@@ -445,7 +442,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
           </div>
 
           {/* Pricing Card */}
-          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-[22.5rem] xl:max-w-sm mx-auto">
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-base font-bold text-white mb-2 text-center">
@@ -485,8 +482,34 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
             </div>
           </div>
 
+          {/* Property Ownership Section */}
+          <div className="text-center mb-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+              Property ownership
+            </h2>
+          </div>
+
+          {/* Property Ownership Card */}
+          <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-[22.5rem] xl:max-w-sm mx-auto">
+            <div>
+              <label className="block text-base font-bold text-white mb-2 text-center">
+                Ownership Type
+              </label>
+              <select 
+                className="w-full px-3 py-2  rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                value={formData.uploaderType || ''}
+                onChange={(e) => handleInputChange('uploaderType', e.target.value)}
+                required
+              >
+                <option value="" className="text-gray-400">---</option>
+                <option value="Owner">I own this property (Owner)</option>
+                <option value="Broker">I do not own this property (Broker)</option>
+              </select>
+            </div>
+          </div>
+
           {/* Submit and Cancel Buttons */}
-          <div className="mt-4 max-w-sm mx-auto mb-4">
+          <div className="mt-4 max-w-[22.5rem] xl:max-w-sm mx-auto mb-4">
             <div className="flex gap-2">
               <div className="flex-1">
                 <button 

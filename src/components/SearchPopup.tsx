@@ -133,7 +133,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     } else {
       // On allowed pages, dispatch event normally
       dispatchSearchEvent(filters);
-      onClose();
+    onClose();
     }
   };
 
@@ -158,7 +158,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       }, 100);
     } else {
       // On allowed pages, dispatch event normally
-      dispatchSearchEvent({});
+    dispatchSearchEvent({});
     }
   };
 

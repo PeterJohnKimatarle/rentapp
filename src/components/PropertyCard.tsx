@@ -415,17 +415,17 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             ) : (
               <>
                 {/* Mobile: Always show first image, Desktop: Show preview index */}
-                <img
-                  src={property.images[0]}
-                  alt={property.title}
+              <img
+                src={property.images[0]}
+                alt={property.title}
                   className="w-full h-full object-cover cursor-pointer xl:hidden"
-                  onClick={handleImageClick}
-                  onError={() => setImageError(true)}
-                  style={{ 
-                    opacity: isImageLoaded ? 1 : 0,
-                    transition: 'opacity 0.3s ease-in-out'
-                  }}
-                />
+                onClick={handleImageClick}
+                onError={() => setImageError(true)}
+                style={{ 
+                  opacity: isImageLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+              />
                 <img
                   src={property.images[previewImageIndex]}
                   alt={property.title}
@@ -570,6 +570,20 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
                 <span className="font-bold">Plan:</span> {property.plan} Months
               </div>
+              {/* Uploader Information - Admin/Staff Only */}
+              {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
+                  {hideBookmark && ('ownerId' in property && property.ownerId === user?.id) ? (
+                    // On my-properties page: show only type with braces
+                    <span><span className="font-bold">Uploader:</span> {property.uploaderType ? `(${property.uploaderType})` : ''}</span>
+                  ) : (
+                    // On homepage: show name and type
+                    ('ownerName' in property && property.ownerName) && (
+                      <span><span className="font-bold">Uploader:</span> {property.ownerName.split(' ')[0]}{property.uploaderType ? ` (${property.uploaderType})` : ''}</span>
+                    )
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="text-sm sm:text-base text-gray-900 mb-0.5 bg-yellow-200 px-1 py-0 rounded w-fit max-w-full -mt-1 flex items-center justify-center border border-black min-w-0 overflow-hidden">
@@ -700,6 +714,35 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                      <Clock size={12} className="xl:w-4 xl:h-4 mr-1 flex-shrink-0" />
                      <span>Updated: {getRelativeTime(property.updatedAt)}</span>
                    </div>
+                   {/* Uploaded By - Admin/Staff Only */}
+                   {(user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) && (
+                     <>
+                       {hideBookmark && ('ownerId' in property && property.ownerId === user?.id) ? (
+                         // On my-properties page: show only type with braces
+                         property.uploaderType && (
+                           <div className="text-lg xl:text-xl text-white">
+                             <span className="font-bold">Uploader:</span> <span className="ml-1">({property.uploaderType})</span>
+                           </div>
+                         )
+                       ) : (
+                         // On homepage: show name and email
+                         (('ownerName' in property && property.ownerName) || ('ownerEmail' in property && property.ownerEmail)) && (
+                           <>
+                             {'ownerName' in property && property.ownerName && (
+                               <div className="text-lg xl:text-xl text-white">
+                                 <span className="font-bold">Uploaded by:</span> <span className="ml-1">{property.ownerName}</span>
+                               </div>
+                             )}
+                             {'ownerEmail' in property && property.ownerEmail && (
+                               <div className="text-lg xl:text-xl text-white">
+                                 <span className="font-bold">Email:</span> <span className="ml-1">{property.ownerEmail}</span>
+                               </div>
+                             )}
+                           </>
+                         )
+                       )}
+                     </>
+                   )}
                  </div>
 
                  {/* Contact Information - Only show if available */}
@@ -812,7 +855,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           >
             <div className="text-center">
               <div className="mb-4">
-                <Heart size={48} className="mx-auto text-white mb-2" />
                 <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Save this Property</h3>
                 <p className="text-white/80 text-sm">Are you sure you want to save this property to your bookmarks?</p>
               </div>
@@ -857,31 +899,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           >
             <div className="text-center">
               <div className="mb-4">
-                <div className="mx-auto mb-2 flex items-center justify-center">
-                  <div 
-                    style={{ 
-                      userSelect: 'none',
-                      border: '3px solid white',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem',
-                      width: '3rem',
-                      height: '3rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Minus 
-                      size={32} 
-                      className="text-white"
-                      strokeWidth={4}
-                      style={{ 
-                        transform: 'scaleX(1.3) scaleY(0.8)'
-                      }}
-                    />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Remove from Bookmarks</h3>
+                <h3 className="text-lg font-semibold text-white mb-2 px-4">Remove from Bookmarks</h3>
                 <p className="text-white/80 text-sm">Are you sure you want to remove this property from your bookmarks?</p>
               </div>
               
@@ -907,8 +925,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       {/* Action Selection Popup */}
       {showActionPopup && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div 
@@ -916,7 +934,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             style={{ backgroundColor: '#0071c2' }}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-semibold text-white mb-4 text-center">Edit Property</h3>
             <div className="space-y-3">
               {onStatusChange && (
                 <div className="flex items-center justify-center">
@@ -927,17 +944,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       <Radio size={15} />
                     </div>
                     <select
-                      value={pendingStatus}
+                      value={pendingStatus || property.status}
                       onChange={(e) => {
                         const value = e.target.value as 'available' | 'occupied' | '';
                         if (!value) return;
                         setPendingStatus(value);
                       }}
                       className="w-full appearance-none bg-white/90 text-transparent text-sm py-3 rounded-lg focus:outline-none cursor-pointer"
+                      style={{ color: 'transparent' }}
                     >
-                      <option value="">---</option>
-                      <option value="available">Available</option>
-                      <option value="occupied">Occupied</option>
+                      <option value="" style={{ color: '#111827' }}>---</option>
+                      <option value="available" style={{ color: '#111827' }}>Available</option>
+                      <option value="occupied" style={{ color: '#111827' }}>Occupied</option>
                     </select>
                   </div>
                 </div>

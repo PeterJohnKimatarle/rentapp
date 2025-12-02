@@ -24,6 +24,7 @@ export interface PropertyFormData {
   contactName: string;
   contactPhone: string;
   contactEmail: string;
+  uploaderType?: 'Broker' | 'Owner';
   createdAt: string;
   updatedAt?: string;
   ownerId?: string;
@@ -53,6 +54,7 @@ export interface DisplayProperty {
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
+  uploaderType?: 'Broker' | 'Owner';
   createdAt?: string;
   ownerId?: string;
   ownerEmail?: string;
@@ -98,6 +100,7 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
     contactName: formData.contactName,
     contactPhone: formData.contactPhone,
     contactEmail: formData.contactEmail,
+    uploaderType: formData.uploaderType,
     createdAt: formData.createdAt,
     ownerId: formData.ownerId,
     ownerEmail: formData.ownerEmail,

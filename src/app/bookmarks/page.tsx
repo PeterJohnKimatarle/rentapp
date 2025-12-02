@@ -184,21 +184,20 @@ export default function BookmarksPage() {
           >
             <div className="text-center">
               <div className="mb-4">
-                <Heart size={48} className="mx-auto text-white mb-2" />
-                <h3 className="text-lg font-semibold text-white mb-2 px-4" style={{ borderBottom: '2px solid #eab308' }}>Remove from Bookmarks</h3>
+                <h3 className="text-lg font-semibold text-white mb-2 px-4">Remove from Bookmarks</h3>
                 <p className="text-white/80 text-sm">Are you sure you want to remove this property from your bookmarks?</p>
               </div>
               
               <div className="flex space-x-3">
                 <button
                   onClick={handleRemoveBookmark}
-                  className="flex-1 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="flex-1 bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   Yes
                 </button>
                 <button
                   onClick={handleCancelRemove}
-                  className="flex-1 bg-red-400/75 hover:bg-red-500/75 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="flex-1 bg-gray-400 hover:bg-gray-500 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   No
                 </button>

@@ -136,12 +136,14 @@ export default function Footer() {
             </div>
 
             {/* Close Button */}
+            <div className="flex justify-center mt-6">
             <button
               onClick={() => setIsGestureInfoOpen(false)}
-              className="w-full mt-6 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                className="w-2/3 px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
             >
               Ok, I got it
             </button>
+            </div>
           </div>
         </div>
       )}

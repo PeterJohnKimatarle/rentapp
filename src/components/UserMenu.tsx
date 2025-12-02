@@ -139,12 +139,12 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
               >
                 Feedback
               </button>
-              <button
+            <button
                 className="xl:hidden w-full px-4 py-3 rounded-xl bg-gray-500 text-white hover:bg-gray-600 transition-colors flex items-center justify-center"
-                onClick={onClose}
-              >
+              onClick={onClose}
+            >
                 Close
-              </button>
+            </button>
             </div>
           </div>
         </div>

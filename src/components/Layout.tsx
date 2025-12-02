@@ -136,7 +136,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       window.location.reload();
     } else {
       // Redirect to home if not on homepage
-      router.push('/');
+    router.push('/');
     }
   };
 

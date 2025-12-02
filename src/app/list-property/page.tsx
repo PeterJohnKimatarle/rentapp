@@ -61,6 +61,7 @@ interface Property {
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
+  uploaderType?: 'Broker' | 'Owner';
   createdAt: string;
   ownerId?: string;
   ownerEmail?: string;
@@ -96,7 +97,8 @@ export default function ListPropertyPage() {
     paymentPlan: '',
     amenities: [] as string[],
     mainImage: '',
-    additionalImages: [] as string[]
+    additionalImages: [] as string[],
+    uploaderType: '' as 'Broker' | 'Owner' | ''
   });
 
   // localStorage functions
@@ -273,6 +275,7 @@ export default function ListPropertyPage() {
     const property: Property = {
       id: Date.now().toString(),
       ...formData,
+      uploaderType: (formData.uploaderType === 'Broker' || formData.uploaderType === 'Owner') ? formData.uploaderType : undefined,
       images: [formData.mainImage, ...formData.additionalImages].filter(img => img), // Combine main and additional images
       region: selectedRegion,
       ward: selectedWard || customWard,
@@ -310,7 +313,8 @@ export default function ListPropertyPage() {
         paymentPlan: '',
         amenities: [],
         mainImage: '',
-        additionalImages: []
+        additionalImages: [],
+        uploaderType: ''
       });
       setSelectedRegion('');
       setSelectedWard('');
@@ -513,7 +517,31 @@ export default function ListPropertyPage() {
               </div>
             </div>
 
+         {/* Property Ownership Section */}
+         <div className="text-center mb-1">
+           <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+             Property ownership
+           </h2>
+         </div>
 
+            {/* Property Ownership Card */}
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
+              <div>
+                <label className="block text-base font-bold text-white mb-2 text-center">
+                  Ownership Type
+                </label>
+                  <select 
+                  className="w-full px-3 py-2  rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                  value={formData.uploaderType}
+                  onChange={(e) => handleInputChange('uploaderType', e.target.value)}
+                  required
+                >
+                  <option value="" className="text-gray-400">---</option>
+                  <option value="Owner">I own this property (Owner)</option>
+                  <option value="Broker">I do not own this property (Broker)</option>
+                </select>
+              </div>
+            </div>
 
          {/* Images Section */}
          <div className="text-center mb-2">
@@ -625,7 +653,8 @@ export default function ListPropertyPage() {
                      paymentPlan: '',
                      amenities: [],
                      mainImage: '',
-                     additionalImages: []
+                    additionalImages: [],
+                    uploaderType: ''
                    });
                    setSelectedRegion('');
                    setSelectedWard('');
@@ -863,67 +892,67 @@ export default function ListPropertyPage() {
               >
                 {tempAdditionalImages.length > 0 ? (
                   <>
-                    {/* Header - Fixed */}
+                {/* Header - Fixed */}
                     <div className="px-4 pt-3 flex-shrink-0 relative pb-3 -mx-4 -mt-2">
                       <div className="flex items-center justify-start relative">
                         <h3 className="text-xl font-bold text-black leading-tight">Other images</h3>
-                        <button
-                          type="button"
-                          onClick={() => setShowRemoveAllInfo(true)}
+                    <button
+                      type="button"
+                      onClick={() => setShowRemoveAllInfo(true)}
                           className="absolute right-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
-                          title="How to remove all images"
+                      title="How to remove all images"
                           style={{ top: '50%', transform: 'translateY(-50%)' }}
-                        >
+                    >
                           <Info size={22} className="text-gray-700" />
-                        </button>
+                    </button>
                       </div>
-                    </div>
-                    
-                    {/* Images Preview - Scrollable */}
+                </div>
+                
+                {/* Images Preview - Scrollable */}
                     <div className="flex-1 overflow-y-auto px-4 pb-2 -mx-4 min-h-0">
                       <div className="mb-0">
-                        <div className="flex flex-col gap-2">
-                          {tempAdditionalImages.map((image, index) => (
-                            <div key={index} className="flex gap-2">
-                              <img 
-                                src={image} 
-                                alt={`Additional ${index + 1}`} 
+                      <div className="flex flex-col gap-2">
+                        {tempAdditionalImages.map((image, index) => (
+                          <div key={index} className="flex gap-2">
+                            <img 
+                              src={image} 
+                              alt={`Additional ${index + 1}`} 
                                 className="w-3/4 xl:w-4/5 h-44 sm:h-48 object-cover rounded border"
-                                onTouchStart={(e) => {
-                                  const timer = setTimeout(() => {
-                                    handleImageLongPress(e);
-                                  }, 800);
-                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = timer;
-                                }}
-                                onTouchEnd={(e) => {
-                                  const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
-                                  if (timer) {
-                                    clearTimeout(timer);
-                                    (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
-                                  }
-                                }}
-                                onTouchMove={(e) => {
-                                  const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
-                                  if (timer) {
-                                    clearTimeout(timer);
-                                    (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
-                                  }
-                                }}
-                                onContextMenu={(e) => {
-                                  e.preventDefault();
+                              onTouchStart={(e) => {
+                                const timer = setTimeout(() => {
                                   handleImageLongPress(e);
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeTempAdditionalImage(index)}
-                                onDragStart={(e) => e.preventDefault()}
-                                onMouseDown={(e) => {
-                                  // Prevent text selection on mouse down
-                                  if (e.detail > 1) {
-                                    e.preventDefault(); // Prevent double-click selection
-                                  }
-                                }}
+                                }, 800);
+                                (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = timer;
+                              }}
+                              onTouchEnd={(e) => {
+                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                if (timer) {
+                                  clearTimeout(timer);
+                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                }
+                              }}
+                              onTouchMove={(e) => {
+                                const timer = (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer;
+                                if (timer) {
+                                  clearTimeout(timer);
+                                  (e.currentTarget as HTMLElement & { longPressTimer?: NodeJS.Timeout }).longPressTimer = undefined;
+                                }
+                              }}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                handleImageLongPress(e);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeTempAdditionalImage(index)}
+                              onDragStart={(e) => e.preventDefault()}
+                              onMouseDown={(e) => {
+                                // Prevent text selection on mouse down
+                                if (e.detail > 1) {
+                                  e.preventDefault(); // Prevent double-click selection
+                                }
+                              }}
                                 onMouseEnter={(e) => {
                                   // Only apply hover effect on desktop
                                   if (window.innerWidth >= 1280) {
@@ -947,15 +976,15 @@ export default function ListPropertyPage() {
                                   }
                                 }}
                                 className="flex-1 xl:flex-none xl:w-[60px] px-4 py-2 xl:px-2 xl:py-1.5 text-white rounded-lg font-medium self-center text-2xl xl:text-xl select-none outline-none focus:outline-none"
-                                style={{ 
-                                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                  userSelect: 'none',
-                                  WebkitUserSelect: 'none',
-                                  MozUserSelect: 'none',
-                                  msUserSelect: 'none',
-                                  WebkitTouchCallout: 'none',
-                                  WebkitTapHighlightColor: 'transparent',
-                                  outline: 'none',
+                              style={{ 
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                userSelect: 'none',
+                                WebkitUserSelect: 'none',
+                                MozUserSelect: 'none',
+                                msUserSelect: 'none',
+                                WebkitTouchCallout: 'none',
+                                WebkitTapHighlightColor: 'transparent',
+                                outline: 'none',
                                   touchAction: 'manipulation',
                                   transition: 'none'
                                 }}
@@ -969,25 +998,25 @@ export default function ListPropertyPage() {
                                       span.style.color = '#ffffff';
                                     }
                                   }
-                                }}
-                              >
-                                <span 
-                                  style={{ 
-                                    transform: 'scaleX(1.3)', 
-                                    display: 'inline-block', 
+                              }}
+                            >
+                              <span 
+                                style={{ 
+                                  transform: 'scaleX(1.3)', 
+                                  display: 'inline-block', 
                                     userSelect: 'none',
                                     color: '#ffffff',
                                     transition: 'none'
-                                  }}
-                                >
-                                  −
-                                </span>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                                }}
+                              >
+                                −
+                              </span>
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                </div>
                   </>
                 ) : (
                   <>
@@ -1055,7 +1084,7 @@ export default function ListPropertyPage() {
               style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
             >
               <div 
-                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-[20rem] xl:max-w-[20rem]"
                 style={{ backgroundColor: '#0071c2' }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1065,13 +1094,15 @@ export default function ListPropertyPage() {
                   <p className="text-white/80 text-base xl:hidden"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
                   <p className="text-white/80 text-base hidden xl:block"><span className="font-bold">Remove all images at once</span><br />right-click any image.</p>
                 </div>
+                <div className="flex justify-center">
                 <button
                   type="button"
                   onClick={() => setShowRemoveAllInfo(false)}
-                  className="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                    className="w-2/3 px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
                 >
                   Ok, I got it
                 </button>
+                </div>
               </div>
             </div>
           )}
@@ -1083,41 +1114,13 @@ export default function ListPropertyPage() {
               style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
             >
               <div 
-                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+                className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-[20rem] xl:max-w-[20rem]"
                 style={{ backgroundColor: '#0071c2' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="text-center mb-4">
-                  <div className="flex items-center justify-center mb-3">
-                    <div 
-                      className="w-12 rounded-lg flex items-center justify-center border-white"
-                      style={{ 
-                        height: '2.5rem',
-                        borderWidth: '2px',
-                        borderStyle: 'solid',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <span 
-                        className="text-white text-3xl font-bold"
-                        style={{ 
-                          transform: 'scaleX(1.3)', 
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          lineHeight: '1',
-                          width: '100%',
-                          height: '100%'
-                        }}
-                      >
-                        −
-                      </span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-1.5">Remove All Images</h3>
-                  <p className="text-white/80 text-sm">Are you sure you want to remove all images?</p>
+                <div className="text-center mb-3">
+                  <h2 className="text-2xl font-bold text-white mb-1">Remove All Images</h2>
+                  <p className="text-white/80 text-base">Are you sure you want to remove all images?</p>
                 </div>
                 <div className="flex gap-3">
                   <button

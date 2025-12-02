@@ -20,93 +20,67 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
   const [originalAdditionalImages, setOriginalAdditionalImages] = useState<string[]>([]);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showRemoveAllInfo, setShowRemoveAllInfo] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
-  // Initialize images when modal opens
+  // Prevent scroll when modal is open
+  usePreventScroll(isOpen || showMainImagePopup || showOtherImagesPopup || showDeleteAllConfirm || showRemoveAllInfo);
+
+  // Reset state when modal opens/closes
   useEffect(() => {
-    if (isOpen && currentImages.length > 0) {
-      setTempMainImage(currentImages[0]);
-      setTempAdditionalImages(currentImages.slice(1));
+    if (isOpen) {
+      setTempMainImage(currentImages[0] ?? '');
+      setTempAdditionalImages(currentImages.length > 1 ? currentImages.slice(1) : []);
+      setOriginalMainImage(currentImages[0] ?? '');
+      setOriginalAdditionalImages(currentImages.length > 1 ? currentImages.slice(1) : []);
     } else {
-      setTempMainImage('');
-      setTempAdditionalImages([]);
+      // Reset all popups when main modal closes
+      setShowMainImagePopup(false);
+      setShowOtherImagesPopup(false);
+      setShowDeleteAllConfirm(false);
+      setShowRemoveAllInfo(false);
     }
   }, [isOpen, currentImages]);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Block background scroll when modal or nested popups are open
-  usePreventScroll(isOpen || showMainImagePopup || showOtherImagesPopup || showDeleteAllConfirm || showRemoveAllInfo);
-
-  const handleMainImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setTempMainImage(base64String);
+        setTempMainImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      // Reset file input to allow selecting the same file again
-      event.target.value = '';
     }
   };
 
-  const handleAdditionalImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
+  const handleAdditionalImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
     if (files.length > 0) {
       const readers = files.map(file => {
+        const reader = new FileReader();
         return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
+          reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(file);
         });
       });
 
-      Promise.all(readers).then((base64Images) => {
-        // Filter out duplicates
-        const newImages = base64Images.filter(img => !tempAdditionalImages.includes(img));
-        setTempAdditionalImages(prev => [...prev, ...newImages]);
-        // Reset file input
-        event.target.value = '';
+      Promise.all(readers).then(results => {
+        setTempAdditionalImages(prev => [...prev, ...results]);
       });
     }
-  };
-
-  const handleMainImagePopupOk = () => {
-    setShowMainImagePopup(false);
-  };
-
-  const handleOtherImagesPopupOk = () => {
-    setShowOtherImagesPopup(false);
   };
 
   const removeTempAdditionalImage = (index: number) => {
     setTempAdditionalImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const removeAllTempAdditionalImages = () => {
-    setTempAdditionalImages([]);
-    // Reset file input
-    const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
-    if (input) input.value = '';
-  };
-
-  // Long press handler for individual images
-  const handleImageLongPress = (e: React.TouchEvent | React.MouseEvent) => {
+  const handleImageLongPress = (e: React.TouchEvent<HTMLImageElement> | React.MouseEvent<HTMLImageElement>) => {
     e.preventDefault();
-    e.stopPropagation();
     if (tempAdditionalImages.length > 0) {
       setShowDeleteAllConfirm(true);
     }
   };
 
   const handleConfirmDeleteAll = () => {
-    removeAllTempAdditionalImages();
+    setTempAdditionalImages([]);
     setShowDeleteAllConfirm(false);
   };
 
@@ -114,91 +88,64 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
     setShowDeleteAllConfirm(false);
   };
 
-  const handleSave = () => {
-    onSave(tempMainImage, tempAdditionalImages);
-    onClose();
-  };
-
-  // Check if there are changes in the main popup
   const hasMainPopupChanges = () => {
-    const originalMain = currentImages.length > 0 ? currentImages[0] : '';
-    const originalAdditional = currentImages.length > 1 ? currentImages.slice(1) : [];
-    
-    const mainChanged = tempMainImage !== originalMain;
-    const additionalChanged = 
-      tempAdditionalImages.length !== originalAdditional.length ||
-      tempAdditionalImages.some((img, idx) => img !== originalAdditional[idx]);
-    
-    return mainChanged || additionalChanged;
-  };
-
-  // Check if there are changes in the main image popup
-  const hasMainImageChanges = () => {
     return tempMainImage !== originalMainImage;
   };
 
-  // Check if there are changes in the other images popup
   const hasOtherImagesChanges = () => {
-    if (tempAdditionalImages.length !== originalAdditionalImages.length) {
-      return true;
-    }
+    if (tempAdditionalImages.length !== originalAdditionalImages.length) return true;
     return tempAdditionalImages.some((img, idx) => img !== originalAdditionalImages[idx]);
+  };
+
+  const handleMainImagePopupOk = () => {
+    setOriginalMainImage(tempMainImage);
+    setShowMainImagePopup(false);
+    // Reset file input
+    const input = document.getElementById('main-image-upload-popup') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
+  const handleOtherImagesPopupOk = () => {
+    setOriginalAdditionalImages([...tempAdditionalImages]);
+    setShowOtherImagesPopup(false);
+    // Reset file input
+    const input = document.getElementById('additional-images-upload-popup') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
+  const handleSave = () => {
+    onSave(tempMainImage, tempAdditionalImages);
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Initial Choice Popup */}
+      {/* Main Modal */}
       <div 
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-        style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            onClose();
-          }
-          e.stopPropagation();
-        }}
+        className="fixed inset-0 flex items-center justify-center z-50 p-4"
+        style={{ minHeight: '100vh', height: '100%', touchAction: 'none' }}
       >
         <div 
-          className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-md"
-          style={{ backgroundColor: '#0071c2' }}
-          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-md xl:max-w-[22rem]"
+          style={{ touchAction: 'pan-y' }}
         >
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Edit Property Images</h2>
-          </div>
-
-          {/* Choice Buttons */}
           <div className="space-y-4 mb-6">
-            {/* Main Image Button */}
             <button
               type="button"
-              onClick={() => {
-                setOriginalMainImage(tempMainImage);
-                if (!isMounted) {
-                  setShowMainImagePopup(true);
-                  return;
-                }
-                setTimeout(() => setShowMainImagePopup(true), 50);
-              }}
-              className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-              style={{ backgroundColor: 'white' }}
+              onClick={() => setShowMainImagePopup(true)}
+              className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+              style={{ backgroundColor: '#6b7280' }}
             >
               <Image size={20} />
-              <span className="text-base whitespace-nowrap">Main image ({tempMainImage ? '1' : '0'})</span>
+              <span className="text-base whitespace-nowrap">Change main image ({tempMainImage ? '1' : '0'})</span>
             </button>
-
-            {/* Other Images Button */}
             <button
               type="button"
-              onClick={() => {
-                setOriginalAdditionalImages([...tempAdditionalImages]);
-                setShowOtherImagesPopup(true);
-              }}
-              className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-              style={{ backgroundColor: 'white' }}
+              onClick={() => setShowOtherImagesPopup(true)}
+              className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+              style={{ backgroundColor: '#6b7280' }}
             >
               <Image size={20} />
               <span className="text-base whitespace-nowrap">Other images ({tempAdditionalImages.length})</span>
@@ -230,18 +177,19 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       {/* Main Image Popup - Matching list-property form */}
       {showMainImagePopup && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', pointerEvents: 'auto' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div 
-            className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden" 
-            style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+            className="rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden bg-white" 
+            style={{ maxWidth: '24rem', pointerEvents: 'auto' }}
             onClick={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-white">Edit Main Image</h3>
+              <h3 className="text-xl font-bold text-black">Main image</h3>
             </div>
             
             {/* Image Preview (if temp image exists) */}
@@ -250,7 +198,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                 <img 
                   src={tempMainImage} 
                   alt="Main image preview" 
-                  className="w-full h-32 object-cover rounded border"
+                  className="w-full h-48 sm:h-56 object-cover rounded border"
                 />
               </div>
             )}
@@ -266,23 +214,22 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               />
               <button
                 type="button"
-                className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-                style={{ backgroundColor: 'white' }}
+                className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+                style={{ backgroundColor: '#0071c2' }}
                 onClick={() => {
                   document.getElementById('main-image-upload-popup')?.click();
                 }}
               >
                 <Image size={20} />
-                <span className="text-base whitespace-nowrap">Change main image ({tempMainImage ? '1' : '0'})</span>
+                <span className="text-base whitespace-nowrap">{tempMainImage ? 'Change main image' : 'Add main image'} ({tempMainImage ? '1' : '0'})</span>
               </button>
               <div className="flex gap-2">
                 <button
                   type="button"
                   className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
                   onClick={handleMainImagePopupOk}
-                  disabled={!hasMainImageChanges()}
                 >
-                  Save
+                  OK
                 </button>
                 <button
                   type="button"
@@ -308,43 +255,44 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       {/* Other Images Popup - Matching list-property form */}
       {showOtherImagesPopup && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div 
-            className="rounded-xl w-full mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" 
-            style={{ backgroundColor: '#0071c2', maxWidth: '24rem' }}
+            className={`rounded-xl px-4 pt-2 pb-4 w-full mx-4 shadow-2xl overflow-hidden ${tempAdditionalImages.length > 0 ? 'flex flex-col max-h-[85vh] xl:max-h-[95vh]' : ''} bg-white`}
+            style={{ maxWidth: '24rem', pointerEvents: 'auto', paddingBottom: tempAdditionalImages.length > 0 ? 'env(safe-area-inset-bottom)' : undefined }}
             onClick={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
           >
+            {tempAdditionalImages.length > 0 ? (
+              <>
             {/* Header - Fixed */}
-            <div className="p-4 pb-2 flex-shrink-0 relative">
-              <div className="flex items-center justify-center">
-                <h3 className="text-xl font-bold text-white">Edit Other Images</h3>
-              </div>
-              {tempAdditionalImages.length > 0 && (
+                <div className="px-4 pt-3 flex-shrink-0 relative pb-3 -mx-4 -mt-2">
+                  <div className="flex items-center justify-start relative">
+                    <h3 className="text-xl font-bold text-black leading-tight">Other images</h3>
                 <button
                   type="button"
                   onClick={() => setShowRemoveAllInfo(true)}
-                  className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center"
+                      className="absolute right-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
                   title="How to remove all images"
+                      style={{ top: '50%', transform: 'translateY(-50%)' }}
                 >
-                  <Info size={22} className="text-white" />
+                      <Info size={22} className="text-gray-700" />
                 </button>
-              )}
+                  </div>
             </div>
             
             {/* Images Preview - Scrollable */}
-            <div className="flex-1 overflow-y-auto px-4">
-              {tempAdditionalImages.length > 0 && (
-                <div className="mb-4">
+                <div className="flex-1 overflow-y-auto px-4 pb-2 -mx-4 min-h-0">
+                  <div className="mb-0">
                   <div className="flex flex-col gap-2">
-                    {tempAdditionalImages.map((image, index) => (
+                      {tempAdditionalImages.map((image, index) => (
                       <div key={index} className="flex gap-2">
                         <img 
                           src={image} 
                           alt={`Additional ${index + 1}`} 
-                          className="w-3/4 h-32 object-cover rounded border"
+                          className="w-3/4 xl:w-4/5 h-44 sm:h-48 object-cover rounded border"
                           onTouchStart={(e) => {
                             const timer = setTimeout(() => {
                               handleImageLongPress(e);
@@ -381,22 +329,28 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                             }
                           }}
                           onMouseEnter={(e) => {
-                            const button = e.currentTarget as HTMLButtonElement;
-                            button.style.backgroundColor = '#dc2626';
-                            const span = button.querySelector('span') as HTMLElement;
-                            if (span) {
-                              span.style.color = '#000000';
+                            // Only apply hover effect on desktop
+                            if (window.innerWidth >= 1280) {
+                              const button = e.currentTarget as HTMLButtonElement;
+                              button.style.backgroundColor = '#dc2626';
+                              const span = button.querySelector('span') as HTMLElement;
+                              if (span) {
+                                span.style.color = '#000000';
+                              }
                             }
                           }}
                           onMouseLeave={(e) => {
-                            const button = e.currentTarget as HTMLButtonElement;
-                            button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                            const span = button.querySelector('span') as HTMLElement;
-                            if (span) {
-                              span.style.color = '#ffffff';
+                            // Only apply hover effect on desktop
+                            if (window.innerWidth >= 1280) {
+                              const button = e.currentTarget as HTMLButtonElement;
+                              button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                              const span = button.querySelector('span') as HTMLElement;
+                              if (span) {
+                                span.style.color = '#ffffff';
+                              }
                             }
                           }}
-                          className="flex-1 px-4 py-2 text-white rounded-lg font-medium self-center text-2xl select-none outline-none focus:outline-none"
+                          className="flex-1 xl:flex-none xl:w-[60px] px-4 py-2 xl:px-2 xl:py-1.5 text-white rounded-lg font-medium self-center text-2xl xl:text-xl select-none outline-none focus:outline-none"
                           style={{ 
                             backgroundColor: 'rgba(0, 0, 0, 0.5)',
                             userSelect: 'none',
@@ -408,6 +362,17 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                             outline: 'none',
                             touchAction: 'manipulation',
                             transition: 'none'
+                          }}
+                          onTouchEnd={(e) => {
+                            // Ensure button resets to default state on mobile after touch
+                            if (window.innerWidth < 1280) {
+                              const button = e.currentTarget as HTMLButtonElement;
+                              button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                              const span = button.querySelector('span') as HTMLElement;
+                              if (span) {
+                                span.style.color = '#ffffff';
+                              }
+                            }
                           }}
                         >
                           <span 
@@ -426,11 +391,19 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                     ))}
                   </div>
                 </div>
-              )}
             </div>
+              </>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-black">Other images</h3>
+                </div>
+              </>
+            )}
             
-            {/* Buttons - Fixed */}
-            <div className="flex flex-col gap-2 p-4 pt-2 flex-shrink-0">
+            {/* Buttons */}
+            <div className={`flex flex-col gap-2 ${tempAdditionalImages.length > 0 ? 'p-4 pt-2 pb-3 flex-shrink-0 -mx-4' : ''}`}>
               <input
                 type="file"
                 multiple
@@ -441,8 +414,8 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               />
               <button
                 type="button"
-                className="w-full text-black px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12 border-2 border-black"
-                style={{ backgroundColor: 'white' }}
+                className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
+                style={{ backgroundColor: '#0071c2' }}
                 onClick={() => {
                   document.getElementById('additional-images-upload-popup')?.click();
                 }}
@@ -457,7 +430,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
                   onClick={handleOtherImagesPopupOk}
                   disabled={!hasOtherImagesChanges()}
                 >
-                  Save
+                  OK
                 </button>
                 <button
                   type="button"
@@ -483,7 +456,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       {/* Delete All Confirmation Popup */}
       {showDeleteAllConfirm && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
           style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -493,54 +466,26 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
           }}
         >
           <div 
-            className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+            className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-[20rem] xl:max-w-[20rem]"
             style={{ backgroundColor: '#0071c2' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center mb-4">
-                <div 
-                  className="w-16 rounded-lg flex items-center justify-center border-white"
-                  style={{ 
-                    height: '3.5rem',
-                    borderWidth: '3px',
-                    borderStyle: 'solid',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <span 
-                    className="text-white text-4xl font-bold"
-                    style={{ 
-                      transform: 'scaleX(1.3)', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: '1',
-                      width: '100%',
-                      height: '100%'
-                    }}
-                  >
-                    −
-                  </span>
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Remove All Images</h3>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold text-white mb-1.5">Remove All Images</h3>
               <p className="text-white/80 text-sm">Are you sure you want to remove all images?</p>
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleConfirmDeleteAll}
-                className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
               >
                 Yes
               </button>
               <button
                 type="button"
                 onClick={handleCancelDeleteAll}
-                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-gray-800 rounded-lg font-medium transition-colors"
               >
                 No
               </button>
@@ -552,7 +497,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
       {/* Remove All Info Popup */}
       {showRemoveAllInfo && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
           style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -562,7 +507,7 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
           }}
         >
           <div 
-            className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
+            className="rounded-xl p-4 w-full mx-4 shadow-2xl overflow-hidden max-w-[20rem] xl:max-w-[20rem]"
             style={{ backgroundColor: '#0071c2' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -572,13 +517,15 @@ export default function ImageEditModal({ isOpen, onClose, onSave, currentImages 
               <p className="text-white/80 text-base xl:hidden"><span className="font-bold">Remove all images at once</span><br />by long pressing any image.</p>
               <p className="text-white/80 text-base hidden xl:block"><span className="font-bold">Remove all images at once</span><br />right-click any image.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowRemoveAllInfo(false)}
-              className="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-            >
-              Ok, I got it
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowRemoveAllInfo(false)}
+                className="w-2/3 px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Ok, I got it
+              </button>
+            </div>
           </div>
         </div>
       )}
