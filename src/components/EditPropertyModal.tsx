@@ -221,13 +221,20 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
     // Check form fields
     const fieldsToCheck: (keyof PropertyFormData)[] = [
       'title', 'description', 'price', 'bedrooms', 'bathrooms', 'squareFootage', 
-      'contactName', 'contactPhone', 'contactEmail', 'status', 'propertyType', 'paymentPlan', 'uploaderType'
+      'contactName', 'contactPhone', 'contactEmail', 'status', 'propertyType', 'paymentPlan'
     ];
     
     for (const field of fieldsToCheck) {
       if (formData[field] !== originalProperty[field]) {
         return true;
       }
+    }
+
+    // Check uploaderType separately (normalize empty string to undefined for comparison)
+    const formUploaderType = (formData.uploaderType === 'Broker' || formData.uploaderType === 'Owner') ? formData.uploaderType : undefined;
+    const originalUploaderType = (originalProperty.uploaderType === 'Broker' || originalProperty.uploaderType === 'Owner') ? originalProperty.uploaderType : undefined;
+    if (formUploaderType !== originalUploaderType) {
+      return true;
     }
 
     // Check region and ward
@@ -262,11 +269,13 @@ export default function EditPropertyModal({ isOpen, onClose, property, onSave, o
       images: [tempMainImage, ...tempAdditionalImages].filter(img => img),
       region: selectedRegion,
       ward: selectedWard || customWard,
+      // Normalize uploaderType: empty string becomes undefined
+      uploaderType: (formData.uploaderType === 'Broker' || formData.uploaderType === 'Owner') ? formData.uploaderType : undefined,
     };
 
     onSave(updatedProperty);
     setIsSubmitting(false);
-    onClose();
+    // Don't close here - let the parent component handle closing after save
   };
 
   if (!isOpen || !property || !formData) return null;

@@ -190,6 +190,9 @@ export default function MyPropertiesPage() {
         setIsEditModalOpen(false);
         setEditingProperty(null);
         setActivePropertyId(editingProperty.id);
+        // Dispatch event to notify other components and show success message
+        window.dispatchEvent(new CustomEvent('propertyUpdated'));
+        window.dispatchEvent(new CustomEvent('propertyEditSuccess'));
       }
     }
   };
