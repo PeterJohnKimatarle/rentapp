@@ -3,7 +3,7 @@
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, Users, Settings, UserCheck, Check, Trash2, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical } from 'lucide-react';
+import { ShieldCheck, Users, Settings, UserCheck, Check, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllProperties } from '@/utils/propertyUtils';
@@ -47,36 +47,55 @@ function DeleteConfirmPopup({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4"
-      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        const modal = target.closest('.bg-white.rounded-xl');
+        // Close if clicking outside the modal
+        if (!modal) {
+          onCancel();
+        }
+      }}
+      onTouchEnd={(e) => {
+        const target = e.target as HTMLElement;
+        const modal = target.closest('.bg-white.rounded-xl');
+        // Close if touching outside the modal
+        if (!modal) {
+          onCancel();
+        }
+      }}
     >
       <div 
-        className="rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-sm"
-        style={{ backgroundColor: '#0071c2' }}
+        className="bg-white rounded-xl max-w-sm w-full max-h-[45vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-4">
-            <Trash2 size={48} className="text-white" />
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">Delete {userType === 'staff' ? 'Staff' : 'User'}</h3>
-          <p className="text-white/80 text-sm">Are you sure you want to delete {userName}? This action cannot be undone.</p>
+        {/* Header */}
+        <div className="flex items-center justify-center pt-3 pb-0 px-4 bg-white sticky top-0 z-10">
+          <h3 className="text-2xl font-semibold text-black">Delete {userType === 'staff' ? 'Staff' : 'User'}</h3>
         </div>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-          >
-            No
-          </button>
+
+        {/* Content */}
+        <div className="p-4 pt-2 overflow-y-auto flex-1">
+          <div className="text-center mb-4">
+            <p className="text-gray-700 text-base">Are you sure you want to delete {userName}?</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 px-4 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+            >
+              No
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -335,11 +354,11 @@ export default function AdminPage() {
                           setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
                         }}
                         onMouseDown={(e) => e.stopPropagation()}
-                        className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
+                        className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg hover:bg-red-200 transition-colors"
                         title="Delete staff"
                       >
                         {/* Three dot menu in top left */}
-                        <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
+                        <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg flex items-center justify-center transition-colors hover:bg-red-200">
                           <MoreVertical size={20} />
                         </div>
                       </button>
@@ -497,11 +516,11 @@ export default function AdminPage() {
                         setDeleteConfirm({ id: userItem.id, name: userItem.firstName || userItem.name || 'this user', type: 'user' });
                       }}
                       onMouseDown={(e) => e.stopPropagation()}
-                      className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg rounded-br-lg hover:bg-red-200 transition-colors"
+                      className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg hover:bg-red-200 transition-colors"
                       title="Delete user"
                     >
                       {/* Three dot menu in top left */}
-                      <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg rounded-br-lg flex items-center justify-center transition-colors hover:bg-red-200">
+                      <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg flex items-center justify-center transition-colors hover:bg-red-200">
                         <MoreVertical size={20} />
                       </div>
                     </button>
