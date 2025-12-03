@@ -221,6 +221,8 @@ export default function MyPropertiesPage() {
     if (stagedImageChanges && editingImageProperty) {
       handleSaveImages(stagedImageChanges.mainImage, stagedImageChanges.additionalImages);
       setStagedImageChanges(null);
+      // Clear editingImageProperty after successfully applying changes
+      setEditingImageProperty(null);
     }
   };
 
@@ -256,15 +258,19 @@ export default function MyPropertiesPage() {
     }
   };
 
-  const handleCloseImageEditModal = () => {
+  const handleCloseImageEditModal = (wasStaging: boolean = false) => {
     setIsImageEditModalOpen(false);
-    setEditingImageProperty(null);
-    // Clear staged image changes when modal closes without saving
-    setStagedImageChanges(null);
+    // If staging changes, keep editingImageProperty for applying changes later
+    // If canceling without staging, clear everything
+    if (!wasStaging) {
+      setEditingImageProperty(null);
+      setStagedImageChanges(null);
+    }
   };
 
   const handleStageImageChanges = (mainImage: string, additionalImages: string[]) => {
     // Store staged image changes - don't save yet
+    // Keep editingImageProperty set so we can apply changes later
     setStagedImageChanges({ mainImage, additionalImages });
   };
 
@@ -400,7 +406,7 @@ export default function MyPropertiesPage() {
       {isImageEditModalOpen && editingImageProperty && (
         <ImageEditModal
           isOpen={isImageEditModalOpen}
-          onClose={handleCloseImageEditModal}
+          onClose={(wasStaging) => handleCloseImageEditModal(wasStaging)}
           currentImages={editingImageProperty.images || []}
           onStageChanges={handleStageImageChanges}
         />
@@ -408,20 +414,38 @@ export default function MyPropertiesPage() {
 
       {/* Update Success Message */}
       {showUpdateSuccess && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
-          <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
-            <h3 className="text-xl font-bold">Property Updated Successfully.</h3>
+        <div 
+          className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-8"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-green-500, .bg-blue-500');
+            if (!modal) {
+              setShowUpdateSuccess(false);
+            }
+          }}
+        >
+          <div className="bg-green-500 text-white p-6 rounded-xl text-center max-w-sm w-full mx-4 shadow-lg">
+            <h2 className="text-2xl font-bold">Property Updated Successfully</h2>
           </div>
         </div>
       )}
 
       {/* Delete Success Message */}
       {showDeleteSuccess && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
-          <div className="bg-blue-500 p-6 rounded-lg text-center max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-1 text-red-400">Property deleted..!</h2>
-            <h3 className="text-xl font-bold text-white">The property has been deleted successfully.</h3>
+        <div 
+          className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-8"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            const modal = target.closest('.bg-green-500, .bg-blue-500, .bg-red-400');
+            if (!modal) {
+              setShowDeleteSuccess(false);
+            }
+          }}
+        >
+          <div className="bg-red-400 p-5 rounded-xl text-center max-w-xs w-full mx-4 shadow-lg">
+            <h2 className="text-2xl font-bold text-white">Property deleted</h2>
           </div>
         </div>
       )}

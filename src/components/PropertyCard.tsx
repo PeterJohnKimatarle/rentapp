@@ -608,11 +608,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   setPendingImages(false);
                   setPendingDetails(false);
                 }}
-                className="mt-1 w-2/3 bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1.5 rounded transition-colors flex items-center justify-start gap-2 whitespace-nowrap"
+                className="mt-1 w-auto bg-blue-500 hover:bg-blue-600 text-white text-base px-3 py-2 rounded transition-colors flex items-center gap-2"
                 title="Edit this property"
               >
-                Edit this property
-                <Pencil size={15} />
+                <span>Edit this property</span>
+                <Pencil size={15} className="flex-shrink-0 text-white" />
               </button>
             )}
             {/* Removed inline share button on landing; moved to details popup */}
@@ -940,8 +940,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               {onStatusChange && (
                 <div className="flex items-center justify-center">
                   <div className="relative w-full">
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-gray-800 text-sm font-medium">
-                      <span className="text-sm text-gray-600">[{(pendingStatus || property.status).replace(/^./, (c) => c.toUpperCase())}]</span>
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-gray-800 text-base font-medium">
+                      <span className="text-base text-gray-600">[{(pendingStatus || property.status).replace(/^./, (c) => c.toUpperCase())}]</span>
                       <span>Change status</span>
                       <Radio size={15} />
                     </div>
@@ -968,10 +968,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     setPendingImages(true);
                     onEditImageClick();
                   }}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white text-base px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                   style={{ border: '1px solid #eab308' }}
                 >
-                  Change images ({stagedImageCount !== undefined ? stagedImageCount : property.images.length})
+                  Change images
+                  <Image size={15} />
                 </button>
               )}
               {onEditClick && (
@@ -980,7 +981,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     setPendingDetails(true);
                     onEditClick();
                   }}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white text-base px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                   style={{ border: '1px solid #eab308' }}
                 >
                   Edit details
@@ -1003,7 +1004,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     showSuccessMessage();
                   }}
                   disabled={isSubmitDisabled}
-                  className={`w-1/2 text-sm px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-white ${
+                  className={`w-1/2 text-base px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-white ${
                     isSubmitDisabled
                       ? 'bg-green-500 cursor-not-allowed'
                       : 'bg-green-500 hover:bg-green-600'
@@ -1018,7 +1019,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     setPendingImages(false);
                     setPendingDetails(false);
                   }}
-                  className="w-1/2 text-white text-sm px-4 py-3 rounded-lg flex items-center justify-center"
+                  className="w-1/2 text-white text-base px-4 py-3 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: '#ef4444' }}
                 >
                   Cancel

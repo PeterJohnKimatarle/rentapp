@@ -311,7 +311,7 @@ export default function ListPropertyPage() {
       
       // Go back to the previous page
       router.back();
-    }, 4000);
+    }, 3000);
     }, 2000); // 2 second delay to show submit animation
   };
 
@@ -661,11 +661,21 @@ export default function ListPropertyPage() {
 
          {/* Success Message */}
          {showSuccess && (
-           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-start justify-center z-50 pt-8" style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}>
-            <div className="bg-green-500 text-white p-6 rounded-lg text-center">
-              <h2 className="text-2xl font-bold mb-1">Congratulations..!</h2>
-              <h3 className="text-xl font-bold">Property Listed Successfully.</h3>
-            </div>
+           <div 
+             className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-8"
+             style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+             onClick={(e) => {
+               const target = e.target as HTMLElement;
+               const modal = target.closest('.bg-green-500, .bg-blue-500');
+               if (!modal) {
+                 setShowSuccess(false);
+               }
+             }}
+           >
+             <div className="bg-green-500 text-white p-6 rounded-xl text-center max-w-sm w-full mx-4 shadow-lg">
+               <h2 className="text-2xl font-bold mb-1">Congratulations</h2>
+               <h3 className="text-xl font-bold">Property Listed Successfully</h3>
+             </div>
            </div>
          )}
 

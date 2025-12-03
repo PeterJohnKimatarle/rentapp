@@ -6,7 +6,7 @@ import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface ImageEditModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (wasStaging?: boolean) => void;
   currentImages: string[];
   onStageChanges?: (mainImage: string, additionalImages: string[]) => void;
 }
@@ -148,7 +148,7 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
     if (onStageChanges) {
       onStageChanges(finalMainImage, finalAdditionalImages);
     }
-    onClose();
+    onClose(true); // Pass true to indicate we're staging changes
   };
 
   if (!isOpen) return null;
@@ -199,7 +199,7 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
               type="button"
               className="flex-1 px-4 py-2 text-white rounded-lg font-medium"
               style={{ backgroundColor: '#ef4444' }}
-              onClick={onClose}
+              onClick={() => onClose(false)}
             >
               Cancel
             </button>
