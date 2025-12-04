@@ -1118,7 +1118,7 @@ export default function ListPropertyPage() {
               >
                 <div className="text-center mb-3">
                   <h2 className="text-2xl font-bold text-white mb-1">Remove All Images</h2>
-                  <p className="text-white/80 text-base">Are you sure you want to remove all images?</p>
+                  <p className="text-white/80 text-base">Are you sure you want to remove all images at once ?</p>
                 </div>
                 <div className="flex gap-3">
                   <button

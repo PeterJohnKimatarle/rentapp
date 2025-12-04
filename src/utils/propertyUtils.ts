@@ -212,6 +212,10 @@ export const removeBookmark = (propertyId: string, userId?: string): boolean => 
     const bookmarkedIds = getBookmarkedIds(userId);
     const updatedIds = bookmarkedIds.filter(id => id !== propertyId);
     localStorage.setItem(key, JSON.stringify(updatedIds));
+    
+    // Save to recently removed bookmarks
+    addToRecentlyRemoved(propertyId, userId);
+    
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('bookmarksChanged'));
     return true;
@@ -226,6 +230,126 @@ export const getBookmarkedProperties = (userId?: string): DisplayProperty[] => {
   const bookmarkedIds = getBookmarkedIds(userId);
   const allProperties = getAllProperties();
   return allProperties.filter(property => bookmarkedIds.includes(property.id));
+};
+
+// Recently removed bookmarks utilities
+const RECENTLY_REMOVED_STORAGE_KEY = 'rentapp_recently_removed_bookmarks';
+
+interface RecentlyRemovedBookmark {
+  propertyId: string;
+  removedAt: string;
+}
+
+const getRecentlyRemovedStorageKey = (userId?: string) =>
+  `${RECENTLY_REMOVED_STORAGE_KEY}_${userId ?? 'guest'}`;
+
+// Add a property to recently removed bookmarks
+const addToRecentlyRemoved = (propertyId: string, userId?: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = getRecentlyRemovedStorageKey(userId);
+    const recentlyRemoved: RecentlyRemovedBookmark[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    
+    // Remove if already exists (to update timestamp)
+    const filtered = recentlyRemoved.filter(item => item.propertyId !== propertyId);
+    
+    // Add with current timestamp
+    filtered.push({
+      propertyId,
+      removedAt: new Date().toISOString()
+    });
+    
+    localStorage.setItem(key, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error adding to recently removed:', error);
+  }
+};
+
+// Get all recently removed bookmark IDs
+export const getRecentlyRemovedIds = (userId?: string): string[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const key = getRecentlyRemovedStorageKey(userId);
+    const recentlyRemoved: RecentlyRemovedBookmark[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    return recentlyRemoved.map(item => item.propertyId);
+  } catch (error) {
+    console.error('Error reading recently removed bookmarks:', error);
+    return [];
+  }
+};
+
+// Get all recently removed bookmarks with their removal timestamps
+export const getRecentlyRemovedBookmarks = (userId?: string): RecentlyRemovedBookmark[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const key = getRecentlyRemovedStorageKey(userId);
+    const recentlyRemoved: RecentlyRemovedBookmark[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    // Sort by removal date (most recent first)
+    return recentlyRemoved.sort((a, b) => 
+      new Date(b.removedAt).getTime() - new Date(a.removedAt).getTime()
+    );
+  } catch (error) {
+    console.error('Error reading recently removed bookmarks:', error);
+    return [];
+  }
+};
+
+// Get recently removed properties (full property objects)
+export const getRecentlyRemovedProperties = (userId?: string): DisplayProperty[] => {
+  const recentlyRemovedIds = getRecentlyRemovedIds(userId);
+  const allProperties = getAllProperties();
+  return allProperties.filter(property => recentlyRemovedIds.includes(property.id));
+};
+
+// Restore a bookmark from recently removed
+export const restoreBookmark = (propertyId: string, userId?: string): boolean => {
+  try {
+    // Add back to bookmarks
+    const added = addBookmark(propertyId, userId);
+    
+    if (added) {
+      // Remove from recently removed
+      const key = getRecentlyRemovedStorageKey(userId);
+      const recentlyRemoved: RecentlyRemovedBookmark[] = JSON.parse(
+        localStorage.getItem(key) || '[]'
+      );
+      const filtered = recentlyRemoved.filter(item => item.propertyId !== propertyId);
+      localStorage.setItem(key, JSON.stringify(filtered));
+      
+      // Dispatch custom event
+      window.dispatchEvent(new CustomEvent('bookmarksChanged'));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error restoring bookmark:', error);
+    return false;
+  }
+};
+
+// Permanently delete a bookmark from recently removed (without restoring)
+export const permanentlyDeleteRemovedBookmark = (propertyId: string, userId?: string): boolean => {
+  try {
+    const key = getRecentlyRemovedStorageKey(userId);
+    const recentlyRemoved: RecentlyRemovedBookmark[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    const filtered = recentlyRemoved.filter(item => item.propertyId !== propertyId);
+    localStorage.setItem(key, JSON.stringify(filtered));
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('bookmarksChanged'));
+    return true;
+  } catch (error) {
+    console.error('Error permanently deleting removed bookmark:', error);
+    return false;
+  }
 };
 
 // Get only user-created properties (from localStorage, not static)

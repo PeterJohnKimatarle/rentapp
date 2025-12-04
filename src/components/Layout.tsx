@@ -142,7 +142,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
 
   const handleBackClick = () => {
     // Use browser history for the listing page, services page, and new pages
-    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff' || pathname === '/admin') {
+    if (pathname === '/list-property' || pathname === '/services' || pathname === '/contact' || pathname === '/about' || pathname === '/profile' || pathname === '/register' || pathname === '/staff' || pathname === '/admin' || pathname === '/recently-removed-bookmarks') {
       // Check if there's history to go back to
       if (window.history.length > 1) {
         router.back();
@@ -162,6 +162,8 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         return 'My Properties';
       case '/bookmarks':
         return 'Bookmarks';
+      case '/recently-removed-bookmarks':
+        return 'Removed';
       case '/list-property':
         return 'Listing...';
       case '/services':

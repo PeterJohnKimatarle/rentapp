@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { getBookmarkedProperties, removeBookmark, DisplayProperty } from '@/utils/propertyUtils';
-import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useAuth } from '@/contexts/AuthContext';
 
 type SearchFilters = {
@@ -18,8 +17,6 @@ export default function BookmarksPage() {
   const { user, isLoading } = useAuth();
   const userId = user?.id;
   const [bookmarkedProperties, setBookmarkedProperties] = useState<DisplayProperty[]>([]);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<DisplayProperty | null>(null);
   const [activeFilters, setActiveFilters] = useState<SearchFilters | null>(null);
 
   // Update bookmarks when localStorage changes
@@ -97,26 +94,11 @@ export default function BookmarksPage() {
 
   const hasActiveFilters = activeFilters !== null;
 
-  // Block background scroll when modal is open
-  usePreventScroll(showRemoveModal);
-
   const handleBookmarkClick = (property: DisplayProperty) => {
-    setSelectedProperty(property);
-    setShowRemoveModal(true);
-  };
-
-  const handleRemoveBookmark = () => {
-    if (selectedProperty && userId) {
-      removeBookmark(selectedProperty.id, userId);
+    if (userId) {
+      removeBookmark(property.id, userId);
       setBookmarkedProperties(getBookmarkedProperties(userId));
-      setShowRemoveModal(false);
-      setSelectedProperty(null);
     }
-  };
-
-  const handleCancelRemove = () => {
-    setShowRemoveModal(false);
-    setSelectedProperty(null);
   };
 
   // Wait silently during loading - don't show anything
@@ -168,43 +150,6 @@ export default function BookmarksPage() {
           )}
         </div>
       </div>
-
-      {/* Remove Bookmark Confirmation Modal */}
-      {showRemoveModal && selectedProperty && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center z-50 p-4" 
-          style={{ overflow: 'hidden', touchAction: 'none', minHeight: '100vh', height: '100%' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div 
-            className="rounded-xl max-w-sm w-full p-6 shadow-lg overflow-hidden"
-            style={{ backgroundColor: '#0071c2' }}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <div className="text-center">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-white mb-2 px-4">Remove from Bookmarks</h3>
-                <p className="text-white/80 text-sm">Are you sure you want to remove this property from your bookmarks?</p>
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleRemoveBookmark}
-                  className="flex-1 bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={handleCancelRemove}
-                  className="flex-1 bg-gray-400 hover:bg-gray-500 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  No
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   );
 }

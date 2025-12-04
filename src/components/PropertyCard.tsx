@@ -23,9 +23,11 @@ interface PropertyCardProps {
   showBookmarkConfirmation?: boolean;
   onApplyStagedChanges?: () => void;
   stagedImageCount?: number;
+  renderAfterUpdated?: React.ReactNode;
+  isRemovedBookmark?: boolean;
 }
 
-export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false, showBookmarkConfirmation = true, onApplyStagedChanges, stagedImageCount }: PropertyCardProps) {
+export default function PropertyCard({ property, onBookmarkClick, showMinusIcon = false, hideBookmark = false, showEditImageIcon = false, onEditImageClick, onStatusChange, onEditClick, onManageStart, isActiveProperty = false, showBookmarkConfirmation = true, onApplyStagedChanges, stagedImageCount, renderAfterUpdated, isRemovedBookmark = false }: PropertyCardProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -596,6 +598,12 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <Clock size={14} className="mr-0.5 flex-shrink-0" />
               <span className="truncate">Updated: {getRelativeTime(property.updatedAt)}</span>
             </div>
+            {/* Custom content after Updated section in card preview */}
+            {renderAfterUpdated && (
+              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                {renderAfterUpdated}
+              </div>
+            )}
             {hideBookmark && (onStatusChange || onEditClick || onEditImageClick) && (
               <button
                 onClick={(e) => {
@@ -608,11 +616,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   setPendingImages(false);
                   setPendingDetails(false);
                 }}
-                className="mt-1 w-auto bg-blue-500 hover:bg-blue-600 text-white text-base px-3 py-2 rounded transition-colors flex items-center gap-2"
+                className="mt-1 w-auto bg-blue-500 hover:bg-blue-600 text-white text-base px-3 py-2 rounded-lg transition-colors flex items-center gap-2"
                 title="Edit this property"
               >
-                <span>Edit this property</span>
                 <Pencil size={15} className="flex-shrink-0 text-white" />
+                <span>Edit this property</span>
               </button>
             )}
             {/* Removed inline share button on landing; moved to details popup */}
@@ -984,8 +992,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   className="w-full bg-white/20 hover:bg-white/30 text-white text-base px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                   style={{ border: '1px solid #eab308' }}
                 >
-                  Edit details
                   <Pencil size={15} />
+                  Edit details
                 </button>
               )}
               <div className="flex gap-3 pt-2">

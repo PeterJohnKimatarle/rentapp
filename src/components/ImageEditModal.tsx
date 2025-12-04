@@ -162,12 +162,16 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
       >
         <div 
           className="bg-white rounded-xl p-6 w-full mx-4 shadow-2xl overflow-hidden max-w-md xl:max-w-[22rem]"
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'pan-y', transform: 'translateY(-10px)' }}
         >
           <div className="space-y-4 mb-6">
             <button
               type="button"
-              onClick={() => setShowMainImagePopup(true)}
+              onClick={() => {
+                // Set popup main image synchronously before opening to prevent flash
+                setPopupMainImage(stagedMainImage !== null ? stagedMainImage : tempMainImage);
+                setShowMainImagePopup(true);
+              }}
               className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
               style={{ backgroundColor: '#6b7280' }}
             >
@@ -176,7 +180,11 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
             </button>
             <button
               type="button"
-              onClick={() => setShowOtherImagesPopup(true)}
+              onClick={() => {
+                // Set popup images synchronously before opening to prevent flash
+                setPopupAdditionalImages(stagedAdditionalImages !== null ? stagedAdditionalImages : tempAdditionalImages);
+                setShowOtherImagesPopup(true);
+              }}
               className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
               style={{ backgroundColor: '#6b7280' }}
             >
@@ -289,7 +297,7 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
       {showOtherImagesPopup && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', pointerEvents: 'auto' }}
+          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', pointerEvents: 'auto' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div 
@@ -504,7 +512,7 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
           >
             <div className="text-center mb-4">
               <h3 className="text-lg font-bold text-white mb-1.5">Remove All Images</h3>
-              <p className="text-white/80 text-sm">Are you sure you want to remove all images?</p>
+              <p className="text-white/80 text-sm">Are you sure you want to remove all images at once ?</p>
             </div>
             <div className="flex gap-3">
               <button

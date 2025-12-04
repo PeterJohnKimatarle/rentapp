@@ -135,7 +135,7 @@ export default function Home() {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500 text-xl">No properties available for now.</p>
-              <p className="text-gray-400 text-base mt-1">Check back later or contact us for more details.</p>
+              <p className="text-gray-400 text-base mt-1">Check back later or adjust your filters.</p>
             </div>
           )}
         </div>

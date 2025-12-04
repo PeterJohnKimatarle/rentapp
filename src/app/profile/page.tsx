@@ -22,6 +22,19 @@ export default function ProfilePage() {
   // Block background scroll when popup is open
   usePreventScroll(isEditPopupOpen || isPasswordPopupOpen || showDeleteConfirm);
 
+  // Auto-close delete confirmation modal after 60 seconds
+  useEffect(() => {
+    if (showDeleteConfirm) {
+      const timer = window.setTimeout(() => {
+        setShowDeleteConfirm(false);
+      }, 60000);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [showDeleteConfirm]);
+
   const [userData, setUserData] = useState({
     name: '',
     firstName: '',
@@ -422,15 +435,15 @@ export default function ProfilePage() {
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
                   <label className="relative block w-24 h-24 rounded-full overflow-hidden cursor-pointer">
-                    {userData.profileImage ? (
-                      <img
-                        src={userData.profileImage}
-                        alt={userData.name}
+                  {userData.profileImage ? (
+                    <img
+                      src={userData.profileImage}
+                      alt={userData.name}
                         className="w-full h-full object-cover border-2 border-blue-500"
-                      />
-                    ) : (
+                    />
+                  ) : (
                       <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center border-2 border-blue-500">
-                        <User className="w-12 h-12 text-gray-400" />
+                      <User className="w-12 h-12 text-gray-400" />
                       </div>
                     )}
                     <input
@@ -524,8 +537,8 @@ export default function ProfilePage() {
               const modal = target.closest('.bg-white.rounded-xl');
               // Close if clicking outside the modal
               if (!modal) {
-                handleCancel();
-              }
+              handleCancel();
+            }
             }
           }}
         >
@@ -554,7 +567,7 @@ export default function ProfilePage() {
             >
             
             <div className="space-y-3">
-              {/* Basic Info Fields */}
+                {/* Basic Info Fields */}
               <div className="grid grid-cols-1 gap-2">
                 <div>
                   <input
@@ -668,11 +681,11 @@ export default function ProfilePage() {
               </div>
 
               {/* Error Message */}
-              {saveError && (
-                <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
-                  {saveError}
-                </div>
-              )}
+                {saveError && (
+                  <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                    {saveError}
+                  </div>
+                )}
 
               {/* Action Buttons */}
               <div className="flex flex-row gap-3 pt-3">
@@ -761,8 +774,8 @@ export default function ProfilePage() {
               const modal = target.closest('.bg-white.rounded-xl');
               // Close if clicking outside the modal
               if (!modal) {
-                handlePasswordCancel();
-              }
+              handlePasswordCancel();
+            }
             }
           }}
         >
