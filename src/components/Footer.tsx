@@ -29,7 +29,7 @@ export default function Footer() {
           {/* Tablet and Desktop: Combined layout */}
           <div className="hidden lg:block text-center">
             <div className="flex items-center justify-center gap-2">
-              <p className="text-sm text-gray-600">© {currentYear} Rentapp Limited - Tanzania&apos;s #1 Renting Platform</p>
+            <p className="text-sm text-gray-600">© {currentYear} Rentapp Limited - Tanzania&apos;s #1 Renting Platform</p>
               {/* Info Icon - Center (only on removed bookmarks page and bookmarks page) */}
               {(isRemovedBookmarksPage || isBookmarksPage) && (
                 <button
@@ -114,12 +114,12 @@ export default function Footer() {
               <>
                 {/* Mobile: Gesture Information */}
                 <div className="space-y-3 text-white xl:hidden">
-                  {/* Navigation Menu */}
-                  <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>←</span>
-                        <div className="flex-1">
+              {/* Navigation Menu */}
+              <div className="rounded-lg px-4 py-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl flex-shrink-0 leading-none" style={{ color: '#fbbf24' }}>←</span>
+                    <div className="flex-1">
                       <div className="text-base font-semibold text-white">Open menu</div>
                       <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Swipe to the left</div>
                     </div>

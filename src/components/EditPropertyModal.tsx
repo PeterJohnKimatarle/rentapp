@@ -112,9 +112,10 @@ interface EditPropertyModalProps {
   property: PropertyFormData | null;
   onDelete?: (propertyId: string) => void;
   onStageChanges?: (stagedProperty: PropertyFormData) => void;
+  onCancel?: () => void;
 }
 
-export default function EditPropertyModal({ isOpen, onClose, property, onDelete, onStageChanges }: EditPropertyModalProps) {
+export default function EditPropertyModal({ isOpen, onClose, property, onDelete, onStageChanges, onCancel }: EditPropertyModalProps) {
   const [formData, setFormData] = useState<PropertyFormData | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
@@ -309,6 +310,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
     if (onStageChanges) {
       onStageChanges(stagedProperty);
     }
+    // Close modal but don't clear editingProperty - it's needed for Update button
     onClose();
   };
 
@@ -573,7 +575,12 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
               <div className="flex-1">
                 <button 
                   type="button"
-                  onClick={onClose}
+                  onClick={() => {
+                    if (onCancel) {
+                      onCancel();
+                    }
+                    onClose();
+                  }}
                   className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12" 
                   style={{ backgroundColor: 'rgb(239, 68, 68)' }}
                 >

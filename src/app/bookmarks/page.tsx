@@ -139,12 +139,12 @@ export default function BookmarksPage() {
               <p className="text-gray-500 text-xl">
                 {bookmarkedProperties.length === 0 && !hasActiveFilters
                   ? 'No bookmarked properties yet.'
-                  : 'No properties available for now.'}
+                  : 'No bookmarks match your filters.'}
               </p>
               <p className="text-gray-400 text-base mt-1">
                 {bookmarkedProperties.length === 0 && !hasActiveFilters
                   ? 'Bookmark properties to see them here.'
-                  : 'Check back later or adjust your filters.'}
+                  : 'Try adjusting your search filters.'}
               </p>
             </div>
           )}

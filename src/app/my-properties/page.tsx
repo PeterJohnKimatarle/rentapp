@@ -190,7 +190,9 @@ export default function MyPropertiesPage() {
           setProperties(getUserCreatedProperties(userId));
         }
         setIsEditModalOpen(false);
+        // Clear editingProperty and stagedPropertyChanges after successful save
         setEditingProperty(null);
+        setStagedPropertyChanges(null);
         setActivePropertyId(editingProperty.id);
         // Dispatch event to notify other components and show success message
         window.dispatchEvent(new CustomEvent('propertyUpdated'));
@@ -201,8 +203,16 @@ export default function MyPropertiesPage() {
 
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
+    // Don't clear editingProperty and stagedPropertyChanges here
+    // They should only be cleared when:
+    // 1. Changes are actually applied (in handleSaveProperty)
+    // 2. User explicitly cancels (in handleCancelEdit)
+    // This allows the Update button to work after staging changes
+  };
+
+  const handleCancelEdit = () => {
+    // Clear everything when user explicitly cancels
     setEditingProperty(null);
-    // Clear staged changes when modal closes without saving
     setStagedPropertyChanges(null);
   };
 
@@ -215,7 +225,7 @@ export default function MyPropertiesPage() {
     // Apply staged property changes when Update button is clicked
     if (stagedPropertyChanges && editingProperty) {
       handleSaveProperty(stagedPropertyChanges);
-      setStagedPropertyChanges(null);
+      // handleSaveProperty will clear stagedPropertyChanges and editingProperty
     }
     // Apply staged image changes when Update button is clicked
     if (stagedImageChanges && editingImageProperty) {
@@ -372,8 +382,8 @@ export default function MyPropertiesPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-gray-500 text-xl">No properties available for now.</p>
-                  <p className="text-gray-400 text-base mt-1">Check back later or adjust your filters.</p>
+                  <p className="text-gray-500 text-xl">No properties match your filters.</p>
+                  <p className="text-gray-400 text-base mt-1">Try adjusting your search filters or add a new property.</p>
                 </>
               )}
             </div>
@@ -399,6 +409,7 @@ export default function MyPropertiesPage() {
           property={editingProperty}
           onDelete={handleDeleteProperty}
           onStageChanges={handleStageChanges}
+          onCancel={handleCancelEdit}
         />
       )}
 
@@ -426,7 +437,8 @@ export default function MyPropertiesPage() {
           }}
         >
           <div className="bg-green-500 text-white p-6 rounded-xl text-center max-w-sm w-full mx-4 shadow-lg">
-            <h2 className="text-2xl font-bold">Property Updated Successfully</h2>
+            <h2 className="text-2xl font-bold mb-1">Congratulations</h2>
+            <h3 className="text-xl font-bold">Property Updated Successfully</h3>
           </div>
         </div>
       )}

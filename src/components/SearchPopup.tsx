@@ -117,8 +117,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       ward: selectedWard || undefined
     };
 
-    // Check if current page is homepage, bookmarks, or my-properties
-    const allowedPages = ['/', '/bookmarks', '/my-properties'];
+    // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
+    const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
     const isAllowedPage = allowedPages.includes(pathname);
 
     if (!isAllowedPage) {
@@ -143,8 +143,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setSelectedRegion('');
     setSelectedWard('');
     
-    // Check if current page is homepage, bookmarks, or my-properties
-    const allowedPages = ['/', '/bookmarks', '/my-properties'];
+    // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
+    const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
     const isAllowedPage = allowedPages.includes(pathname);
 
     if (!isAllowedPage) {
@@ -164,6 +164,19 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
   const shouldPositionBelow = isDesktop && searchBarPosition;
+
+  // Get search heading based on current page
+  const getSearchHeading = () => {
+    if (pathname === '/bookmarks') {
+      return 'Search My Bookmarks';
+    } else if (pathname === '/my-properties') {
+      return 'Search My Properties';
+    } else if (pathname === '/recently-removed-bookmarks') {
+      return 'Search Removed Bookmarks';
+    } else {
+      return 'Search Properties';
+    }
+  };
 
   return (
     <div 
@@ -208,7 +221,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
         {/* Header */}
         <div className="flex items-center justify-center mb-6 w-full relative">
           <h1 className="text-2xl sm:text-[1.7rem] font-bold text-white">
-            Search Properties
+            {getSearchHeading()}
           </h1>
         </div>
 

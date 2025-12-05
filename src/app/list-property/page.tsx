@@ -675,7 +675,7 @@ export default function ListPropertyPage() {
              <div className="bg-green-500 text-white p-6 rounded-xl text-center max-w-sm w-full mx-4 shadow-lg">
                <h2 className="text-2xl font-bold mb-1">Congratulations</h2>
                <h3 className="text-xl font-bold">Property Listed Successfully</h3>
-             </div>
+            </div>
            </div>
          )}
 

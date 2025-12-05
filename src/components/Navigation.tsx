@@ -54,21 +54,23 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     setIsEndingSession(true);
 
-    const result = await endSession();
+    try {
 
-    if (result.success) {
+      await endSession();
 
-      router.push('/admin');
+    } catch (error) {
+
+      console.error('Error ending session:', error);
+
+    } finally {
+
+      setIsEndingSession(false);
 
     }
 
-    setIsEndingSession(false);
-
   };
 
-  
 
-  // Handle navigation item clicks in popup mode
 
   const handleNavClick = () => {
 
@@ -86,7 +88,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
   };
 
-  
+
 
   return (
 
@@ -111,9 +113,12 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
             variant === 'popup' 
 
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
+
               : pathname === '/' 
+
                 ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
+
+                : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
 
           }`}
 
@@ -125,7 +130,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         </Link>
 
-        
+
 
         <a 
 
@@ -293,7 +298,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         </Link>
 
-        
+
 
         <Link 
 
@@ -323,7 +328,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         </Link>
 
-        
+
 
         <Link 
 
@@ -668,5 +673,3 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   );
 
 }
-
-

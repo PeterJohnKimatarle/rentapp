@@ -170,7 +170,7 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
               onClick={() => {
                 // Set popup main image synchronously before opening to prevent flash
                 setPopupMainImage(stagedMainImage !== null ? stagedMainImage : tempMainImage);
-                setShowMainImagePopup(true);
+                  setShowMainImagePopup(true);
               }}
               className="w-full text-white px-4 py-2 rounded-lg flex items-center justify-center gap-1 transition-colors h-12"
               style={{ backgroundColor: '#6b7280' }}
@@ -557,13 +557,13 @@ export default function ImageEditModal({ isOpen, onClose, currentImages, onStage
               <p className="text-white/80 text-base hidden xl:block"><span className="font-bold">Remove all images at once</span><br />right-click any image.</p>
             </div>
             <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowRemoveAllInfo(false)}
+            <button
+              type="button"
+              onClick={() => setShowRemoveAllInfo(false)}
                 className="w-2/3 px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-              >
-                Ok, I got it
-              </button>
+            >
+              Ok, I got it
+            </button>
             </div>
           </div>
         </div>

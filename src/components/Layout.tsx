@@ -48,6 +48,19 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     return null;
   }, [filteredCount, hasActiveFilters, totalCount, pathname]);
 
+  // Get search placeholder based on current page
+  const getSearchPlaceholder = () => {
+    if (pathname === '/bookmarks') {
+      return 'Search my bookmarks...';
+    } else if (pathname === '/my-properties') {
+      return 'Search my properties...';
+    } else if (pathname === '/recently-removed-bookmarks') {
+      return 'Search removed bookmarks...';
+    } else {
+      return 'Search for properties...';
+    }
+  };
+
   // Touch event handlers for swipe gestures - using refs for performance
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const touchEndRef = useRef<{ x: number; y: number } | null>(null);
@@ -376,7 +389,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             <Search size={20} className={`mr-3 ${hasActiveFilters ? 'text-green-500 xl:text-gray-500' : 'text-gray-500'}`} />
             <input
               type="text"
-              placeholder="Search for properties..."
+              placeholder={getSearchPlaceholder()}
               className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500 cursor-pointer"
               readOnly
             />

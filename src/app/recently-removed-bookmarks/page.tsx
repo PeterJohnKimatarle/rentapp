@@ -184,12 +184,12 @@ export default function RecentlyRemovedBookmarksPage() {
               <p className="text-gray-500 text-xl">
                 {removedProperties.length === 0 && !hasActiveFilters
                   ? 'No removed bookmarks.'
-                  : 'No properties available for now.'}
+                  : 'No removed bookmarks match your filters.'}
               </p>
               <p className="text-gray-400 text-base mt-1">
                 {removedProperties.length === 0 && !hasActiveFilters
                   ? 'Removed bookmarks will appear here for easy restoration.'
-                  : 'Check back later or adjust your filters.'}
+                  : 'Try adjusting your search filters.'}
               </p>
             </div>
           )}

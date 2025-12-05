@@ -73,28 +73,28 @@ function DeleteConfirmPopup({
         {/* Header */}
         <div className="flex items-center justify-center pt-3 pb-0 px-4 bg-white sticky top-0 z-10">
           <h3 className="text-2xl font-semibold text-black">Delete {userType === 'staff' ? 'Staff' : 'User'}</h3>
-        </div>
+          </div>
 
         {/* Content */}
         <div className="p-4 pt-2 overflow-y-auto flex-1">
           <div className="text-center mb-4">
             <p className="text-gray-700 text-base">Are you sure you want to delete {userName}?</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onConfirm}
+        </div>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onConfirm}
               className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Yes
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
+          >
+            Yes
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
               className="flex-1 px-4 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-            >
-              No
-            </button>
+          >
+            No
+          </button>
           </div>
         </div>
       </div>
@@ -311,167 +311,167 @@ export default function AdminPage() {
         </div>
 
         {/* Main Content Views */}
-        <div className="space-y-6 relative">
+      <div className="space-y-6 relative">
 
         {/* All Staff View */}
         {currentView === 'staff' && (
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-2 mb-6 flex-wrap">
-                <UserCheck size={24} className="text-purple-500" />
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
-                  All Staff
-                  {isImpersonating && (
-                    <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
-                  )}
-                </h3>
-                <p className="text-lg font-medium text-gray-900">[{staffMembers.length}]</p>
-              </div>
-
-              {message && (
-                <div className={`mb-4 p-3 rounded-lg ${
-                  message.type === 'success' 
-                    ? 'bg-green-50 border border-green-200 text-green-700' 
-                    : 'bg-red-50 border border-red-200 text-red-700'
-                }`}>
-                  {message.text}
-                </div>
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            <UserCheck size={24} className="text-purple-500" />
+            <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
+              All Staff
+              {isImpersonating && (
+                <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
               )}
+            </h3>
+            <p className="text-lg font-medium text-gray-900">[{staffMembers.length}]</p>
+          </div>
 
-              {staffMembers.length === 0 ? (
-                <p className="text-gray-600 text-center py-8">No staff members found.</p>
-              ) : (
-                <div className="space-y-4">
-                  {staffMembers.map((staff) => (
-                    <div
-                      key={staff.id}
-                      className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
-                    >
-                      {/* Clickable delete area from left edge to avatar */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-50 border border-green-200 text-green-700' 
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}>
+              {message.text}
+            </div>
+          )}
+
+          {staffMembers.length === 0 ? (
+            <p className="text-gray-600 text-center py-8">No staff members found.</p>
+          ) : (
+            <div className="space-y-4">
+              {staffMembers.map((staff) => (
+                <div
+                  key={staff.id}
+                  className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
+                >
+                  {/* Clickable delete area from left edge to avatar */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setDeleteConfirm({ id: staff.id, name: staff.firstName || staff.name || 'this staff member', type: 'staff' });
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
                         className="absolute top-0 left-0 h-[64px] w-9 cursor-pointer z-20 rounded-tl-lg hover:bg-red-200 transition-colors"
-                        title="Delete staff"
-                      >
-                        {/* Three dot menu in top left */}
+                    title="Delete staff"
+                  >
+                    {/* Three dot menu in top left */}
                         <div className="absolute top-0 left-0 h-[64px] w-9 text-gray-700 rounded-tl-lg flex items-center justify-center transition-colors hover:bg-red-200">
-                          <MoreVertical size={20} />
-                        </div>
-                      </button>
-                      {/* Non-clickable area below delete button */}
+                      <MoreVertical size={20} />
+                    </div>
+                  </button>
+                  {/* Non-clickable area below delete button */}
                       <div className="absolute top-[64px] left-0 w-9 bottom-0 pointer-events-none z-10"></div>
-                      <div 
+                  <div 
                         className="p-3 flex items-start justify-between gap-4 flex-wrap pl-9 cursor-pointer relative"
-                        onClick={(e) => {
-                          // Don't open dropdown if click is on the delete area or the non-clickable zone
-                          const target = e.target as HTMLElement;
-                          if (target.closest('button[title="Delete staff"]')) {
-                            return;
-                          }
-                          // Check if click is in the left non-clickable area (between delete button and avatar)
-                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                          const clickX = e.clientX - rect.left;
-                          if (clickX < 48) { // 48px = w-12 (12 * 4px)
-                            return;
-                          }
-                          setOpenStaffDropdown(openStaffDropdown === staff.id ? null : staff.id);
-                        }}
-                      >
-                        <div className="flex items-start gap-3 flex-1">
-                          {/* Profile Image */}
-                          <div className="flex-shrink-0">
-                            {staff.profileImage ? (
-                              <img
-                                src={staff.profileImage}
-                                alt={staff.firstName || staff.name || 'Staff member'}
-                                className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
-                                <UserIcon className="w-8 h-8 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-1 flex-wrap">
-                              <h4 className="font-semibold text-gray-900">
-                                {staff.firstName || staff.name || 'Unknown'}
-                              </h4>
-                              {staff.isApproved ? (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                  Approved
-                                </span>
-                              ) : (
-                                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-                                  Pending
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600">{staff.email}</p>
-                            {staff.phone && (
-                              <p className="text-sm text-gray-600">{staff.phone}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center relative">
-                          <ChevronRight 
-                            size={20} 
-                            className={`text-gray-500 transition-transform duration-200 ${openStaffDropdown === staff.id ? 'rotate-90' : ''}`}
+                    onClick={(e) => {
+                      // Don't open dropdown if click is on the delete area or the non-clickable zone
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button[title="Delete staff"]')) {
+                        return;
+                      }
+                      // Check if click is in the left non-clickable area (between delete button and avatar)
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const clickX = e.clientX - rect.left;
+                      if (clickX < 48) { // 48px = w-12 (12 * 4px)
+                        return;
+                      }
+                      setOpenStaffDropdown(openStaffDropdown === staff.id ? null : staff.id);
+                    }}
+                  >
+                    <div className="flex items-start gap-3 flex-1">
+                      {/* Profile Image */}
+                      <div className="flex-shrink-0">
+                        {staff.profileImage ? (
+                          <img
+                            src={staff.profileImage}
+                            alt={staff.firstName || staff.name || 'Staff member'}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
                           />
-                          {openStaffDropdown === staff.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenStaffDropdown(null)} />
-                              <div className="absolute top-0 right-0 mr-2 bg-blue-50 border border-blue-500 border-2 shadow-blue-100 rounded-lg px-4 py-2 space-y-1.5 flex flex-col items-center w-fit z-20 transform -translate-x-[20%]">
-                          {!staff.isApproved ? (
-                            <button
-                              onClick={() => {
-                                handleApprove(staff.id);
-                                setOpenStaffDropdown(null);
-                              }}
-                              disabled={loading}
-                              className="w-full px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                            >
-                              <Check size={16} />
-                              Approve Staff
-                            </button>
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
+                            <UserIcon className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1 flex-wrap">
+                          <h4 className="font-semibold text-gray-900">
+                            {staff.firstName || staff.name || 'Unknown'}
+                          </h4>
+                          {staff.isApproved ? (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                              Approved
+                            </span>
                           ) : (
-                            <button
-                              onClick={() => {
-                                handleDisapprove(staff.id);
-                                setOpenStaffDropdown(null);
-                              }}
-                              disabled={loading}
-                              className="w-full px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                            >
-                              <X size={16} />
-                              Disapprove Staff
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              setOpenStaffDropdown(null);
-                              handleLoginAs(staff.id);
-                            }}
-                            disabled={loading}
-                            className="w-full px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
-                          >
-                            <LogIn size={16} />
-                            Login as
-                          </button>
-                              </div>
-                            </>
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+                              Pending
+                            </span>
                           )}
                         </div>
+                        <p className="text-sm text-gray-600">{staff.email}</p>
+                        {staff.phone && (
+                          <p className="text-sm text-gray-600">{staff.phone}</p>
+                        )}
                       </div>
                     </div>
-                  ))}
+                    <div className="flex items-center relative">
+                      <ChevronRight 
+                        size={20} 
+                        className={`text-gray-500 transition-transform duration-200 ${openStaffDropdown === staff.id ? 'rotate-90' : ''}`}
+                      />
+                      {openStaffDropdown === staff.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenStaffDropdown(null)} />
+                          <div className="absolute top-0 right-0 mr-2 bg-blue-50 border border-blue-500 border-2 shadow-blue-100 rounded-lg px-4 py-2 space-y-1.5 flex flex-col items-center w-fit z-20 transform -translate-x-[20%]">
+                      {!staff.isApproved ? (
+                        <button
+                          onClick={() => {
+                            handleApprove(staff.id);
+                            setOpenStaffDropdown(null);
+                          }}
+                          disabled={loading}
+                          className="w-full px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                        >
+                          <Check size={16} />
+                          Approve Staff
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            handleDisapprove(staff.id);
+                            setOpenStaffDropdown(null);
+                          }}
+                          disabled={loading}
+                          className="w-full px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                        >
+                          <X size={16} />
+                          Disapprove Staff
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setOpenStaffDropdown(null);
+                          handleLoginAs(staff.id);
+                        }}
+                        disabled={loading}
+                        className="w-full px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm whitespace-nowrap"
+                      >
+                        <LogIn size={16} />
+                        Login as
+                      </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </section>
+              ))}
+            </div>
+          )}
+        </section>
         )}
 
         {/* All Users View */}
