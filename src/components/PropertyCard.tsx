@@ -18,6 +18,7 @@ import ImageLightbox from './ImageLightbox';
 import SharePopup from './SharePopup';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { useRouter } from 'next/navigation';
+import { ShareManager } from '@/utils/shareUtils';
 import Link from 'next/link';
 
 interface PropertyCardProps {
@@ -316,7 +317,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       setIsShareSpinning(false);
     }, 100);
     
-    // Wait 200ms after spinning completes before opening popup
+    // Open SharePopup
     setTimeout(() => {
       setShowSharePopup(true);
     }, 300); // 100ms for spinning + 200ms delay
@@ -1087,17 +1088,22 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={() => {
                   if (property) {
-                    // Construct property URL
-                    const propertyUrl = typeof window !== 'undefined' 
-                      ? `${window.location.origin}/property/${property.id}`
-                      : `/property/${property.id}`;
+                    // Construct property URL using ShareManager's method
+                    const propertyUrl = ShareManager.getShareUrl(property.id);
                     
                     // Format WhatsApp message with line breaks
-                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
-                    const whatsappMessage = encodeURIComponent(message);
-                    window.open(`https://wa.me/255755123500?text=${whatsappMessage}`, '_blank');
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    
+                    // Use ShareManager's method with phone number support
+                    ShareManager.shareWhatsAppToNumber('255755123500', message);
                   } else {
-                    window.open('https://wa.me/255755123500', '_blank');
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    ShareManager.shareWhatsAppToNumber('255755123500', `Hi..!\n\nI am interested in a property for rent. ${bookingText} Thank you.`);
                   }
                   setShowBookingModal(false);
                 }}
@@ -1114,30 +1120,15 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
               <button
                 onClick={() => {
-                  window.open('tel:+255755123500', '_self');
-                  setShowBookingModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 hover:bg-blue-400 rounded-lg transition-colors"
-              >
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">Phone</p>
-                  <p className="text-sm text-gray-600">Call us directly</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
                   if (property) {
-                    // Construct property URL
-                    const propertyUrl = typeof window !== 'undefined' 
-                      ? `${window.location.origin}/property/${property.id}`
-                      : `/property/${property.id}`;
+                    // Construct property URL using ShareManager's method
+                    const propertyUrl = ShareManager.getShareUrl(property.id);
                     
                     // Format SMS message with line breaks (same format as WhatsApp)
-                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
                     const smsMessage = encodeURIComponent(message);
                     window.open(`sms:+255755123500?body=${smsMessage}`, '_self');
                   } else {
@@ -1151,8 +1142,24 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-800">Message</p>
-                  <p className="text-sm text-gray-600">Send us direct message</p>
+                  <p className="font-medium text-gray-800">Normal Message</p>
+                  <p className="text-sm text-gray-600">Send us normal message</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  window.open('tel:+255755123500', '_self');
+                  setShowBookingModal(false);
+                }}
+                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 hover:bg-blue-400 rounded-lg transition-colors"
+              >
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-800">Phone</p>
+                  <p className="text-sm text-gray-600">Call us directly</p>
                 </div>
               </button>
             </div>

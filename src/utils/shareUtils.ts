@@ -87,11 +87,11 @@ export class ShareManager {
     }).format(price);
   }
 
-  private static getShareUrl(propertyId: string): string {
+  static getShareUrl(propertyId: string): string {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/property/${propertyId}`;
     }
-    return `https://rentapp.com/property/${propertyId}`;
+    return `https://rentapp.co.tz/property/${propertyId}`;
   }
 
   private static formatPropertyType(propertyType?: string): string {
@@ -116,14 +116,9 @@ export class ShareManager {
     // Use property title if available, otherwise generate from type
     const title = property.title || `${propertyTypeLabel} in ${property.location}`;
     
-    // Build share text with property details
-    const details = [];
-    if (property.bedrooms) details.push(`${property.bedrooms} bedroom${property.bedrooms > 1 ? 's' : ''}`);
-    if (property.bathrooms) details.push(`${property.bathrooms} bathroom${property.bathrooms > 1 ? 's' : ''}`);
-    if (property.area) details.push(`${property.area}m²`);
-    
-    const detailsText = details.length > 0 ? ` (${details.join(', ')})` : '';
-    const text = `Check out this amazing ${propertyTypeLabel} in ${property.location} for ${price}/month!${detailsText}${property.description ? `\n\n${property.description.substring(0, 200)}${property.description.length > 200 ? '...' : ''}` : ''}`;
+    // Build share text in the new format: Hi..! + Check out this amazing property + title (line break) + location
+    // URL is not included in text - let each app handle the URL separately
+    const text = `Hi..!\n\nCheck out this amazing property\n\n${title}\n${property.location}`;
     
     return {
       title: title,
@@ -153,7 +148,8 @@ export class ShareManager {
   static async copyToClipboard(options: ShareOptions): Promise<boolean> {
     try {
       const shareData = this.getShareData(options);
-      const shareText = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+      // Text already contains title, so just use text + URL
+      const shareText = `${shareData.text}\n\n${shareData.url}`;
       
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(shareText);
@@ -180,9 +176,24 @@ export class ShareManager {
   // WhatsApp sharing
   static shareWhatsApp(options: ShareOptions): void {
     const shareData = this.getShareData(options);
+    // Let WhatsApp handle the URL - it will show as link preview
     const message = encodeURIComponent(`${shareData.text}\n\n${shareData.url}`);
     const deepLink = `whatsapp://send?text=${message}`;
     const webUrl = `https://wa.me/?text=${message}`;
+    const androidStore = 'https://play.google.com/store/apps/details?id=com.whatsapp';
+    const iosStore = 'https://apps.apple.com/app/whatsapp-messenger/id310633997';
+    if (this.isMobile()) {
+      this.openWithApp(deepLink, androidStore, iosStore, webUrl);
+    } else {
+      window.open(webUrl, '_blank');
+    }
+  }
+
+  // WhatsApp sharing with specific phone number (for booking/inquiry)
+  static shareWhatsAppToNumber(phoneNumber: string, message: string): void {
+    const encodedMessage = encodeURIComponent(message);
+    const deepLink = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+    const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     const androidStore = 'https://play.google.com/store/apps/details?id=com.whatsapp';
     const iosStore = 'https://apps.apple.com/app/whatsapp-messenger/id310633997';
     if (this.isMobile()) {
@@ -227,6 +238,7 @@ export class ShareManager {
   static shareEmail(options: ShareOptions): void {
     const shareData = this.getShareData(options);
     const subject = encodeURIComponent(shareData.title);
+    // Add URL separately for email
     const body = encodeURIComponent(`${shareData.text}\n\nView property: ${shareData.url}`);
     const emailUrl = `mailto:?subject=${subject}&body=${body}`;
     window.location.href = emailUrl;
@@ -235,6 +247,7 @@ export class ShareManager {
   // SMS sharing
   static shareSMS(options: ShareOptions): void {
     const shareData = this.getShareData(options);
+    // Add URL separately for SMS
     const message = encodeURIComponent(`${shareData.text}\n\n${shareData.url}`);
     const smsUrl = `sms:?body=${message}`;
     window.location.href = smsUrl;
@@ -243,7 +256,8 @@ export class ShareManager {
   // Telegram sharing
   static shareTelegram(options: ShareOptions): void {
     const shareData = this.getShareData(options);
-    const message = encodeURIComponent(`${shareData.text}\n\n${shareData.url}`);
+    // Telegram API uses URL as separate parameter and text separately - let Telegram handle the URL
+    const message = encodeURIComponent(shareData.text);
     const webUrl = `https://t.me/share/url?url=${encodeURIComponent(shareData.url)}&text=${message}`;
     const appLink = `tg://msg_url?url=${encodeURIComponent(shareData.url)}&text=${message}`;
     const androidStore = 'https://play.google.com/store/apps/details?id=org.telegram.messenger';

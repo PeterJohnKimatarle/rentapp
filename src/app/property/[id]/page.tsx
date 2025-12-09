@@ -9,6 +9,7 @@ import SharePopup from '@/components/SharePopup';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { ShareManager } from '@/utils/shareUtils';
 
 export default function PropertyDetailsPage() {
   const params = useParams();
@@ -260,10 +261,12 @@ export default function PropertyDetailsPage() {
             <img
               src={mainImage}
               alt={property.title}
-              className="w-full h-full object-cover cursor-pointer"
+              className={`w-full h-full object-cover ${property.images && property.images.length > 1 ? 'cursor-pointer' : ''}`}
               onClick={() => {
-                setCurrentImageIndex(displayedImageIndex);
-                setIsLightboxOpen(true);
+                if (property.images && property.images.length > 1) {
+                  setCurrentImageIndex(displayedImageIndex);
+                  setIsLightboxOpen(true);
+                }
               }}
             />
             
@@ -347,12 +350,14 @@ export default function PropertyDetailsPage() {
             {/* Image Counter - Mobile */}
             {property.images && property.images.length > 0 && (
               <div 
-                className="flex xl:hidden absolute bottom-2 left-2 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center cursor-pointer z-20" 
+                className={`flex xl:hidden absolute bottom-2 left-2 text-white text-sm px-3 py-2 rounded-lg shadow-lg flex items-center ${property.images.length > 1 ? 'cursor-pointer' : ''} z-20`}
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCurrentImageIndex(displayedImageIndex);
-                  setIsLightboxOpen(true);
+                  if (property.images && property.images.length > 1) {
+                    setCurrentImageIndex(displayedImageIndex);
+                    setIsLightboxOpen(true);
+                  }
                 }}
               >
                 <span className="font-medium">{displayedImageIndex + 1} / {property.images.length}</span>
@@ -361,12 +366,14 @@ export default function PropertyDetailsPage() {
             {/* Image Counter - Desktop */}
             {property.images && property.images.length > 0 && (
               <div 
-                className="hidden xl:flex absolute bottom-2 left-2 text-white text-sm xl:text-base px-3 py-2 xl:px-3.5 xl:py-2 rounded-lg shadow-lg items-center cursor-pointer z-20" 
+                className={`hidden xl:flex absolute bottom-2 left-2 text-white text-sm xl:text-base px-3 py-2 xl:px-3.5 xl:py-2 rounded-lg shadow-lg items-center ${property.images.length > 1 ? 'cursor-pointer' : ''} z-20`}
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCurrentImageIndex(displayedImageIndex);
-                  setIsLightboxOpen(true);
+                  if (property.images && property.images.length > 1) {
+                    setCurrentImageIndex(displayedImageIndex);
+                    setIsLightboxOpen(true);
+                  }
                 }}
               >
                 <span className="font-medium">{displayedImageIndex + 1} / {property.images.length}</span>
@@ -561,17 +568,22 @@ export default function PropertyDetailsPage() {
               <button
                 onClick={() => {
                   if (property) {
-                    // Construct property URL
-                    const propertyUrl = typeof window !== 'undefined' 
-                      ? `${window.location.origin}/property/${property.id}`
-                      : `/property/${property.id}`;
+                    // Construct property URL using ShareManager's method
+                    const propertyUrl = ShareManager.getShareUrl(property.id);
                     
                     // Format WhatsApp message with line breaks
-                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
-                    const whatsappMessage = encodeURIComponent(message);
-                    window.open(`https://wa.me/255755123500?text=${whatsappMessage}`, '_blank');
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    
+                    // Use ShareManager's method with phone number support
+                    ShareManager.shareWhatsAppToNumber('255755123500', message);
                   } else {
-                    window.open('https://wa.me/255755123500', '_blank');
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    ShareManager.shareWhatsAppToNumber('255755123500', `Hi..!\n\nI am interested in a property for rent. ${bookingText} Thank you.`);
                   }
                   setShowBookingModal(false);
                 }}
@@ -588,30 +600,15 @@ export default function PropertyDetailsPage() {
 
               <button
                 onClick={() => {
-                  window.open('tel:+255755123500', '_self');
-                  setShowBookingModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 hover:bg-blue-400 rounded-lg transition-colors"
-              >
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">Phone</p>
-                  <p className="text-sm text-gray-600">Call us directly</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
                   if (property) {
-                    // Construct property URL
-                    const propertyUrl = typeof window !== 'undefined' 
-                      ? `${window.location.origin}/property/${property.id}`
-                      : `/property/${property.id}`;
+                    // Construct property URL using ShareManager's method
+                    const propertyUrl = ShareManager.getShareUrl(property.id);
                     
                     // Format SMS message with line breaks (same format as WhatsApp)
-                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    const bookingText = bookingModalType === 'book' 
+                      ? 'I want to confirm its availability and finalize booking.'
+                      : 'I want to confirm its availability.';
+                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
                     const smsMessage = encodeURIComponent(message);
                     window.open(`sms:+255755123500?body=${smsMessage}`, '_self');
                   } else {
@@ -625,8 +622,24 @@ export default function PropertyDetailsPage() {
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-800">Message</p>
-                  <p className="text-sm text-gray-600">Send us direct message</p>
+                  <p className="font-medium text-gray-800">Normal Message</p>
+                  <p className="text-sm text-gray-600">Send us normal message</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  window.open('tel:+255755123500', '_self');
+                  setShowBookingModal(false);
+                }}
+                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 hover:bg-blue-400 rounded-lg transition-colors"
+              >
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-800">Phone</p>
+                  <p className="text-sm text-gray-600">Call us directly</p>
                 </div>
               </button>
             </div>

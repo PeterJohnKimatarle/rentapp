@@ -161,9 +161,9 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center z-[70] p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', touchAction: 'none', minHeight: '100vh', height: '100%' }}
+      style={{ touchAction: 'none', minHeight: '100vh', height: '100%' }}
       onClick={(e) => {
-        // Close when clicking the backdrop (but not the modal content)
+        // Close when clicking outside the modal content
         if (e.target === e.currentTarget) {
           onClose();
         }
@@ -187,47 +187,6 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
             {error}
           </div>
         )}
-
-        {/* Property Preview */}
-        <div className="mb-6 mt-4 p-4 mx-6 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-          <div className="flex items-center space-x-3">
-            {/* Property Image */}
-            <div className="flex-shrink-0">
-              {shareOptions.property.images && shareOptions.property.images[0] ? (
-                <img
-                  src={shareOptions.property.images[0]}
-                  alt={shareOptions.property.title}
-                  className="w-24 h-24 rounded-lg object-cover border-2 border-yellow-500"
-                  onError={(e) => {
-                    // Fallback to a placeholder if image fails to load
-                    (e.target as HTMLImageElement).src = '/icon.png';
-                  }}
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-lg bg-gray-300 border-2 border-yellow-500 flex items-center justify-center">
-                  <span className="text-gray-500 text-xs">No Image</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Property Details */}
-            <div className="flex-1 min-w-0">
-              <div className="text-white font-medium text-sm mb-1">
-                {formatPropertyTitle(shareOptions.property.title, shareOptions.property.propertyType)}
-              </div>
-              <div className="text-white/90 text-xs mb-2">
-                {shareOptions.property.location}
-              </div>
-              <div className="text-yellow-400 font-semibold text-sm">
-                {new Intl.NumberFormat('en-TZ', {
-                  style: 'currency',
-                  currency: 'TZS',
-                  minimumFractionDigits: 0,
-                }).format(shareOptions.property.price)}/month
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Share Options */}
         <div className="grid grid-cols-2 gap-3 px-6">
