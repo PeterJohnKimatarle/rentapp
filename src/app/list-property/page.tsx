@@ -257,6 +257,47 @@ export default function ListPropertyPage() {
       return;
     }
 
+    // Validate required fields with specific messages
+    if (!formData.propertyType) {
+      alert('Choose property type.');
+      return;
+    }
+
+    if (!formData.status) {
+      alert('Choose status.');
+      return;
+    }
+
+    if (!selectedRegion) {
+      alert('Choose region.');
+      return;
+    }
+
+    if (!selectedWard && !customWard) {
+      alert('Choose ward.');
+      return;
+    }
+
+    if (!formData.price) {
+      alert('Enter price.');
+      return;
+    }
+
+    if (!formData.paymentPlan) {
+      alert('Choose payment plan.');
+      return;
+    }
+
+    if (!formData.uploaderType) {
+      alert('Choose ownership type.');
+      return;
+    }
+
+    if (!formData.mainImage) {
+      alert('Please add a main image for your property.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Create property object
@@ -393,6 +434,7 @@ export default function ListPropertyPage() {
                     className="w-full px-3 py-2  rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
                     value={selectedRegion}
                     onChange={(e) => setSelectedRegion(e.target.value)}
+                    required
                   >
                     <option value="" className="text-gray-400">---</option>
                     <option value="arusha">Arusha</option>
@@ -444,6 +486,7 @@ export default function ListPropertyPage() {
                         setCustomWard('');
                       }
                     }}
+                    required={!!selectedRegion}
                   >
                     <option value="" className="text-gray-400">---</option>
                     {selectedRegion && wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
@@ -500,6 +543,7 @@ export default function ListPropertyPage() {
                     <option value="3+">3+ Months</option>
                     <option value="6+">6+ Months</option>
                     <option value="12+">12+ Months</option>
+                    <option value="flexible">Flexible</option>
                   </select>
                 </div>
               </div>

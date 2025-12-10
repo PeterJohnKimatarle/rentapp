@@ -691,10 +691,17 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <div className="mt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {property.status === 'available' ? (
                   <button
-                    className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium transition-colors"
-                    style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)', maxWidth: '250px' }}
-                    onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
-                    onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
+                    className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium select-none"
+                    style={{ 
+                      backgroundColor: 'rgba(34, 197, 94, 0.9)', 
+                      maxWidth: '250px',
+                      WebkitTapHighlightColor: 'transparent',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      userSelect: 'none',
+                      outline: 'none'
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -706,10 +713,17 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   </button>
                 ) : (
                   <button
-                    className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium transition-colors"
-                    style={{ backgroundColor: '#f87171', maxWidth: '250px' }}
-                    onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
-                    onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
+                    className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium select-none"
+                    style={{ 
+                      backgroundColor: '#f87171', 
+                      maxWidth: '250px',
+                      WebkitTapHighlightColor: 'transparent',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      userSelect: 'none',
+                      outline: 'none'
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -722,8 +736,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 )}
               </div>
             )}
-            {/* Status Button and Three Dots - Only for staff users */}
-            {!hideBookmark && user && user.role === 'staff' && user.isApproved && (
+            {/* Status Button and Three Dots - Only for staff and admin users */}
+            {!hideBookmark && user && ((user.role === 'staff' && user.isApproved) || user.role === 'admin') && (
               <div className="mt-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
                 {/* Status Button - Shows current property status */}
                 <button
@@ -795,6 +809,12 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    // For admin users, show message instead of opening modal
+                    if (user?.role === 'admin') {
+                      setInfoModalMessage('Property actions are handled by staff members only.');
+                      setShowInfoModal(true);
+                      return;
+                    }
                     setShowThreeDotsModal(true);
                   }}
                   title="Options"
@@ -1205,42 +1225,57 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             
             <textarea
               ref={notesTextareaRef}
-              className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Add your notes about this property..."
+              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              placeholder={user?.role === 'admin' ? 'No notes available...' : 'Add your notes about this property...'}
               rows={6}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              readOnly={user?.role === 'admin'}
             />
 
             <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => {
-                  // Save notes to localStorage
-                  if (typeof window !== 'undefined' && user?.id) {
-                    const key = `rentapp_notes_${user.id}_${property.id}`;
-                    localStorage.setItem(key, notes);
-                    setHasNotes(notes.trim().length > 0);
-                  }
-                  setShowNotesModal(false);
-                }}
-                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-white"
-                style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
-              >
-                Save
-              </button>
+              {user?.role !== 'admin' && (
+                <button
+                  onClick={() => {
+                    // Save notes to localStorage
+                    if (typeof window !== 'undefined' && user?.id) {
+                      const key = `rentapp_notes_${user.id}_${property.id}`;
+                      localStorage.setItem(key, notes);
+                      setHasNotes(notes.trim().length > 0);
+                    }
+                    setShowNotesModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
+                  style={{ 
+                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
+                >
+                  Save
+                </button>
+              )}
               <button
                 onClick={() => {
                   setShowNotesModal(false);
                   setNotes('');
                 }}
-                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-white"
-                style={{ backgroundColor: '#ef4444' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#dc2626'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#ef4444'}
+                className={`px-4 py-2 rounded-lg font-medium text-white select-none ${user?.role === 'admin' ? 'flex-1' : 'flex-1'}`}
+                style={{ 
+                  backgroundColor: '#ef4444',
+                  WebkitTapHighlightColor: 'transparent',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none',
+                  userSelect: 'none',
+                  outline: 'none'
+                }}
               >
-                Cancel
+                {user?.role === 'admin' ? 'Close' : 'Cancel'}
               </button>
             </div>
           </div>
@@ -1375,12 +1410,18 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       removeFromClosed(property.id, userId);
                     }
                   }}
-                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                  style={{ backgroundColor: 'rgba(107, 114, 128, 0.9)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(107, 114, 128, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(107, 114, 128, 0.9)'}
+                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
+                  style={{ 
+                    backgroundColor: 'rgba(107, 114, 128, 0.9)',
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
                 >
-                  Default
+                  Set to Default
                 </button>
               )}
               {!isPinged && (
@@ -1391,10 +1432,16 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     // Allow adding to follow-up even if closed
                     addToFollowUp(property.id, userId);
                   }}
-                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.9)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.9)'}
+                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
+                  style={{ 
+                    backgroundColor: 'rgba(59, 130, 246, 0.9)',
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
                 >
                   Follow this property
                 </button>
@@ -1406,10 +1453,16 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     setShowThreeDotsModal(false);
                     addToClosed(property.id, userId);
                   }}
-                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base flex items-center justify-center gap-2"
-                  style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
+                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base flex items-center justify-center gap-2 select-none"
+                  style={{ 
+                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
                 >
                   <Check size={18} className="text-white" strokeWidth={3} />
                   <span>Close this property</span>
@@ -1420,7 +1473,15 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   e.stopPropagation();
                   setShowThreeDotsModal(false);
                 }}
-                className="w-full px-4 py-3 rounded-lg font-medium transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
+                className="w-full px-4 py-3 rounded-lg font-medium bg-gray-300 text-gray-700 select-none"
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none',
+                  userSelect: 'none',
+                  outline: 'none'
+                }}
               >
                 Cancel
               </button>
@@ -1451,7 +1512,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           >
             <div className="flex justify-center items-center mb-4">
               <h3 className="text-xl font-semibold text-black">
-                Property Info
+                Property actions
               </h3>
             </div>
             

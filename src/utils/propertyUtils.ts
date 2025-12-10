@@ -403,7 +403,8 @@ export const getUserCreatedProperties = (ownerId?: string): DisplayProperty[] =>
 export const updateProperty = (
   propertyId: string,
   updatedProperty: PropertyFormData,
-  currentUserId?: string
+  currentUserId?: string,
+  userRole?: string
 ): boolean => {
   try {
     const existingProperties: PropertyFormData[] = JSON.parse(
@@ -419,7 +420,8 @@ export const updateProperty = (
 
     const existingProperty = existingProperties[propertyIndex];
 
-    if (existingProperty.ownerId && currentUserId && existingProperty.ownerId !== currentUserId) {
+    // Allow admin users to update any property, otherwise check ownership
+    if (userRole !== 'admin' && existingProperty.ownerId && currentUserId && existingProperty.ownerId !== currentUserId) {
       console.error('User not authorized to update this property');
       return false;
     }
@@ -731,5 +733,71 @@ export const clearAllFollowUpAndClosed = (userId?: string): void => {
     window.dispatchEvent(new CustomEvent('closedChanged'));
   } catch (error) {
     console.error('Error clearing follow-up and closed properties:', error);
+  }
+};
+
+// Status confirmation storage
+interface StatusConfirmation {
+  propertyId: string;
+  staffId: string;
+  staffName: string;
+  confirmedAt: string; // ISO timestamp
+}
+
+const getStatusConfirmationStorageKey = () => {
+  return 'rentapp_status_confirmations';
+};
+
+// Confirm property status (save confirmation record)
+export const confirmPropertyStatus = (
+  propertyId: string,
+  staffId: string,
+  staffName: string
+): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const key = getStatusConfirmationStorageKey();
+    const confirmations: StatusConfirmation[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    
+    // Remove any existing confirmation for this property
+    const filtered = confirmations.filter(c => c.propertyId !== propertyId);
+    
+    // Add new confirmation
+    const newConfirmation: StatusConfirmation = {
+      propertyId,
+      staffId,
+      staffName,
+      confirmedAt: new Date().toISOString()
+    };
+    
+    filtered.push(newConfirmation);
+    localStorage.setItem(key, JSON.stringify(filtered));
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('statusConfirmationChanged'));
+    return true;
+  } catch (error) {
+    console.error('Error confirming property status:', error);
+    return false;
+  }
+};
+
+// Get status confirmation for a property
+export const getStatusConfirmation = (propertyId: string): StatusConfirmation | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const key = getStatusConfirmationStorageKey();
+    const confirmations: StatusConfirmation[] = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+    
+    return confirmations.find(c => c.propertyId === propertyId) || null;
+  } catch (error) {
+    console.error('Error reading status confirmation:', error);
+    return null;
   }
 };
