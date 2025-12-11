@@ -2,11 +2,12 @@
 
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
+import PropertyCard from '@/components/PropertyCard';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, Users, Settings, UserCheck, Check, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical } from 'lucide-react';
+import { ShieldCheck, Users, Settings, UserCheck, Check, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical, Archive, Clock } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAllProperties } from '@/utils/propertyUtils';
+import { getAllProperties, getClosedProperties, getFollowUpProperties, DisplayProperty } from '@/utils/propertyUtils';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 interface User {
@@ -21,7 +22,7 @@ interface User {
   profileImage?: string;
 }
 
-type ViewType = 'staff' | 'users' | 'settings';
+type ViewType = 'staff' | 'users' | 'settings' | 'closed' | 'followup';
 
 // Delete Confirmation Popup Component
 function DeleteConfirmPopup({ 
@@ -120,9 +121,11 @@ export default function AdminPage() {
   const [openUserDropdown, setOpenUserDropdown] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'staff' | 'user' } | null>(null);
   const [isLoggingAs, setIsLoggingAs] = useState(false);
+  const [closedProperties, setClosedProperties] = useState<DisplayProperty[]>([]);
+  const [followUpProperties, setFollowUpProperties] = useState<DisplayProperty[]>([]);
 
-  // Prevent body scroll when delete confirmation popup is open
-  usePreventScroll(deleteConfirm !== null || isLoginPopupOpen);
+  // Prevent body scroll when delete confirmation popup or mobile menu is open
+  usePreventScroll(deleteConfirm !== null || isLoginPopupOpen || isMenuOpen);
 
   useEffect(() => {
     // Load total properties count
@@ -148,9 +151,54 @@ export default function AdminPage() {
     if (isAdmin) {
       loadStaff();
       loadAllUsers();
+      loadClosedProperties();
+      loadFollowUpProperties();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
+
+  useEffect(() => {
+    // Listen for changes to closed and follow-up properties
+    if (isAdmin && typeof window !== 'undefined') {
+      const handleStatusChange = () => {
+        loadClosedProperties();
+        loadFollowUpProperties();
+      };
+      const handleClosedChange = () => {
+        loadClosedProperties();
+      };
+      const handleFollowUpChange = () => {
+        loadFollowUpProperties();
+      };
+
+      window.addEventListener('propertyStatusChanged', handleStatusChange);
+      window.addEventListener('closedChanged', handleClosedChange);
+      window.addEventListener('followUpChanged', handleFollowUpChange);
+
+      return () => {
+        window.removeEventListener('propertyStatusChanged', handleStatusChange);
+        window.removeEventListener('closedChanged', handleClosedChange);
+        window.removeEventListener('followUpChanged', handleFollowUpChange);
+      };
+    }
+  }, [isAdmin]);
+
+  const loadClosedProperties = () => {
+    if (typeof window !== 'undefined') {
+      // Get closed properties from shared status storage
+      const closedPropertiesList = getClosedProperties();
+      setClosedProperties(closedPropertiesList);
+    }
+  };
+
+  const loadFollowUpProperties = () => {
+    if (typeof window !== 'undefined') {
+      // Get follow-up properties from shared status storage
+      // (getFollowUpProperties already excludes closed properties)
+      const followUpPropertiesList = getFollowUpProperties();
+      setFollowUpProperties(followUpPropertiesList);
+    }
+  };
 
   const loadStaff = () => {
     const staff = getAllStaff();
@@ -292,6 +340,32 @@ export default function AdminPage() {
               >
                 <Users size={20} />
                 All Users
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentView('closed');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'closed'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Archive size={20} />
+                All Closed
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentView('followup');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'followup'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Clock size={20} />
+                All Follow-ups
               </button>
               <button
                 onClick={() => {
@@ -612,6 +686,64 @@ export default function AdminPage() {
         </section>
         )}
 
+        {/* All Closed Properties View */}
+        {currentView === 'closed' && (
+        <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4 pt-1 sm:pt-2 lg:pt-3">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <Archive size={24} className="text-blue-500" />
+            <h3 className="text-xl font-semibold text-gray-900">All Closed Properties</h3>
+            <p className="text-lg font-medium text-gray-900">[{closedProperties.length}]</p>
+          </div>
+          
+          <div className="space-y-2 sm:space-y-3 lg:space-y-6">
+            {closedProperties.length > 0 ? (
+              closedProperties.map((property) => (
+                <PropertyCard 
+                  key={property.id} 
+                  property={property} 
+                  showClosedButton={true}
+                  showBookmarkConfirmation={false}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-xl">No closed properties found.</p>
+                <p className="text-gray-400 text-base mt-1">Check back later.</p>
+              </div>
+            )}
+          </div>
+        </div>
+        )}
+
+        {/* All Follow-up Properties View */}
+        {currentView === 'followup' && (
+        <div className="w-full max-w-6xl mx-auto px-2 sm:px-2 lg:px-4 pt-1 sm:pt-2 lg:pt-3">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <Clock size={24} className="text-blue-500" />
+            <h3 className="text-xl font-semibold text-gray-900">All Follow-up Properties</h3>
+            <p className="text-lg font-medium text-gray-900">[{followUpProperties.length}]</p>
+          </div>
+          
+          <div className="space-y-2 sm:space-y-3 lg:space-y-6">
+            {followUpProperties.length > 0 ? (
+              followUpProperties.map((property) => (
+                <PropertyCard 
+                  key={property.id} 
+                  property={property} 
+                  showNotesButton={true}
+                  showBookmarkConfirmation={false}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-xl">No follow-up properties found.</p>
+                <p className="text-gray-400 text-base mt-1">Check back later.</p>
+              </div>
+            )}
+          </div>
+        </div>
+        )}
+
         {/* Settings View */}
         {currentView === 'settings' && (
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
@@ -667,7 +799,7 @@ export default function AdminPage() {
         {isMenuOpen && (
           <>
             <div
-              className="xl:hidden fixed top-[58%] -translate-y-[55px] right-24 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 min-w-[200px] overflow-hidden"
+              className="xl:hidden fixed top-[58%] -translate-y-[115px] right-24 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 min-w-[200px] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-2">
@@ -701,6 +833,34 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={() => {
+                    setCurrentView('closed');
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left mt-2 ${
+                    currentView === 'closed'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Archive size={20} />
+                  All Closed
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentView('followup');
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left mt-2 ${
+                    currentView === 'followup'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Clock size={20} />
+                  All Follow-ups
+                </button>
+                <button
+                  onClick={() => {
                     setCurrentView('settings');
                     setIsMenuOpen(false);
                   }}
@@ -729,8 +889,8 @@ export default function AdminPage() {
 
   return (
     <Layout totalCount={totalProperties}>
-      <div className="bg-gray-50 pt-4 pb-8">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">{renderContent()}</div>
+      <div className={`${currentView === 'closed' || currentView === 'followup' ? '' : 'bg-gray-50'} pt-4 pb-8`}>
+        <div className={`${currentView === 'closed' || currentView === 'followup' ? '' : 'max-w-5xl mx-auto px-4 sm:px-6 lg:px-8'}`}>{renderContent()}</div>
       </div>
 
       <LoginPopup isOpen={isLoginPopupOpen} onClose={() => setIsLoginPopupOpen(false)} />

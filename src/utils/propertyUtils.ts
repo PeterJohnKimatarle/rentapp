@@ -520,194 +520,191 @@ export const deleteProperty = (propertyId: string, currentUserId?: string): bool
 };
 
 // Follow-up/Ping properties storage
-const getFollowUpStorageKey = (userId?: string) => {
-  return userId ? `rentapp_followup_${userId}` : 'rentapp_followup';
+// Shared property status storage - single source of truth for all users
+const PROPERTY_STATUS_STORAGE_KEY = 'rentapp_property_status';
+
+interface PropertyStatus {
+  status: 'default' | 'followup' | 'closed';
+  updatedAt: number;
+  updatedBy: {
+    id: string;
+    name: string;
+  };
+}
+
+interface PropertyStatusMap {
+  [propertyId: string]: PropertyStatus;
+}
+
+// Get all property statuses
+const getPropertyStatusMap = (): PropertyStatusMap => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const stored = localStorage.getItem(PROPERTY_STATUS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Error reading property statuses:', error);
+    return {};
+  }
 };
 
-// Add a property to follow-up list
-export const addToFollowUp = (propertyId: string, userId?: string): boolean => {
+// Save property status map
+const savePropertyStatusMap = (statusMap: PropertyStatusMap): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PROPERTY_STATUS_STORAGE_KEY, JSON.stringify(statusMap));
+  } catch (error) {
+    console.error('Error saving property statuses:', error);
+  }
+};
+
+// Get status for a specific property
+export const getPropertyStatus = (propertyId: string): PropertyStatus | null => {
+  const statusMap = getPropertyStatusMap();
+  return statusMap[propertyId] || null;
+};
+
+// Set property status (only for staff)
+export const setPropertyStatus = (
+  propertyId: string,
+  status: 'default' | 'followup' | 'closed',
+  staffId: string,
+  staffName: string
+): boolean => {
   if (typeof window === 'undefined') return false;
   
   try {
-    const key = getFollowUpStorageKey(userId);
-    const followUpList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-    
-    // Check if already in list
-    if (!followUpList.includes(propertyId)) {
-      followUpList.push(propertyId);
-      localStorage.setItem(key, JSON.stringify(followUpList));
-      
-      // If property is closed, remove it from closed list
-      const closedIds = getClosedPropertyIds(userId);
-      if (closedIds.includes(propertyId)) {
-        removeFromClosed(propertyId, userId);
+    const statusMap = getPropertyStatusMap();
+    statusMap[propertyId] = {
+      status,
+      updatedAt: Date.now(),
+      updatedBy: {
+        id: staffId,
+        name: staffName
       }
-      
-      // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('followUpChanged'));
-      return true;
-    }
-    return false;
+    };
+    savePropertyStatusMap(statusMap);
+    
+    // Dispatch events for UI updates
+    window.dispatchEvent(new CustomEvent('propertyStatusChanged', { detail: { propertyId, status } }));
+    window.dispatchEvent(new CustomEvent('followUpChanged'));
+    window.dispatchEvent(new CustomEvent('closedChanged'));
+    
+    return true;
   } catch (error) {
-    console.error('Error adding to follow-up:', error);
+    console.error('Error setting property status:', error);
     return false;
   }
 };
 
-// Get all follow-up property IDs
-export const getFollowUpPropertyIds = (userId?: string): string[] => {
+// Add a property to follow-up list (staff only)
+export const addToFollowUp = (propertyId: string, userId?: string, staffName?: string): boolean => {
+  if (typeof window === 'undefined' || !userId || !staffName) return false;
+  
+  return setPropertyStatus(propertyId, 'followup', userId, staffName);
+};
+
+// Get all follow-up property IDs (shared across all users)
+export const getFollowUpPropertyIds = (): string[] => {
   if (typeof window === 'undefined') return [];
   
   try {
-    const key = getFollowUpStorageKey(userId);
-    return JSON.parse(localStorage.getItem(key) || '[]');
+    const statusMap = getPropertyStatusMap();
+    return Object.keys(statusMap).filter(id => statusMap[id].status === 'followup');
   } catch (error) {
     console.error('Error reading follow-up properties:', error);
     return [];
   }
 };
 
-// Check if a property is in follow-up across ALL users (for admin/staff visibility)
+// Check if a property is in follow-up (shared across all users)
 export const isPropertyInFollowUpAnyUser = (propertyId: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  try {
-    // Check all localStorage keys that match the follow-up pattern
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('rentapp_followup_')) {
-        const followUpList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-        if (followUpList.includes(propertyId)) {
-          return true;
-        }
-      }
-    }
-    // Also check the default key without userId
-    const defaultKey = 'rentapp_followup';
-    const defaultList: string[] = JSON.parse(localStorage.getItem(defaultKey) || '[]');
-    return defaultList.includes(propertyId);
-  } catch (error) {
-    console.error('Error checking follow-up across users:', error);
-    return false;
-  }
+  const status = getPropertyStatus(propertyId);
+  return status?.status === 'followup';
 };
 
-// Get all follow-up properties
-export const getFollowUpProperties = (userId?: string): DisplayProperty[] => {
+// Get all follow-up properties (shared across all users)
+export const getFollowUpProperties = (): DisplayProperty[] => {
   try {
-    const followUpIds = getFollowUpPropertyIds(userId);
-    const closedIds = getClosedPropertyIds(userId);
+    const followUpIds = getFollowUpPropertyIds();
     const allProperties = getAllProperties();
-    // Filter out properties that are closed
-    return allProperties.filter(property => 
-      followUpIds.includes(property.id) && !closedIds.includes(property.id)
-    );
+    return allProperties.filter(property => followUpIds.includes(property.id));
   } catch (error) {
     console.error('Error getting follow-up properties:', error);
     return [];
   }
 };
 
-// Remove a property from follow-up list
-export const removeFromFollowUp = (propertyId: string, userId?: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  
+// Get follow-up properties by a specific staff member
+// Returns properties marked as follow-up by this staff member OR properties in follow-up status with notes
+export const getFollowUpPropertiesByStaff = (staffId: string): DisplayProperty[] => {
   try {
-    const key = getFollowUpStorageKey(userId);
-    const followUpList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-    const filtered = followUpList.filter(id => id !== propertyId);
-    localStorage.setItem(key, JSON.stringify(filtered));
+    const statusMap = getPropertyStatusMap();
+    const allProperties = getAllProperties();
     
-    // Dispatch custom event
-    window.dispatchEvent(new CustomEvent('followUpChanged'));
-    return true;
-  } catch (error) {
-    console.error('Error removing from follow-up:', error);
-    return false;
-  }
-};
-
-// Closed properties storage
-const getClosedStorageKey = (userId?: string) => {
-  return userId ? `rentapp_closed_${userId}` : 'rentapp_closed';
-};
-
-// Add a property to closed list
-export const addToClosed = (propertyId: string, userId?: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  try {
-    const key = getClosedStorageKey(userId);
-    const closedList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-    
-    // Check if already in list
-    if (!closedList.includes(propertyId)) {
-      closedList.push(propertyId);
-      localStorage.setItem(key, JSON.stringify(closedList));
+    // Filter properties that:
+    // 1. Are marked as follow-up by this staff member, OR
+    // 2. Are in follow-up status AND have notes (contributed to notes)
+    return allProperties.filter(property => {
+      const status = statusMap[property.id];
+      if (!status || status.status !== 'followup') return false;
       
-      // Remove from follow-up list if it exists there
-      const followUpKey = getFollowUpStorageKey(userId);
-      const followUpList: string[] = JSON.parse(localStorage.getItem(followUpKey) || '[]');
-      if (followUpList.includes(propertyId)) {
-        const filtered = followUpList.filter(id => id !== propertyId);
-        localStorage.setItem(followUpKey, JSON.stringify(filtered));
-        // Dispatch follow-up changed event
-        window.dispatchEvent(new CustomEvent('followUpChanged'));
+      // Check if marked as follow-up by this staff member
+      if (status.updatedBy?.id === staffId) {
+        return true;
       }
       
-      // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('closedChanged'));
-      return true;
-    }
-    return false;
+      // Check if property has notes (staff contributed to notes)
+      const notes = getStaffNotes(property.id);
+      if (notes && notes.trim().length > 0) {
+        return true;
+      }
+      
+      return false;
+    });
   } catch (error) {
-    console.error('Error adding to closed:', error);
-    return false;
+    console.error('Error getting follow-up properties by staff:', error);
+    return [];
   }
 };
 
-// Get all closed property IDs
-export const getClosedPropertyIds = (userId?: string): string[] => {
+// Remove a property from follow-up list (set to default) - staff only
+export const removeFromFollowUp = (propertyId: string, userId?: string, staffName?: string): boolean => {
+  if (typeof window === 'undefined' || !userId || !staffName) return false;
+  
+  return setPropertyStatus(propertyId, 'default', userId, staffName);
+};
+
+// Add a property to closed list (staff only)
+export const addToClosed = (propertyId: string, userId?: string, staffName?: string): boolean => {
+  if (typeof window === 'undefined' || !userId || !staffName) return false;
+  
+  return setPropertyStatus(propertyId, 'closed', userId, staffName);
+};
+
+// Get all closed property IDs (shared across all users)
+export const getClosedPropertyIds = (): string[] => {
   if (typeof window === 'undefined') return [];
   
   try {
-    const key = getClosedStorageKey(userId);
-    return JSON.parse(localStorage.getItem(key) || '[]');
+    const statusMap = getPropertyStatusMap();
+    return Object.keys(statusMap).filter(id => statusMap[id].status === 'closed');
   } catch (error) {
     console.error('Error reading closed properties:', error);
     return [];
   }
 };
 
-// Check if a property is closed across ALL users (for admin/staff visibility)
+// Check if a property is closed (shared across all users)
 export const isPropertyClosedAnyUser = (propertyId: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  try {
-    // Check all localStorage keys that match the closed pattern
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('rentapp_closed_')) {
-        const closedList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-        if (closedList.includes(propertyId)) {
-          return true;
-        }
-      }
-    }
-    // Also check the default key without userId
-    const defaultKey = 'rentapp_closed';
-    const defaultList: string[] = JSON.parse(localStorage.getItem(defaultKey) || '[]');
-    return defaultList.includes(propertyId);
-  } catch (error) {
-    console.error('Error checking closed across users:', error);
-    return false;
-  }
+  const status = getPropertyStatus(propertyId);
+  return status?.status === 'closed';
 };
 
-// Get all closed properties
-export const getClosedProperties = (userId?: string): DisplayProperty[] => {
+// Get all closed properties (shared across all users)
+export const getClosedProperties = (): DisplayProperty[] => {
   try {
-    const closedIds = getClosedPropertyIds(userId);
+    const closedIds = getClosedPropertyIds();
     const allProperties = getAllProperties();
     return allProperties.filter(property => closedIds.includes(property.id));
   } catch (error) {
@@ -716,29 +713,28 @@ export const getClosedProperties = (userId?: string): DisplayProperty[] => {
   }
 };
 
-// Remove a property from closed list
-export const removeFromClosed = (propertyId: string, userId?: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  
+// Get closed properties by a specific staff member
+export const getClosedPropertiesByStaff = (staffId: string): DisplayProperty[] => {
   try {
-    const key = getClosedStorageKey(userId);
-    const closedList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+    const statusMap = getPropertyStatusMap();
+    const allProperties = getAllProperties();
     
-    if (closedList.includes(propertyId)) {
-      const filtered = closedList.filter(id => id !== propertyId);
-      localStorage.setItem(key, JSON.stringify(filtered));
-      
-      // Do not automatically add to follow-up - just remove from closed
-      
-      // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('closedChanged'));
-      return true;
-    }
-    return false;
+    // Filter properties that are closed AND were closed by this staff member
+    return allProperties.filter(property => {
+      const status = statusMap[property.id];
+      return status?.status === 'closed' && status?.updatedBy?.id === staffId;
+    });
   } catch (error) {
-    console.error('Error removing from closed:', error);
-    return false;
+    console.error('Error getting closed properties by staff:', error);
+    return [];
   }
+};
+
+// Remove a property from closed list (set to default) - staff only
+export const removeFromClosed = (propertyId: string, userId?: string, staffName?: string): boolean => {
+  if (typeof window === 'undefined' || !userId || !staffName) return false;
+  
+  return setPropertyStatus(propertyId, 'default', userId, staffName);
 };
 
 // Get shared staff notes for a property

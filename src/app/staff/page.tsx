@@ -7,14 +7,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ShieldCheck, Archive, Clock, Menu, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getFollowUpProperties, getClosedProperties } from '@/utils/propertyUtils';
+import { getFollowUpPropertiesByStaff, getClosedPropertiesByStaff } from '@/utils/propertyUtils';
 
 type ViewType = 'closed' | 'followup';
 
 export default function StaffPortalPage() {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, isImpersonating } = useAuth();
   const router = useRouter();
   const wasAuthenticatedRef = useRef(isAuthenticated);
+  const wasImpersonatingRef = useRef(isImpersonating);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('closed');
@@ -27,13 +28,13 @@ export default function StaffPortalPage() {
 
   useEffect(() => {
     // Load data when approved staff
-    if (isApproved && typeof window !== 'undefined') {
-      // Closed properties are those that have been marked as closed/rented
-      const closed = getClosedProperties(user?.id);
+    if (isApproved && typeof window !== 'undefined' && user?.id) {
+      // Closed properties are those that have been marked as closed/rented by this staff member
+      const closed = getClosedPropertiesByStaff(user.id);
       setClosedProperties(closed.length);
       
-      // Follow up properties are those that have been pinged
-      const followUp = getFollowUpProperties(user?.id);
+      // Follow up properties are those that have been pinged by this staff member
+      const followUp = getFollowUpPropertiesByStaff(user.id);
       setFollowUpProperties(followUp.length);
     } else {
       // Reset counts when not approved
@@ -44,14 +45,16 @@ export default function StaffPortalPage() {
 
   // Listen for follow-up changes
   useEffect(() => {
-    if (isApproved && typeof window !== 'undefined') {
+    if (isApproved && typeof window !== 'undefined' && user?.id) {
       const handleFollowUpChange = () => {
-        const followUp = getFollowUpProperties(user?.id);
+        const followUp = getFollowUpPropertiesByStaff(user.id);
         setFollowUpProperties(followUp.length);
       };
 
+      window.addEventListener('propertyStatusChanged', handleFollowUpChange);
       window.addEventListener('followUpChanged', handleFollowUpChange);
       return () => {
+        window.removeEventListener('propertyStatusChanged', handleFollowUpChange);
         window.removeEventListener('followUpChanged', handleFollowUpChange);
       };
     }
@@ -59,14 +62,16 @@ export default function StaffPortalPage() {
 
   // Listen for closed properties changes
   useEffect(() => {
-    if (isApproved && typeof window !== 'undefined') {
+    if (isApproved && typeof window !== 'undefined' && user?.id) {
       const handleClosedChange = () => {
-        const closed = getClosedProperties(user?.id);
+        const closed = getClosedPropertiesByStaff(user.id);
         setClosedProperties(closed.length);
       };
 
+      window.addEventListener('propertyStatusChanged', handleClosedChange);
       window.addEventListener('closedChanged', handleClosedChange);
       return () => {
+        window.removeEventListener('propertyStatusChanged', handleClosedChange);
         window.removeEventListener('closedChanged', handleClosedChange);
       };
     }
@@ -83,6 +88,15 @@ export default function StaffPortalPage() {
     }
     wasAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    // Detect when impersonation ends - redirect to admin homepage
+    if (wasImpersonatingRef.current && !isImpersonating && !isLoading && user?.role === 'admin') {
+      // Redirect to admin homepage when impersonation ends
+      router.push('/admin');
+    }
+    wasImpersonatingRef.current = isImpersonating;
+  }, [isImpersonating, isLoading, user?.role, router]);
 
   const renderContent = () => {
     // Wait silently during loading - don't show anything
@@ -154,8 +168,8 @@ export default function StaffPortalPage() {
               <p className="text-lg font-medium text-gray-900">[{followUpProperties}]</p>
             </div>
             <div className="space-y-2 sm:space-y-3 lg:space-y-6">
-                {followUpProperties > 0 ? (
-                  getFollowUpProperties(user?.id).map((property) => (
+                {followUpProperties > 0 && user?.id ? (
+                  getFollowUpPropertiesByStaff(user.id).map((property) => (
                     <PropertyCard key={property.id} property={property} showBookmarkConfirmation={false} showNotesButton={true} />
                   ))
               ) : (
@@ -253,8 +267,8 @@ export default function StaffPortalPage() {
               <p className="text-lg font-medium text-gray-900">[{closedProperties}]</p>
             </div>
             <div className="space-y-2 sm:space-y-3 lg:space-y-6">
-              {closedProperties > 0 ? (
-                getClosedProperties(user?.id).map((property) => (
+              {closedProperties > 0 && user?.id ? (
+                getClosedPropertiesByStaff(user.id).map((property) => (
                   <PropertyCard key={property.id} property={property} showBookmarkConfirmation={false} showClosedButton={true} />
                 ))
               ) : (

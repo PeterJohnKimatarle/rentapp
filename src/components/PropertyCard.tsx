@@ -3,16 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Image, Clock, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight, Phone, MessageCircle, FileText, Check, MoreVertical } from 'lucide-react';
 import { Property } from '@/data/properties';
-import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, getFollowUpPropertyIds, removeFromFollowUp, addToClosed, getClosedPropertyIds, removeFromClosed, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser, getPropertyNotesAnyUser, getStaffNotes, saveStaffNotes } from '@/utils/propertyUtils';
-
-// Helper functions for storage keys (matching propertyUtils.ts)
-const getClosedStorageKey = (userId?: string) => {
-  return userId ? `rentapp_closed_${userId}` : 'rentapp_closed';
-};
-
-const getFollowUpStorageKey = (userId?: string) => {
-  return userId ? `rentapp_followup_${userId}` : 'rentapp_followup';
-};
+import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser, getPropertyStatus, getStaffNotes, saveStaffNotes } from '@/utils/propertyUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import ImageLightbox from './ImageLightbox';
 import SharePopup from './SharePopup';
@@ -144,6 +135,12 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   // Check if property is already pinged
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Don't check follow-up if property is closed (closed takes precedence)
+      if (showClosedButton || isClosed) {
+        setIsPinged(false);
+        return;
+      }
+      
       // If showNotesButton is true, property is definitely in follow-up - set immediately
       if (showNotesButton) {
         setIsPinged(true);
@@ -151,24 +148,29 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       }
       
       const checkPinged = () => {
-        // For admin/staff, check across all users; for regular users, check only their own
-        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
-          const pinged = isPropertyInFollowUpAnyUser(property.id);
-          setIsPinged(pinged);
-        } else if (userId) {
-          const pinged = getFollowUpPropertyIds(userId).includes(property.id);
-          setIsPinged(pinged);
+        // Skip if property is closed
+        if (showClosedButton || isClosed) {
+          setIsPinged(false);
+          return;
         }
+        
+        // Check shared status (same for all users)
+        const pinged = isPropertyInFollowUpAnyUser(property.id);
+        setIsPinged(pinged);
       };
       checkPinged();
 
-      // Listen for follow-up changes
+      // Listen for status changes
+      window.addEventListener('propertyStatusChanged', checkPinged);
       window.addEventListener('followUpChanged', checkPinged);
+      window.addEventListener('closedChanged', checkPinged);
       return () => {
+        window.removeEventListener('propertyStatusChanged', checkPinged);
         window.removeEventListener('followUpChanged', checkPinged);
+        window.removeEventListener('closedChanged', checkPinged);
       };
     }
-  }, [property.id, userId, showNotesButton, user?.role, user?.isApproved]);
+  }, [property.id, showNotesButton, showClosedButton, isClosed]);
 
   // Check if property is already closed
   useEffect(() => {
@@ -180,28 +182,28 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       }
       
       const checkClosed = () => {
-        // For admin/staff, check across all users; for regular users, check only their own
-        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
-          const closed = isPropertyClosedAnyUser(property.id);
-          setIsClosed(closed);
-        } else if (userId) {
-          const closed = getClosedPropertyIds(userId).includes(property.id);
-          setIsClosed(closed);
-        }
+        // Check shared status (same for all users)
+        const closed = isPropertyClosedAnyUser(property.id);
+        setIsClosed(closed);
       };
       checkClosed();
 
-      // Listen for closed changes
+      // Listen for status changes
+      window.addEventListener('propertyStatusChanged', checkClosed);
       window.addEventListener('closedChanged', checkClosed);
+      window.addEventListener('followUpChanged', checkClosed);
       return () => {
+        window.removeEventListener('propertyStatusChanged', checkClosed);
         window.removeEventListener('closedChanged', checkClosed);
+        window.removeEventListener('followUpChanged', checkClosed);
       };
     }
-  }, [property.id, userId, showClosedButton, user?.role, user?.isApproved]);
+  }, [property.id, showClosedButton, isPinged]);
 
   // Check if property has notes
   useEffect(() => {
-    if (typeof window !== 'undefined' && (showNotesButton || isPinged)) {
+    // Don't check notes if property is closed (closed takes precedence)
+    if (typeof window !== 'undefined' && (showNotesButton || isPinged) && !(showClosedButton || isClosed)) {
       const checkNotes = () => {
         // Only staff/admin can have notes - check shared staff notes
         if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
@@ -219,8 +221,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         window.removeEventListener('storage', checkNotes);
         window.removeEventListener('notesChanged', checkNotes);
       };
+    } else if (showClosedButton || isClosed) {
+      // Clear notes indicator if property is closed
+      setHasNotes(false);
     }
-  }, [property.id, userId, showNotesButton, isPinged, user?.role, user?.isApproved]);
+  }, [property.id, userId, showNotesButton, isPinged, showClosedButton, isClosed, user?.role, user?.isApproved]);
 
   // Detect keyboard visibility and move modal up by 100px when keyboard is visible
   useEffect(() => {
@@ -293,11 +298,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
     return typeMap[propertyType] || propertyType.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
-  const handleImageClick = () => {
-    setIsLightboxOpen(true);
-    setCurrentImageIndex(previewImageIndex);
-    
-    // Mark this property as the last viewed (for blue dot indicator)
+  // Helper function to mark property as last viewed (for blue dot indicator)
+  const markPropertyAsViewed = () => {
     if (property.id) {
       // Store in sessionStorage for persistence across component remounts
       sessionStorage.setItem('lastViewedPropertyId', property.id);
@@ -305,6 +307,12 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       const evt = new CustomEvent('lastViewedPropertyChanged', { detail: { id: property.id } });
       window.dispatchEvent(evt);
     }
+  };
+
+  const handleImageClick = () => {
+    setIsLightboxOpen(true);
+    setCurrentImageIndex(previewImageIndex);
+    markPropertyAsViewed();
   };
 
   const handlePreviousImage = (e: React.MouseEvent) => {
@@ -783,6 +791,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    markPropertyAsViewed(); // Track property view
                     // Only open notes modal when in Follow Up (Notes state)
                     if (showNotesButton || isPinged) {
                       if (typeof window !== 'undefined') {
@@ -808,20 +817,22 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     }
                   }}
                 >
-                  {(showNotesButton || isPinged) && hasNotes && (
+                  {(showNotesButton || isPinged) && !(showClosedButton || isClosed) && hasNotes && (
                     <span className="w-2 h-2 rounded-full flex-shrink-0 -ml-2" style={{ backgroundColor: '#fbbf24' }}></span>
                   )}
-                  {(showNotesButton || isPinged) ? (
+                  {(showClosedButton || isClosed) ? (
+                    <>
+                      <Check size={18} className="text-white" strokeWidth={3} />
+                      <span className="select-none" style={{ WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', userSelect: 'none' }}>Closed</span>
+                    </>
+                  ) : (showNotesButton || isPinged) ? (
                     <>
                       <FileText size={18} />
                       <span className="select-none" style={{ WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', userSelect: 'none' }}>Notes</span>
                     </>
                   ) : (
                     <>
-                      {(showClosedButton || isClosed) && <Check size={18} className="text-white" strokeWidth={3} />}
-                      <span className="select-none" style={{ WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', userSelect: 'none' }}>
-                        {(showClosedButton || isClosed) ? 'Closed' : 'Default'}
-                      </span>
+                      <span className="select-none" style={{ WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', userSelect: 'none' }}>Default</span>
                     </>
                   )}
                 </button>
@@ -832,6 +843,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    markPropertyAsViewed(); // Track property view
                     // For admin users, show message instead of opening modal
                     if (user?.role === 'admin') {
                       setInfoModalMessage('Property actions are handled by staff members only.');
@@ -1327,17 +1339,19 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           >
             <div className="space-y-2">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Set to Idle (remove from both lists)
-                  if (isPinged) {
-                    removeFromFollowUp(property.id, userId);
-                  }
-                  if (isClosed) {
-                    removeFromClosed(property.id, userId);
-                  }
-                  setShowStatusModal(false);
-                }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Only staff can change status (admin is read-only)
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                      if (isPinged) {
+                        removeFromFollowUp(property.id, userId, user.name);
+                      }
+                      if (isClosed) {
+                        removeFromClosed(property.id, userId, user.name);
+                      }
+                    }
+                    setShowStatusModal(false);
+                  }}
                 className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
                 style={{ backgroundColor: 'rgba(107, 114, 128, 0.9)' }}
                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(107, 114, 128, 1)'}
@@ -1348,10 +1362,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!isPinged && !isClosed) {
-                    addToFollowUp(property.id, userId);
-                  } else if (isPinged) {
-                    removeFromFollowUp(property.id, userId);
+                  // Only staff can change status (admin is read-only)
+                  if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (isPinged) {
+                      removeFromFollowUp(property.id, userId, user.name);
+                    } else {
+                      addToFollowUp(property.id, userId, user.name);
+                    }
                   }
                   setShowStatusModal(false);
                 }}
@@ -1365,10 +1382,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!isClosed) {
-                    addToClosed(property.id, userId);
-                  } else {
-                    removeFromClosed(property.id, userId);
+                  // Only staff can change status (admin is read-only)
+                  if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (isClosed) {
+                      removeFromClosed(property.id, userId, user.name);
+                    } else {
+                      addToClosed(property.id, userId, user.name);
+                    }
                   }
                   setShowStatusModal(false);
                 }}
@@ -1422,12 +1442,15 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
-                    // Set to Idle (remove from both lists)
-                    if (isPinged) {
-                      removeFromFollowUp(property.id, userId);
-                    }
-                    if (isClosed) {
-                      removeFromClosed(property.id, userId);
+                    // Only staff can change status (admin is read-only)
+                    // This will override follow-up status if property is in follow-up
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                      if (isPinged) {
+                        removeFromFollowUp(property.id, userId, user.name);
+                      }
+                      if (isClosed) {
+                        removeFromClosed(property.id, userId, user.name);
+                      }
                     }
                   }}
                   className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
@@ -1449,8 +1472,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
-                    // Allow adding to follow-up even if closed
-                    addToFollowUp(property.id, userId);
+                    // Only staff can change status (admin is read-only)
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                      addToFollowUp(property.id, userId, user.name);
+                    }
                   }}
                   className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
                   style={{ 
@@ -1471,7 +1496,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
-                    addToClosed(property.id, userId);
+                    // Only staff can change status (admin is read-only)
+                    // This will override follow-up status if property is in follow-up
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                      addToClosed(property.id, userId, user.name);
+                    }
                   }}
                   className="w-full px-4 py-3 rounded-lg font-medium text-white text-base flex items-center justify-center gap-2 select-none"
                   style={{ 
