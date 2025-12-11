@@ -1359,46 +1359,43 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               >
                 Default
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Only staff can change status (admin is read-only)
-                  if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                    if (isPinged) {
-                      removeFromFollowUp(property.id, userId, user.name);
-                    } else {
+              {!isPinged && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Only staff can change status (admin is read-only)
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
                     }
-                  }
-                  setShowStatusModal(false);
-                }}
-                className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.9)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.9)'}
-              >
-                {isPinged ? 'Remove from Follow Up' : 'Set to Follow Up'}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Only staff can change status (admin is read-only)
-                  if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                    if (isClosed) {
-                      removeFromClosed(property.id, userId, user.name);
-                    } else {
+                    setShowStatusModal(false);
+                  }}
+                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
+                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.9)' }}
+                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
+                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.9)'}
+                >
+                  Set to Follow Up
+                </button>
+              )}
+              {!isClosed && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Only staff can change status (admin is read-only)
+                    // This will override follow-up status if property is in follow-up
+                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToClosed(property.id, userId, user.name);
                     }
-                  }
-                  setShowStatusModal(false);
-                }}
-                className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
-                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
-                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
-              >
-                {isClosed ? 'Remove from Closed' : 'Set to Closed'}
-              </button>
+                    setShowStatusModal(false);
+                  }}
+                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
+                  style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
+                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
+                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
+                >
+                  Set to Closed
+                </button>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();

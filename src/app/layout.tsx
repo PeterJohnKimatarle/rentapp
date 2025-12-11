@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import UserTracking from "@/components/UserTracking";
 
 export const metadata: Metadata = {
   title: "Rentapp - Tanzania's #1 Renting Platform",
@@ -23,7 +24,8 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
-        {children}
+          <UserTracking />
+          {children}
         </AuthProvider>
       </body>
     </html>

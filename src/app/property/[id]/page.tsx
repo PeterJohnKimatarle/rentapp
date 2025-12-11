@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { MapPin, Bed, Bath, Square, ArrowLeft, Phone, Mail, Calendar, Share2, Image as ImageIcon, Clock, Heart, MessageCircle, FileText, Check, MoreVertical, Radio } from 'lucide-react';
-import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, confirmPropertyStatus, getStatusConfirmation, updateProperty, getPropertyById, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser, getStaffNotes, saveStaffNotes } from '@/utils/propertyUtils';
+import { MapPin, Bed, Bath, Square, ArrowLeft, Phone, Mail, Calendar, Share2, Image as ImageIcon, Clock, Heart, MessageCircle } from 'lucide-react';
+import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark } from '@/utils/propertyUtils';
 import ImageLightbox from '@/components/ImageLightbox';
 import SharePopup from '@/components/SharePopup';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
-import { ShareManager } from '@/utils/shareUtils';
 
 export default function PropertyDetailsPage() {
   const params = useParams();
@@ -24,42 +23,15 @@ export default function PropertyDetailsPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingModalType, setBookingModalType] = useState<'book' | 'status'>('book');
-  const [isPinged, setIsPinged] = useState(false);
-  const [isClosed, setIsClosed] = useState(false);
-  const [showThreeDotsModal, setShowThreeDotsModal] = useState(false);
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [infoModalMessage, setInfoModalMessage] = useState('');
-  const [notes, setNotes] = useState('');
-  const [hasNotes, setHasNotes] = useState(false);
-  const [showUpdatedDateModal, setShowUpdatedDateModal] = useState(false);
-  const [showStatusConfirmationModal, setShowStatusConfirmationModal] = useState(false);
-  const [showConfirmByModal, setShowConfirmByModal] = useState(false);
-  const [statusConfirmation, setStatusConfirmation] = useState<{ staffName: string; confirmedAt: string } | null>(null);
-  const [showStatusUpdateModal, setShowStatusUpdateModal] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>('');
 
   // Prevent body scrolling when booking modal is open
-  usePreventScroll(showBookingModal || showSharePopup || showThreeDotsModal || showNotesModal || showInfoModal || showUpdatedDateModal || showStatusConfirmationModal || showConfirmByModal || showStatusUpdateModal);
+  usePreventScroll(showBookingModal || showSharePopup);
 
   useEffect(() => {
     const propertyId = params.id as string;
     const allProperties = getAllProperties();
     const foundProperty = allProperties.find(p => p.id === propertyId);
     setProperty(foundProperty || null);
-    
-    // Check for status confirmation
-    if (propertyId) {
-      const confirmation = getStatusConfirmation(propertyId);
-      if (confirmation) {
-        setStatusConfirmation({
-          staffName: confirmation.staffName,
-          confirmedAt: confirmation.confirmedAt
-        });
-      } else {
-        setStatusConfirmation(null);
-      }
-    }
     
     // Dispatch event to mark this property as the last viewed (for blue dot indicator)
     if (foundProperty) {
@@ -70,39 +42,6 @@ export default function PropertyDetailsPage() {
       window.dispatchEvent(evt);
     }
   }, [params.id]);
-
-  // Helper function to mark property as last viewed (for blue dot indicator)
-  const markPropertyAsViewed = () => {
-    if (property?.id) {
-      // Store in sessionStorage for persistence across component remounts
-      sessionStorage.setItem('lastViewedPropertyId', property.id);
-      // Dispatch event to update all PropertyCard components
-      const evt = new CustomEvent('lastViewedPropertyChanged', { detail: { id: property.id } });
-      window.dispatchEvent(evt);
-    }
-  };
-
-  // Listen for status confirmation changes
-  useEffect(() => {
-    const handleStatusConfirmationChanged = () => {
-      if (property?.id) {
-        const confirmation = getStatusConfirmation(property.id);
-        if (confirmation) {
-          setStatusConfirmation({
-            staffName: confirmation.staffName,
-            confirmedAt: confirmation.confirmedAt
-          });
-        } else {
-          setStatusConfirmation(null);
-        }
-      }
-    };
-
-    window.addEventListener('statusConfirmationChanged', handleStatusConfirmationChanged);
-    return () => {
-      window.removeEventListener('statusConfirmationChanged', handleStatusConfirmationChanged);
-    };
-  }, [property?.id]);
 
   // Update Open Graph meta tags for WhatsApp preview
   useEffect(() => {
@@ -184,93 +123,6 @@ export default function PropertyDetailsPage() {
     };
   }, [property, userId]);
 
-  // Check if property is in follow-up
-  useEffect(() => {
-    if (typeof window !== 'undefined' && property) {
-      const checkPinged = () => {
-        // Don't check follow-up if property is closed (closed takes precedence)
-        if (isClosed) {
-          setIsPinged(false);
-          return;
-        }
-        
-        // Check shared status (same for all users)
-        const closed = isPropertyClosedAnyUser(property.id);
-        if (closed) {
-          setIsPinged(false);
-          return;
-        }
-        const pinged = isPropertyInFollowUpAnyUser(property.id);
-        setIsPinged(pinged);
-      };
-      checkPinged();
-      window.addEventListener('propertyStatusChanged', checkPinged);
-      window.addEventListener('followUpChanged', checkPinged);
-      window.addEventListener('closedChanged', checkPinged);
-      return () => {
-        window.removeEventListener('propertyStatusChanged', checkPinged);
-        window.removeEventListener('followUpChanged', checkPinged);
-        window.removeEventListener('closedChanged', checkPinged);
-      };
-    }
-  }, [property?.id, isClosed]);
-
-  // Check if property is closed
-  useEffect(() => {
-    if (typeof window !== 'undefined' && property) {
-      const checkClosed = () => {
-        // Check shared status (same for all users)
-        const closed = isPropertyClosedAnyUser(property.id);
-        setIsClosed(closed);
-        // If closed, clear follow-up status
-        if (closed) {
-          setIsPinged(false);
-        }
-      };
-      checkClosed();
-      // Listen for status changes
-      window.addEventListener('propertyStatusChanged', checkClosed);
-      window.addEventListener('closedChanged', checkClosed);
-      window.addEventListener('followUpChanged', checkClosed);
-      return () => {
-        window.removeEventListener('propertyStatusChanged', checkClosed);
-        window.removeEventListener('closedChanged', checkClosed);
-        window.removeEventListener('followUpChanged', checkClosed);
-      };
-    }
-  }, [property?.id, isPinged]);
-
-  // Check if property has notes
-  useEffect(() => {
-    // Don't check notes if property is closed (closed takes precedence)
-    if (typeof window !== 'undefined' && property && !isClosed && (isPinged || (user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
-      const checkNotes = () => {
-        // Skip if property is closed
-        if (isClosed) {
-          setHasNotes(false);
-          return;
-        }
-        // Only staff/admin can have notes - check shared staff notes
-        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
-          const notes = getStaffNotes(property.id);
-          setHasNotes(notes.trim().length > 0);
-        }
-      };
-      checkNotes();
-      // Listen for notes changes (could be updated from other components)
-      const handleNotesChange = () => checkNotes();
-      window.addEventListener('notesChanged', handleNotesChange);
-      window.addEventListener('closedChanged', checkNotes);
-      return () => {
-        window.removeEventListener('notesChanged', handleNotesChange);
-        window.removeEventListener('closedChanged', checkNotes);
-      };
-    } else if (isClosed) {
-      // Clear notes indicator if property is closed
-      setHasNotes(false);
-    }
-  }, [property?.id, userId, isPinged, isClosed, user?.role]);
-
   const handleBookmarkClick = () => {
     if (!property) {
       return;
@@ -310,62 +162,47 @@ export default function PropertyDetailsPage() {
     return typeMap[propertyType] || propertyType.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const dateTime = date.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-    return `${dayOfWeek}, ${dateTime}`;
-  };
-
   const getRelativeTime = (dateString: string) => {
     const now = new Date();
     const updatedAt = new Date(dateString);
     let diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
-
+    
     // Ensure minimum is 2 seconds (handle 0, 1, and negative values)
     if (diffInSeconds < 2) {
       diffInSeconds = 2;
     }
-
+    
     if (diffInSeconds < 60) {
       return `${diffInSeconds} sec${diffInSeconds === 1 ? '' : 's'} ago`;
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    } else if (diffInSeconds < 2592000) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days === 1 ? '' : 's'} ago`;
-    } else if (diffInSeconds < 31536000) {
-      const months = Math.floor(diffInSeconds / 2592000);
-      return `${months} month${months === 1 ? '' : 's'} ago`;
-    } else {
-      const years = Math.floor(diffInSeconds / 31536000);
-      if (years >= 3) {
-        return '3+ years ago';
-      }
-      return `${years} year${years === 1 ? '' : 's'} ago`;
     }
+    
+    let diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} min${diffInMinutes === 1 ? '' : 's'} ago`;
+    }
+    
+    let diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    }
+    
+    let diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    }
+    
+    let diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
+    }
+    
+    let diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+      return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
+    }
+    
+    let diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
   };
 
   const handleShareClick = () => {
@@ -409,31 +246,10 @@ export default function PropertyDetailsPage() {
       <div className="bg-gray-50">
         {/* Property Title */}
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 pb-1.5">
-          <div className="rounded-lg py-2 relative" style={{ backgroundColor: '#0071c2' }}>
+          <div className="rounded-lg py-2" style={{ backgroundColor: '#0071c2' }}>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">
               {property.title}
             </h1>
-            {/* Three Dots for Staff/Admin - Status Update */}
-            {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowStatusUpdateModal(true);
-                }}
-                className="absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center justify-center text-white cursor-pointer select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-                title="Update Status"
-              >
-                <MoreVertical size={24} />
-              </button>
-            )}
           </div>
         </div>
 
@@ -447,8 +263,8 @@ export default function PropertyDetailsPage() {
               className={`w-full h-full object-cover ${property.images && property.images.length > 1 ? 'cursor-pointer' : ''}`}
               onClick={() => {
                 if (property.images && property.images.length > 1) {
-                setCurrentImageIndex(displayedImageIndex);
-                setIsLightboxOpen(true);
+                  setCurrentImageIndex(displayedImageIndex);
+                  setIsLightboxOpen(true);
                 }
               }}
             />
@@ -476,15 +292,7 @@ export default function PropertyDetailsPage() {
             )}
             
             {/* Status Badge */}
-            <div 
-              className={`absolute top-3 left-2 z-30 ${((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? 'cursor-pointer' : ''}`}
-              onClick={(e) => {
-                if ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') {
-                  e.stopPropagation();
-                  setShowStatusConfirmationModal(true);
-                }
-              }}
-            >
+            <div className="absolute top-3 left-2">
               <span className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 border-black ${
                 property.status === 'available' 
                   ? 'bg-green-400 text-black' 
@@ -515,7 +323,7 @@ export default function PropertyDetailsPage() {
                   strokeWidth: 1.5
                 }}
               />
-            </div>
+      </div>
 
             {/* Bookmark Icon */}
             <div 
@@ -546,8 +354,8 @@ export default function PropertyDetailsPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   if (property.images && property.images.length > 1) {
-                  setCurrentImageIndex(displayedImageIndex);
-                  setIsLightboxOpen(true);
+                    setCurrentImageIndex(displayedImageIndex);
+                    setIsLightboxOpen(true);
                   }
                 }}
               >
@@ -562,8 +370,8 @@ export default function PropertyDetailsPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   if (property.images && property.images.length > 1) {
-                  setCurrentImageIndex(displayedImageIndex);
-                  setIsLightboxOpen(true);
+                    setCurrentImageIndex(displayedImageIndex);
+                    setIsLightboxOpen(true);
                   }
                 }}
               >
@@ -572,118 +380,21 @@ export default function PropertyDetailsPage() {
             )}
 
             {/* Confirm & Book / Confirm Status Button - Desktop Only */}
-            <div className="hidden xl:block absolute bottom-2 right-2 z-30 flex items-center gap-2">
-              {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markPropertyAsViewed(); // Track property view
-                        // Only open notes modal when in Follow Up (Notes state)
-                        if (isPinged) {
-                          if (typeof window !== 'undefined' && property) {
-                            // For staff/admin, get shared staff notes; for regular users, get their own
-                            if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
-                              const notes = getStaffNotes(property.id);
-                              setNotes(notes);
-                            } else if (user?.id) {
-                              const key = `rentapp_notes_${user.id}_${property.id}`;
-                              const savedNotes = localStorage.getItem(key) || '';
-                              setNotes(savedNotes);
-                            }
-                          }
-                          setShowNotesModal(true);
-                        } else if (isClosed) {
-                          // Show message when Closed button is clicked
-                          setInfoModalMessage('This property has been rented successfully.');
-                          setShowInfoModal(true);
-                        } else {
-                          // Show message when Default button is clicked
-                          setInfoModalMessage('This property has no any activity going on.');
-                          setShowInfoModal(true);
-                        }
-                      }}
-                      className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
-                      style={{ 
-                        backgroundColor: isClosed
-                          ? 'rgba(34, 197, 94, 0.9)' 
-                          : isPinged
-                            ? 'rgba(59, 130, 246, 0.9)' 
-                            : 'rgba(107, 114, 128, 0.9)',
-                        WebkitTapHighlightColor: 'transparent',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        userSelect: 'none',
-                        outline: 'none'
-                      }}
-                    >
-                      {isPinged && !isClosed && hasNotes && (
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 -ml-2" style={{ backgroundColor: '#fbbf24' }}></span>
-                      )}
-                      {isClosed ? (
-                        <>
-                          <Check size={18} className="text-white" strokeWidth={3} />
-                          <span className="text-sm xl:text-base font-medium">Closed</span>
-                        </>
-                      ) : isPinged ? (
-                        <>
-                          <FileText size={18} />
-                          <span className="text-sm xl:text-base font-medium">Notes</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-sm xl:text-base font-medium">Default</span>
-                        </>
-                      )}
-                    </button>
-                    {/* Three Dots Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markPropertyAsViewed(); // Track property view
-                        // For admin users, show message instead of opening modal
-                        if (user?.role === 'admin') {
-                          setInfoModalMessage('Property actions are handled by staff members only.');
-                          setShowInfoModal(true);
-                          return;
-                        }
-                        setShowThreeDotsModal(true);
-                      }}
-                      className="flex items-center justify-center w-10 h-10 text-white rounded-lg flex-shrink-0 shadow-lg select-none"
-                      style={{ 
-                        minWidth: '2.5rem', 
-                        minHeight: '2.5rem',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        WebkitTapHighlightColor: 'transparent',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        userSelect: 'none',
-                        outline: 'none'
-                      }}
-                      title="Options"
-                    >
-                      <MoreVertical size={20} />
-                    </button>
-                  </>
-                ) : property.status === 'available' ? (
+            {(!user || (user.role !== 'admin' && user.role !== 'staff')) && (
+              <div className="hidden xl:block absolute bottom-2 right-2 z-30">
+                {property.status === 'available' ? (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setBookingModalType('book');
                       setShowBookingModal(true);
                     }}
-                    className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
+                    className="text-white transition-colors rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg"
                     style={{ 
-                      backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                      WebkitTapHighlightColor: 'transparent',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      userSelect: 'none',
-                      outline: 'none'
+                      backgroundColor: 'rgba(34, 197, 94, 0.9)'
                     }}
+                    onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
+                    onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
                   >
                     <span className="text-sm xl:text-base font-medium">Confirm & Book</span>
                   </button>
@@ -694,27 +405,24 @@ export default function PropertyDetailsPage() {
                       setBookingModalType('status');
                       setShowBookingModal(true);
                     }}
-                    className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
+                    className="text-white transition-colors rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg"
                     style={{ 
-                      backgroundColor: '#f87171',
-                      WebkitTapHighlightColor: 'transparent',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      userSelect: 'none',
-                      outline: 'none'
+                      backgroundColor: '#f87171'
                     }}
+                    onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
+                    onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
                   >
                     <span className="text-sm xl:text-base font-medium">Confirm Status</span>
                   </button>
                 )}
-            </div>
+              </div>
+            )}
             </div>
           </div>
         )}
 
         {/* Content Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" style={{ paddingBottom: (!user || user.role !== 'admin') ? '5rem' : '2rem' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" style={{ paddingBottom: (!user || (user.role !== 'admin' && user.role !== 'staff')) ? '5rem' : '2rem' }}>
           <div className="mt-6 space-y-6 xl:space-y-8">
             {/* Property Information */}
             <div className="space-y-2 xl:space-y-3">
@@ -728,10 +436,7 @@ export default function PropertyDetailsPage() {
                 <MapPin size={12} className="xl:w-4 xl:h-4 mr-1 flex-shrink-0" />
                 <span>{property.location}</span>
               </div>
-              <div 
-                className="text-sm xl:text-base text-gray-600 flex items-center cursor-pointer hover:underline"
-                onClick={() => setShowUpdatedDateModal(true)}
-              >
+              <div className="text-sm xl:text-base text-gray-600 flex items-center">
                 <Clock size={12} className="xl:w-4 xl:h-4 mr-1 flex-shrink-0" />
                 <span>Updated: {getRelativeTime(property.updatedAt)}</span>
               </div>
@@ -743,7 +448,7 @@ export default function PropertyDetailsPage() {
                     <>
                       {'ownerName' in property && property.ownerName && (
                         <div className="text-lg xl:text-xl text-gray-900">
-                          <span className="font-bold">Uploaded by:</span> <span className="ml-1">{property.ownerName}{'uploaderType' in property && property.uploaderType ? ` (${property.uploaderType})` : ''}</span>
+                          <span className="font-bold">Uploaded by:</span> <span className="ml-1">{property.ownerName}</span>
                         </div>
                       )}
                       {'ownerEmail' in property && property.ownerEmail && (
@@ -780,120 +485,26 @@ export default function PropertyDetailsPage() {
                 </div>
                   </div>
             )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-      {/* Fixed Confirm & Book / Confirm Status Button - Mobile Only - Visible for all users */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg px-4 py-3">
-        <div className="max-w-7xl mx-auto flex justify-center gap-2">
-          {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? (
-              <>
-                <button
-                  onClick={() => {
-                    markPropertyAsViewed(); // Track property view
-                    // Only open notes modal when in Follow Up (Notes state)
-                    if (isPinged) {
-                      if (typeof window !== 'undefined' && property) {
-                        // For staff/admin, get shared staff notes; for regular users, get their own
-                        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
-                          const notes = getStaffNotes(property.id);
-                          setNotes(notes);
-                        } else if (user?.id) {
-                          const key = `rentapp_notes_${user.id}_${property.id}`;
-                          const savedNotes = localStorage.getItem(key) || '';
-                          setNotes(savedNotes);
-                        }
-                      }
-                      setShowNotesModal(true);
-                    } else if (isClosed) {
-                      // Show message when Closed button is clicked
-                      setInfoModalMessage('This property has been rented successfully.');
-                      setShowInfoModal(true);
-                    } else {
-                      // Show message when Default button is clicked
-                      setInfoModalMessage('This property has no any activity going on.');
-                      setShowInfoModal(true);
-                    }
-                  }}
-                  className="flex-1 max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
-                  style={{ 
-                    backgroundColor: isClosed
-                      ? 'rgba(34, 197, 94, 0.9)' 
-                      : isPinged
-                        ? 'rgba(59, 130, 246, 0.9)' 
-                        : 'rgba(107, 114, 128, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  {isPinged && !isClosed && hasNotes && (
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 -ml-2" style={{ backgroundColor: '#fbbf24' }}></span>
-                  )}
-                  {isClosed ? (
-                    <>
-                      <Check size={18} className="text-white" strokeWidth={3} />
-                      <span className="text-base xl:text-lg font-medium">Closed</span>
-                    </>
-                  ) : isPinged ? (
-                    <>
-                      <FileText size={18} />
-                      <span className="text-base xl:text-lg font-medium">Notes</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-base xl:text-lg font-medium">Default</span>
-                    </>
-                  )}
-                </button>
-                {/* Three Dots Button */}
-                <button
-                  onClick={() => {
-                    markPropertyAsViewed(); // Track property view
-                    // For admin users, show message instead of opening modal
-                    if (user?.role === 'admin') {
-                      setInfoModalMessage('Property actions are handled by staff members only.');
-                      setShowInfoModal(true);
-                      return;
-                    }
-                    setShowThreeDotsModal(true);
-                  }}
-                  className="flex items-center justify-center w-12 h-12 text-gray-700 rounded-lg flex-shrink-0 select-none"
-                  style={{ 
-                    minWidth: '3rem', 
-                    minHeight: '3rem',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                  title="Options"
-                >
-                  <MoreVertical size={20} />
-                </button>
-              </>
-            ) : property.status === 'available' ? (
+      {/* Fixed Confirm & Book / Confirm Status Button - Mobile Only - Visible for all users (logged in or not) except admin/staff */}
+      {(!user || (user.role !== 'admin' && user.role !== 'staff')) && (
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg px-4 py-3">
+          <div className="max-w-7xl mx-auto flex justify-center">
+            {property.status === 'available' ? (
               <button
                 onClick={() => {
                   setBookingModalType('book');
                   setShowBookingModal(true);
                 }}
-                className="w-full max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
+                className="w-full max-w-md text-white transition-colors rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2"
                 style={{ 
-                  backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
+                  backgroundColor: 'rgba(34, 197, 94, 0.9)'
                 }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
               >
                 <span className="text-base xl:text-lg font-medium">Confirm & Book</span>
               </button>
@@ -903,22 +514,19 @@ export default function PropertyDetailsPage() {
                   setBookingModalType('status');
                   setShowBookingModal(true);
                 }}
-                className="w-full max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
+                className="w-full max-w-md text-white transition-colors rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2"
                 style={{ 
-                  backgroundColor: '#f87171',
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
+                  backgroundColor: '#f87171'
                 }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = '#f87171'}
               >
                 <span className="text-base xl:text-lg font-medium">Confirm Status</span>
               </button>
             )}
           </div>
         </div>
+      )}
 
       {/* Image Lightbox */}
       {isLightboxOpen && property.images && property.images.length > 0 && (
@@ -959,34 +567,21 @@ export default function PropertyDetailsPage() {
               <button
                 onClick={() => {
                   if (property) {
-                    // Construct property URL using ShareManager's method
-                    const propertyUrl = ShareManager.getShareUrl(property.id);
+                    // Construct property URL
+                    const propertyUrl = typeof window !== 'undefined' 
+                      ? `${window.location.origin}/property/${property.id}`
+                      : `/property/${property.id}`;
                     
                     // Format WhatsApp message with line breaks
-                    const bookingText = bookingModalType === 'book' 
-                      ? 'I want to confirm its availability and finalize booking.'
-                      : 'I want to confirm its availability.';
-                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
-                    
-                    // Use ShareManager's method with phone number support
-                    ShareManager.shareWhatsAppToNumber('255755123500', message);
+                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    const whatsappMessage = encodeURIComponent(message);
+                    window.open(`https://wa.me/255755123500?text=${whatsappMessage}`, '_blank');
                   } else {
-                    const bookingText = bookingModalType === 'book' 
-                      ? 'I want to confirm its availability and finalize booking.'
-                      : 'I want to confirm its availability.';
-                    ShareManager.shareWhatsAppToNumber('255755123500', `Hi..!\n\nI am interested in a property for rent. ${bookingText} Thank you.`);
+                    window.open('https://wa.me/255755123500', '_blank');
                   }
                   setShowBookingModal(false);
                 }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-green-300 rounded-lg select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
+                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-green-300 hover:bg-green-400 rounded-lg transition-colors"
               >
                 <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
                   <MessageCircle className="w-5 h-5 text-white" />
@@ -1000,14 +595,13 @@ export default function PropertyDetailsPage() {
               <button
                 onClick={() => {
                   if (property) {
-                    // Construct property URL using ShareManager's method
-                    const propertyUrl = ShareManager.getShareUrl(property.id);
+                    // Construct property URL
+                    const propertyUrl = typeof window !== 'undefined' 
+                      ? `${window.location.origin}/property/${property.id}`
+                      : `/property/${property.id}`;
                     
                     // Format SMS message with line breaks (same format as WhatsApp)
-                    const bookingText = bookingModalType === 'book' 
-                      ? 'I want to confirm its availability and finalize booking.'
-                      : 'I want to confirm its availability.';
-                    const message = `Hi..!\n\nI am interested in this property for rent. ${bookingText} Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
+                    const message = `Hi..!\n\nI am interested in this property for rent. I want to confirm its availability and finalize the booking. Thank you.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
                     const smsMessage = encodeURIComponent(message);
                     window.open(`sms:+255755123500?body=${smsMessage}`, '_self');
                   } else {
@@ -1049,658 +643,6 @@ export default function PropertyDetailsPage() {
             >
               Cancel
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Notes Modal */}
-      {showNotesModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={() => {
-            setShowNotesModal(false);
-            setNotes('');
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">
-                Follow-up notes
-              </h3>
-            </div>
-            
-            <textarea
-              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-              placeholder={user?.role === 'admin' ? 'No notes available...' : 'Add your notes about this property...'}
-              rows={6}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              readOnly={user?.role === 'admin'}
-            />
-
-            <div className="flex gap-2 mt-4">
-              {user?.role !== 'admin' && (
-                <button
-                  onClick={() => {
-                    // Save notes to localStorage - only staff can save
-                    if (typeof window !== 'undefined' && property && user?.role === 'staff' && user?.isApproved) {
-                      saveStaffNotes(property.id, notes);
-                      setHasNotes(notes.trim().length > 0);
-                    }
-                    setShowNotesModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  Save
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setShowNotesModal(false);
-                  setNotes('');
-                }}
-                className={`px-4 py-2 rounded-lg font-medium text-white select-none ${user?.role === 'admin' ? 'flex-1' : 'flex-1'}`}
-                style={{ 
-                  backgroundColor: '#ef4444',
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                {user?.role === 'admin' ? 'Close' : 'Cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Updated Date Modal */}
-      {showUpdatedDateModal && property.updatedAt && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowUpdatedDateModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="space-y-3 mb-4">
-              <div>
-                <p className="text-gray-600 text-center font-medium mb-1">Updated on:</p>
-                <p className="text-gray-600 text-center">
-                  {formatDateTime(property.updatedAt)} ({getRelativeTime(property.updatedAt)})
-                </p>
-              </div>
-              {'createdAt' in property && property.createdAt && (
-                <div>
-                  <p className="text-gray-600 text-center font-medium mb-1">Listed on:</p>
-                  <p className="text-gray-600 text-center">
-                    {formatDateTime(property.createdAt)} ({getRelativeTime(property.createdAt)})
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowUpdatedDateModal(false);
-                }}
-                className="flex-1 px-4 py-2 rounded-lg font-medium bg-gray-300 text-gray-700 select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Confirmation Modal - Staff/Admin Only */}
-      {showStatusConfirmationModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowStatusConfirmationModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black">
-                Status Confirmation
-              </h3>
-            </div>
-            <div className="mb-4">
-              <p className="text-gray-600 text-center text-[1.05rem]">
-                {user?.role === 'admin' 
-                  ? (statusConfirmation 
-                      ? (
-                          <>
-                            Status confirmed <span className="font-bold">{getRelativeTime(statusConfirmation.confirmedAt)}</span> by {statusConfirmation.staffName}.
-                          </>
-                        )
-                      : 'The status of this property is not confirmed by any staff member.')
-                  : (statusConfirmation 
-                      ? (
-                          <>
-                            Status confirmed <span className="font-bold">{getRelativeTime(statusConfirmation.confirmedAt)}</span> by {statusConfirmation.staffName}. Click the button below to confirm again
-                          </>
-                        )
-                      : 'The status of this property is not confirmed by any staff member. click the button below to confirm')
-                }
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              {user?.role !== 'admin' && (
-                <button
-                  onClick={() => {
-                    setShowStatusConfirmationModal(false);
-                    setShowConfirmByModal(true);
-                  }}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  {statusConfirmation ? 'Confirm again' : 'Confirm'}
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setShowStatusConfirmationModal(false);
-                }}
-                className={`px-4 py-2 rounded-lg font-medium bg-gray-300 text-gray-700 select-none ${user?.role === 'admin' ? 'flex-1' : 'flex-1'}`}
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                {user?.role === 'admin' ? 'OK' : 'Cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm By Modal */}
-      {showConfirmByModal && property && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowConfirmByModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black m-0">Confirm by:</h3>
-            </div>
-
-            <div className="space-y-2 mb-4">
-              <button
-                onClick={() => {
-                  if (property && user?.id && user?.name) {
-                    confirmPropertyStatus(property.id, user.id, user.name);
-                  }
-                  window.open('tel:+255755123500', '_self');
-                  setShowConfirmByModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 rounded-lg select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">Phone</p>
-                  <p className="text-sm text-gray-600">Call directly</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (property && user?.id && user?.name) {
-                    confirmPropertyStatus(property.id, user.id, user.name);
-                  }
-                  if (property) {
-                    // Construct property URL using ShareManager's method
-                    const propertyUrl = ShareManager.getShareUrl(property.id);
-                    
-                    // Format WhatsApp message for status confirmation
-                    const message = `Hi..!\n\nI want to confirm the status of this property. The property status is currently ${property.status === 'available' ? 'available' : 'occupied'}. Please confirm if this is correct.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
-                    
-                    // Use ShareManager's method with phone number support
-                    ShareManager.shareWhatsAppToNumber('255755123500', message);
-                  } else {
-                    ShareManager.shareWhatsAppToNumber('255755123500', 'Hi..!\n\nI want to confirm the status of a property. Please confirm if the status is correct.');
-                  }
-                  setShowConfirmByModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-green-300 rounded-lg select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">WhatsApp</p>
-                  <p className="text-sm text-gray-600">Message via WhatsApp</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (property && user?.id && user?.name) {
-                    confirmPropertyStatus(property.id, user.id, user.name);
-                  }
-                  if (property) {
-                    // Construct property URL using ShareManager's method
-                    const propertyUrl = ShareManager.getShareUrl(property.id);
-                    
-                    // Format SMS message for status confirmation
-                    const message = `Hi..!\n\nI want to confirm the status of this property. The property status is currently ${property.status === 'available' ? 'available' : 'occupied'}. Please confirm if this is correct.\n\n${property.title}\n${property.location}\n\n${propertyUrl}`;
-                    const smsMessage = encodeURIComponent(message);
-                    window.open(`sms:+255755123500?body=${smsMessage}`, '_self');
-                  } else {
-                    window.open('sms:+255755123500', '_self');
-                  }
-                  setShowConfirmByModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 rounded-lg select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">Normal Message</p>
-                  <p className="text-sm text-gray-600">Send normal message</p>
-                </div>
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowConfirmByModal(false);
-              }}
-              className="w-full px-4 py-2 rounded-lg font-medium bg-gray-300 text-gray-700 select-none"
-              style={{ 
-                WebkitTapHighlightColor: 'transparent',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none',
-                userSelect: 'none',
-                outline: 'none'
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Info Modal */}
-      {showInfoModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowInfoModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
-            </div>
-            <p className="text-gray-600 text-center mb-4 mt-0">{infoModalMessage}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowInfoModal(false);
-                }}
-                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Three Dots Options Modal - Staff/Admin Only */}
-      {showThreeDotsModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowThreeDotsModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
-            </div>
-            <div className="space-y-2">
-              {(isPinged || isClosed) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowThreeDotsModal(false);
-                    // Only staff can change status (admin is read-only)
-                    // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                      if (isPinged) {
-                        removeFromFollowUp(property.id, userId, user.name);
-                      }
-                      if (isClosed) {
-                        removeFromClosed(property.id, userId, user.name);
-                      }
-                    }
-                  }}
-                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(107, 114, 128, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  Set to Default
-                </button>
-              )}
-              {!isPinged && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowThreeDotsModal(false);
-                    // Only staff can change status (admin is read-only)
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                      addToFollowUp(property.id, userId, user.name);
-                    }
-                  }}
-                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(59, 130, 246, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  Follow this property
-                </button>
-              )}
-              {!isClosed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowThreeDotsModal(false);
-                    // Only staff can change status (admin is read-only)
-                    // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                      addToClosed(property.id, userId, user.name);
-                    }
-                  }}
-                  className="w-full px-4 py-3 rounded-lg font-medium text-white text-base flex items-center justify-center gap-2 select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  <Check size={18} className="text-white" strokeWidth={3} />
-                  <span>Close this property</span>
-                </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowThreeDotsModal(false);
-                }}
-                className="w-full px-4 py-3 rounded-lg font-medium bg-gray-300 text-gray-700 select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Update Modal - Staff/Admin Only */}
-      {showStatusUpdateModal && property && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ touchAction: 'none', minHeight: '100vh', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowStatusUpdateModal(false);
-              setPendingStatus(property.status);
-            }
-          }}
-        >
-          <div 
-            className="rounded-lg w-full max-w-sm mx-auto px-6 pt-3 pb-6 shadow-lg"
-            style={{ backgroundColor: '#0071c2' }}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <div className="space-y-3">
-              <div className="flex justify-center items-center mb-3 -mt-1">
-                <h3 className="text-xl font-semibold text-white">
-                  Change status
-                </h3>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative w-full">
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-gray-800 text-base font-medium">
-                    <span className="text-base text-gray-600">[{(pendingStatus || property.status).replace(/^./, (c) => c.toUpperCase())}]</span>
-                    <span>Change status</span>
-                    <Radio size={15} />
-                  </div>
-                  <select
-                    value={pendingStatus || property.status}
-                    onChange={(e) => {
-                      const value = e.target.value as 'available' | 'occupied' | '';
-                      if (!value) return;
-                      setPendingStatus(value);
-                    }}
-                    className="w-full appearance-none bg-white/90 text-transparent text-sm py-3 rounded-lg focus:outline-none cursor-pointer"
-                    style={{ color: 'transparent' }}
-                  >
-                    <option value="" style={{ color: '#111827' }}>---</option>
-                    <option value="available" style={{ color: '#111827' }}>Available</option>
-                    <option value="occupied" style={{ color: '#111827' }}>Occupied</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => {
-                    if (property && pendingStatus && pendingStatus !== property.status) {
-                      // Get the property form data
-                      const propertyFormData = getPropertyById(property.id);
-                      if (propertyFormData) {
-                        const updatedProperty = {
-                          ...propertyFormData,
-                          status: pendingStatus
-                        };
-                        if (updateProperty(property.id, updatedProperty, user?.id, user?.role)) {
-                          // Refresh the property
-                          const allProperties = getAllProperties();
-                          const updatedProp = allProperties.find(p => p.id === property.id);
-                          if (updatedProp) {
-                            setProperty(updatedProp);
-                            setPendingStatus(updatedProp.status);
-                          }
-                          setShowStatusUpdateModal(false);
-                        }
-                      }
-                    } else {
-                      setShowStatusUpdateModal(false);
-                      setPendingStatus(property.status);
-                    }
-                  }}
-                  disabled={!pendingStatus || pendingStatus === property.status}
-                  className="flex-1 px-4 py-2 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium select-none"
-                  style={{ 
-                    backgroundColor: 'rgb(34, 197, 94)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  <span className="text-base">Update</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowStatusUpdateModal(false);
-                    setPendingStatus(property.status);
-                  }}
-                  className="flex-1 px-4 py-2 bg-red-400 text-white rounded-lg font-medium select-none"
-                  style={{ 
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  <span className="text-base">Cancel</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
