@@ -741,6 +741,69 @@ export const removeFromClosed = (propertyId: string, userId?: string): boolean =
   }
 };
 
+// Get shared staff notes for a property
+const getStaffNotesStorageKey = (propertyId: string) => {
+  return `rentapp_notes_staff_${propertyId}`;
+};
+
+// Get shared staff notes for a property
+export const getStaffNotes = (propertyId: string): string => {
+  if (typeof window === 'undefined') return '';
+  
+  try {
+    const key = getStaffNotesStorageKey(propertyId);
+    return localStorage.getItem(key) || '';
+  } catch (error) {
+    console.error('Error getting staff notes:', error);
+    return '';
+  }
+};
+
+// Save shared staff notes for a property
+export const saveStaffNotes = (propertyId: string, notes: string): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const key = getStaffNotesStorageKey(propertyId);
+    localStorage.setItem(key, notes);
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('notesChanged'));
+    return true;
+  } catch (error) {
+    console.error('Error saving staff notes:', error);
+    return false;
+  }
+};
+
+// Get notes for a property from ANY user (for admin/staff visibility)
+// This function now prioritizes staff shared notes, then falls back to any user's notes
+export const getPropertyNotesAnyUser = (propertyId: string): string => {
+  if (typeof window === 'undefined') return '';
+  
+  try {
+    // First check for shared staff notes
+    const staffNotes = getStaffNotes(propertyId);
+    if (staffNotes.trim().length > 0) {
+      return staffNotes;
+    }
+    
+    // Fallback: Check all localStorage keys that match the notes pattern for this property
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('rentapp_notes_') && key.endsWith(`_${propertyId}`) && !key.startsWith('rentapp_notes_staff_')) {
+        const notes = localStorage.getItem(key) || '';
+        if (notes.trim().length > 0) {
+          return notes;
+        }
+      }
+    }
+    return '';
+  } catch (error) {
+    console.error('Error getting notes across users:', error);
+    return '';
+  }
+};
+
 // Clear all follow-up and closed properties for all users
 export const clearAllFollowUpAndClosed = (userId?: string): void => {
   if (typeof window === 'undefined') return;

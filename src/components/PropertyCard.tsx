@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Image, Clock, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight, Phone, MessageCircle, FileText, Check, MoreVertical } from 'lucide-react';
 import { Property } from '@/data/properties';
-import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, getFollowUpPropertyIds, removeFromFollowUp, addToClosed, getClosedPropertyIds, removeFromClosed, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser } from '@/utils/propertyUtils';
+import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, getFollowUpPropertyIds, removeFromFollowUp, addToClosed, getClosedPropertyIds, removeFromClosed, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser, getPropertyNotesAnyUser, getStaffNotes, saveStaffNotes } from '@/utils/propertyUtils';
 
 // Helper functions for storage keys (matching propertyUtils.ts)
 const getClosedStorageKey = (userId?: string) => {
@@ -201,21 +201,26 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
   // Check if property has notes
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId && (showNotesButton || isPinged)) {
+    if (typeof window !== 'undefined' && (showNotesButton || isPinged)) {
       const checkNotes = () => {
-        const key = `rentapp_notes_${userId}_${property.id}`;
-        const savedNotes = localStorage.getItem(key) || '';
-        setHasNotes(savedNotes.trim().length > 0);
+        // Only staff/admin can have notes - check shared staff notes
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const notes = getStaffNotes(property.id);
+          setHasNotes(notes.trim().length > 0);
+        }
       };
       checkNotes();
 
       // Listen for storage changes
       window.addEventListener('storage', checkNotes);
+      // Also listen for custom notesChanged event
+      window.addEventListener('notesChanged', checkNotes);
       return () => {
         window.removeEventListener('storage', checkNotes);
+        window.removeEventListener('notesChanged', checkNotes);
       };
     }
-  }, [property.id, userId, showNotesButton, isPinged]);
+  }, [property.id, userId, showNotesButton, isPinged, user?.role, user?.isApproved]);
 
   // Detect keyboard visibility and move modal up by 100px when keyboard is visible
   useEffect(() => {
@@ -698,8 +703,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 {renderAfterUpdated}
               </div>
             )}
-            {/* Confirm & Book / Confirm Status Button - Visible for all users (logged in or not) except admin/staff */}
-            {!hideBookmark && (!user || (user.role !== 'admin' && user.role !== 'staff')) && (
+            {/* Confirm & Book / Confirm Status Button - Visible for all users (logged in or not) except approved staff/admin */}
+            {!hideBookmark && (!user || (user.role !== 'admin' && !(user.role === 'staff' && user.isApproved))) && (
               <div className="mt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {property.status === 'available' ? (
                   <button
@@ -755,10 +760,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 <button
                   className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium select-none"
                   style={{ 
-                    backgroundColor: (showClosedButton || isClosed)
-                      ? 'rgba(34, 197, 94, 0.9)' 
-                      : (showNotesButton || isPinged)
-                        ? 'rgba(59, 130, 246, 0.9)' 
+                    backgroundColor: (showNotesButton || isPinged)
+                      ? 'rgba(59, 130, 246, 0.9)' 
+                      : (showClosedButton || isClosed)
+                        ? 'rgba(34, 197, 94, 0.9)' 
                         : 'rgba(107, 114, 128, 0.9)',
                     maxWidth: '250px',
                     WebkitTapHighlightColor: 'transparent',
@@ -780,10 +785,16 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     e.preventDefault();
                     // Only open notes modal when in Follow Up (Notes state)
                     if (showNotesButton || isPinged) {
-                      if (typeof window !== 'undefined' && user?.id) {
-                        const key = `rentapp_notes_${user.id}_${property.id}`;
-                        const savedNotes = localStorage.getItem(key) || '';
-                        setNotes(savedNotes);
+                      if (typeof window !== 'undefined') {
+                        // For staff/admin, get shared staff notes; for regular users, get their own
+                        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+                          const notes = getStaffNotes(property.id);
+                          setNotes(notes);
+                        } else if (user?.id) {
+                          const key = `rentapp_notes_${user.id}_${property.id}`;
+                          const savedNotes = localStorage.getItem(key) || '';
+                          setNotes(savedNotes);
+                        }
                       }
                       setShowNotesModal(true);
                     } else if (showClosedButton || isClosed) {
@@ -1207,7 +1218,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       )}
 
       {/* Notes Modal */}
-      {showNotesModal && (
+      {showNotesModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{
@@ -1249,10 +1260,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               {user?.role !== 'admin' && (
                 <button
                   onClick={() => {
-                    // Save notes to localStorage
-                    if (typeof window !== 'undefined' && user?.id) {
-                      const key = `rentapp_notes_${user.id}_${property.id}`;
-                      localStorage.setItem(key, notes);
+                    // Save notes to localStorage - only staff can save
+                    if (typeof window !== 'undefined' && user?.role === 'staff' && user?.isApproved) {
+                      saveStaffNotes(property.id, notes);
                       setHasNotes(notes.trim().length > 0);
                     }
                     setShowNotesModal(false);
@@ -1287,7 +1297,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   outline: 'none'
                 }}
               >
-                {user?.role === 'admin' ? 'Close' : 'Cancel'}
+                Cancel
               </button>
             </div>
           </div>
@@ -1403,10 +1413,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">
-                Property actions
-              </h3>
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
             </div>
             <div className="space-y-2">
               {(isPinged || isClosed) && (
@@ -1522,15 +1530,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">
-                Property actions
-              </h3>
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
             </div>
-            
-            <p className="text-gray-600 text-center mb-4">
-              {infoModalMessage}
-            </p>
+            <p className="text-gray-600 text-center mb-4 mt-0">{infoModalMessage}</p>
 
             <div className="flex gap-2">
               <button

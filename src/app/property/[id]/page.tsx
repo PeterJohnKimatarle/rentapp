@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MapPin, Bed, Bath, Square, ArrowLeft, Phone, Mail, Calendar, Share2, Image as ImageIcon, Clock, Heart, MessageCircle, FileText, Check, MoreVertical, Radio } from 'lucide-react';
-import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark, getFollowUpPropertyIds, getClosedPropertyIds, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, confirmPropertyStatus, getStatusConfirmation, updateProperty, getPropertyById, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser } from '@/utils/propertyUtils';
+import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark, getFollowUpPropertyIds, getClosedPropertyIds, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, confirmPropertyStatus, getStatusConfirmation, updateProperty, getPropertyById, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser, getPropertyNotesAnyUser, getStaffNotes, saveStaffNotes } from '@/utils/propertyUtils';
 import ImageLightbox from '@/components/ImageLightbox';
 import SharePopup from '@/components/SharePopup';
 import Layout from '@/components/Layout';
@@ -217,11 +217,13 @@ export default function PropertyDetailsPage() {
 
   // Check if property has notes
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId && property && (isPinged || user?.role === 'staff' || user?.role === 'admin')) {
+    if (typeof window !== 'undefined' && property && (isPinged || (user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
       const checkNotes = () => {
-        const key = `rentapp_notes_${userId}_${property.id}`;
-        const savedNotes = localStorage.getItem(key) || '';
-        setHasNotes(savedNotes.trim().length > 0);
+        // Only staff/admin can have notes - check shared staff notes
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const notes = getStaffNotes(property.id);
+          setHasNotes(notes.trim().length > 0);
+        }
       };
       checkNotes();
       // Listen for notes changes (could be updated from other components)
@@ -542,10 +544,16 @@ export default function PropertyDetailsPage() {
                         e.stopPropagation();
                         // Only open notes modal when in Follow Up (Notes state)
                         if (isPinged) {
-                          if (typeof window !== 'undefined' && user?.id) {
-                            const key = `rentapp_notes_${user.id}_${property.id}`;
-                            const savedNotes = localStorage.getItem(key) || '';
-                            setNotes(savedNotes);
+                          if (typeof window !== 'undefined' && property) {
+                            // For staff/admin, get shared staff notes; for regular users, get their own
+                            if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+                              const notes = getStaffNotes(property.id);
+                              setNotes(notes);
+                            } else if (user?.id) {
+                              const key = `rentapp_notes_${user.id}_${property.id}`;
+                              const savedNotes = localStorage.getItem(key) || '';
+                              setNotes(savedNotes);
+                            }
                           }
                           setShowNotesModal(true);
                         } else if (isClosed) {
@@ -560,10 +568,10 @@ export default function PropertyDetailsPage() {
                       }}
                       className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
                       style={{ 
-                        backgroundColor: isClosed
-                          ? 'rgba(34, 197, 94, 0.9)' 
-                          : isPinged
-                            ? 'rgba(59, 130, 246, 0.9)' 
+                        backgroundColor: isPinged
+                          ? 'rgba(59, 130, 246, 0.9)' 
+                          : isClosed
+                            ? 'rgba(34, 197, 94, 0.9)' 
                             : 'rgba(107, 114, 128, 0.9)',
                         WebkitTapHighlightColor: 'transparent',
                         WebkitUserSelect: 'none',
@@ -743,10 +751,16 @@ export default function PropertyDetailsPage() {
                   onClick={() => {
                     // Only open notes modal when in Follow Up (Notes state)
                     if (isPinged) {
-                      if (typeof window !== 'undefined' && user?.id) {
-                        const key = `rentapp_notes_${user.id}_${property.id}`;
-                        const savedNotes = localStorage.getItem(key) || '';
-                        setNotes(savedNotes);
+                      if (typeof window !== 'undefined' && property) {
+                        // For staff/admin, get shared staff notes; for regular users, get their own
+                        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+                          const notes = getStaffNotes(property.id);
+                          setNotes(notes);
+                        } else if (user?.id) {
+                          const key = `rentapp_notes_${user.id}_${property.id}`;
+                          const savedNotes = localStorage.getItem(key) || '';
+                          setNotes(savedNotes);
+                        }
                       }
                       setShowNotesModal(true);
                     } else if (isClosed) {
@@ -761,10 +775,10 @@ export default function PropertyDetailsPage() {
                   }}
                   className="flex-1 max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
                   style={{ 
-                    backgroundColor: isClosed
-                      ? 'rgba(34, 197, 94, 0.9)' 
-                      : isPinged
-                        ? 'rgba(59, 130, 246, 0.9)' 
+                    backgroundColor: isPinged
+                      ? 'rgba(59, 130, 246, 0.9)' 
+                      : isClosed
+                        ? 'rgba(34, 197, 94, 0.9)' 
                         : 'rgba(107, 114, 128, 0.9)',
                     WebkitTapHighlightColor: 'transparent',
                     WebkitUserSelect: 'none',
@@ -1029,13 +1043,10 @@ export default function PropertyDetailsPage() {
               {user?.role !== 'admin' && (
                 <button
                   onClick={() => {
-                    // Save notes to localStorage
-                    if (typeof window !== 'undefined' && user?.id && property) {
-                      const key = `rentapp_notes_${user.id}_${property.id}`;
-                      localStorage.setItem(key, notes);
+                    // Save notes to localStorage - only staff can save
+                    if (typeof window !== 'undefined' && property && user?.role === 'staff' && user?.isApproved) {
+                      saveStaffNotes(property.id, notes);
                       setHasNotes(notes.trim().length > 0);
-                      // Dispatch event to notify other components
-                      window.dispatchEvent(new CustomEvent('notesChanged'));
                     }
                     setShowNotesModal(false);
                   }}
@@ -1155,13 +1166,11 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {user?.role !== 'admin' && (
-              <div className="flex justify-center items-center mb-1">
-                <h3 className="text-xl font-semibold text-black">
-                  Status Confirmation
-                </h3>
-              </div>
-            )}
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black">
+                Status Confirmation
+              </h3>
+            </div>
             <div className="mb-4">
               <p className="text-gray-600 text-center text-[1.05rem]">
                 {user?.role === 'admin' 
@@ -1246,9 +1255,7 @@ export default function PropertyDetailsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black">
-                Confirm by:
-              </h3>
+              <h3 className="text-xl font-semibold text-black m-0">Confirm by:</h3>
             </div>
 
             <div className="space-y-2 mb-4">
@@ -1395,16 +1402,10 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`flex justify-center items-center ${user?.role === 'admin' ? 'mb-1' : 'mb-4'}`}>
-              <h3 className="text-xl font-semibold text-black">
-                Property actions
-              </h3>
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
             </div>
-            
-            <p className="text-gray-600 text-center mb-4">
-              {infoModalMessage}
-            </p>
-
+            <p className="text-gray-600 text-center mb-4 mt-0">{infoModalMessage}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => {
@@ -1439,20 +1440,9 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {user?.role !== 'admin' && (
-              <div className="flex justify-center items-center mb-4">
-                <h3 className="text-xl font-semibold text-black">
-                  Property actions
-                </h3>
-              </div>
-            )}
-            {user?.role === 'admin' && (
-              <div className="flex justify-center items-center mb-1">
-                <h3 className="text-xl font-semibold text-black">
-                  Property actions
-                </h3>
-              </div>
-            )}
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
+            </div>
             <div className="space-y-2">
               {(isPinged || isClosed) && (
                 <button
@@ -1569,13 +1559,11 @@ export default function PropertyDetailsPage() {
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <div className="space-y-3">
-              {user?.role !== 'admin' && (
-                <div className="flex justify-center items-center mb-3 -mt-1">
-                  <h3 className="text-xl font-semibold text-white">
-                    Change status
-                  </h3>
-                </div>
-              )}
+              <div className="flex justify-center items-center mb-3 -mt-1">
+                <h3 className="text-xl font-semibold text-white">
+                  Change status
+                </h3>
+              </div>
               <div className="flex items-center justify-center">
                 <div className="relative w-full">
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-gray-800 text-base font-medium">
