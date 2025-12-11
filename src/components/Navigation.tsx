@@ -407,12 +407,12 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
               variant === 'popup' 
 
                 ? pathname === '/admin'
-                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border-2 border-green-500 bg-green-200'
+                  ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100'
                   : 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100' 
 
                 : pathname === '/admin' 
 
-                  ? 'text-gray-700 bg-green-500 rounded-lg px-3 py-2' 
+                  ? 'text-gray-700 bg-green-200 rounded-lg px-3 py-2' 
 
                   : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2'
 
@@ -675,3 +675,4 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   );
 
 }
+

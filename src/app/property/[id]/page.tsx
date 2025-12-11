@@ -32,6 +32,7 @@ export default function PropertyDetailsPage() {
   const [infoModalMessage, setInfoModalMessage] = useState('');
   const [notes, setNotes] = useState('');
   const [hasNotes, setHasNotes] = useState(false);
+  const [isNotesEditable, setIsNotesEditable] = useState(false);
   const [showUpdatedDateModal, setShowUpdatedDateModal] = useState(false);
   const [showStatusConfirmationModal, setShowStatusConfirmationModal] = useState(false);
   const [showConfirmByModal, setShowConfirmByModal] = useState(false);
@@ -572,7 +573,7 @@ export default function PropertyDetailsPage() {
             )}
 
             {/* Confirm & Book / Confirm Status Button - Desktop Only */}
-            <div className="hidden xl:block absolute bottom-2 right-2 z-30 flex items-center gap-2">
+            <div className="hidden xl:block absolute bottom-2 right-2 z-30">
               {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? (
                   <>
                     <button
@@ -592,15 +593,26 @@ export default function PropertyDetailsPage() {
                               setNotes(savedNotes);
                             }
                           }
+                          setIsNotesEditable(false);
                           setShowNotesModal(true);
                         } else if (isClosed) {
-                          // Show message when Closed button is clicked
-                          setInfoModalMessage('This property has been rented successfully.');
-                          setShowInfoModal(true);
+                          // For admin, show info modal; for staff, open property actions modal
+                          markPropertyAsViewed(); // Track property view
+                          if (user?.role === 'admin') {
+                            setInfoModalMessage('This property has been rented successfully.');
+                            setShowInfoModal(true);
+                          } else {
+                            setShowThreeDotsModal(true);
+                          }
                         } else {
-                          // Show message when Default button is clicked
-                          setInfoModalMessage('This property has no any activity going on.');
-                          setShowInfoModal(true);
+                          // For admin, show info modal; for staff, open property actions modal
+                          markPropertyAsViewed(); // Track property view
+                          if (user?.role === 'admin') {
+                            setInfoModalMessage('This property has no any activity going on.');
+                            setShowInfoModal(true);
+                          } else {
+                            setShowThreeDotsModal(true);
+                          }
                         }
                       }}
                       className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
@@ -636,35 +648,6 @@ export default function PropertyDetailsPage() {
                           <span className="text-sm xl:text-base font-medium">Default</span>
                         </>
                       )}
-                    </button>
-                    {/* Three Dots Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markPropertyAsViewed(); // Track property view
-                        // For admin users, show message instead of opening modal
-                        if (user?.role === 'admin') {
-                          setInfoModalMessage('Property actions are handled by staff members only.');
-                          setShowInfoModal(true);
-                          return;
-                        }
-                        setShowThreeDotsModal(true);
-                      }}
-                      className="flex items-center justify-center w-10 h-10 text-white rounded-lg flex-shrink-0 shadow-lg select-none"
-                      style={{ 
-                        minWidth: '2.5rem', 
-                        minHeight: '2.5rem',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        WebkitTapHighlightColor: 'transparent',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        userSelect: 'none',
-                        outline: 'none'
-                      }}
-                      title="Options"
-                    >
-                      <MoreVertical size={20} />
                     </button>
                   </>
                 ) : property.status === 'available' ? (
@@ -805,15 +788,26 @@ export default function PropertyDetailsPage() {
                           setNotes(savedNotes);
                         }
                       }
+                      setIsNotesEditable(false);
                       setShowNotesModal(true);
                     } else if (isClosed) {
-                      // Show message when Closed button is clicked
-                      setInfoModalMessage('This property has been rented successfully.');
-                      setShowInfoModal(true);
+                      // For admin, show info modal; for staff, open property actions modal
+                      markPropertyAsViewed(); // Track property view
+                      if (user?.role === 'admin') {
+                        setInfoModalMessage('This property has been rented successfully.');
+                        setShowInfoModal(true);
+                      } else {
+                        setShowThreeDotsModal(true);
+                      }
                     } else {
-                      // Show message when Default button is clicked
-                      setInfoModalMessage('This property has no any activity going on.');
-                      setShowInfoModal(true);
+                      // For admin, show info modal; for staff, open property actions modal
+                      markPropertyAsViewed(); // Track property view
+                      if (user?.role === 'admin') {
+                        setInfoModalMessage('This property has no any activity going on.');
+                        setShowInfoModal(true);
+                      } else {
+                        setShowThreeDotsModal(true);
+                      }
                     }
                   }}
                   className="flex-1 max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
@@ -849,33 +843,6 @@ export default function PropertyDetailsPage() {
                       <span className="text-base xl:text-lg font-medium">Default</span>
                     </>
                   )}
-                </button>
-                {/* Three Dots Button */}
-                <button
-                  onClick={() => {
-                    markPropertyAsViewed(); // Track property view
-                    // For admin users, show message instead of opening modal
-                    if (user?.role === 'admin') {
-                      setInfoModalMessage('Property actions are handled by staff members only.');
-                      setShowInfoModal(true);
-                      return;
-                    }
-                    setShowThreeDotsModal(true);
-                  }}
-                  className="flex items-center justify-center w-12 h-12 text-gray-700 rounded-lg flex-shrink-0 select-none"
-                  style={{ 
-                    minWidth: '3rem', 
-                    minHeight: '3rem',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                  title="Options"
-                >
-                  <MoreVertical size={20} />
                 </button>
               </>
             ) : property.status === 'available' ? (
@@ -1069,25 +1036,50 @@ export default function PropertyDetailsPage() {
           }}
         >
           <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
+            className="bg-white rounded-xl px-4 py-2 sm:px-6 sm:pt-1 sm:pb-9 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">
+            <div className="flex justify-between items-center mb-3 relative">
+              <h3 className="text-xl font-semibold text-black flex-1 text-center">
                 Follow-up notes
               </h3>
+              {user?.role === 'staff' && user?.isApproved && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThreeDotsModal(true);
+                  }}
+                  className="absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center justify-center text-gray-700 hover:text-black cursor-pointer select-none"
+                  style={{ 
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
+                  title="Options"
+                >
+                  <MoreVertical size={24} />
+                </button>
+              )}
             </div>
             
             <textarea
-              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-              placeholder={user?.role === 'admin' ? 'No notes available...' : 'Add your notes about this property...'}
+              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : !isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
+              placeholder={user?.role === 'admin' ? 'No notes available...' : isNotesEditable ? 'Add your notes about this property...' : 'Double-click to edit notes...'}
               rows={6}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              readOnly={user?.role === 'admin'}
+              readOnly={user?.role === 'admin' || !isNotesEditable}
+              onDoubleClick={() => {
+                if (user?.role !== 'admin' && user?.role === 'staff' && user?.isApproved) {
+                  setIsNotesEditable(true);
+                }
+              }}
             />
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-1.5">
               {user?.role !== 'admin' && (
                 <button
                   onClick={() => {
@@ -1096,6 +1088,7 @@ export default function PropertyDetailsPage() {
                       saveStaffNotes(property.id, notes);
                       setHasNotes(notes.trim().length > 0);
                     }
+                    setIsNotesEditable(false);
                     setShowNotesModal(false);
                   }}
                   className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
@@ -1114,6 +1107,7 @@ export default function PropertyDetailsPage() {
               )}
               <button
                 onClick={() => {
+                  setIsNotesEditable(false);
                   setShowNotesModal(false);
                   setNotes('');
                 }}
@@ -1430,43 +1424,6 @@ export default function PropertyDetailsPage() {
         </div>
       )}
 
-      {/* Info Modal */}
-      {showInfoModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowInfoModal(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-2">
-              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
-            </div>
-            <p className="text-gray-600 text-center mb-4 mt-0">{infoModalMessage}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowInfoModal(false);
-                }}
-                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Three Dots Options Modal - Staff/Admin Only */}
       {showThreeDotsModal && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
@@ -1497,6 +1454,7 @@ export default function PropertyDetailsPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
@@ -1527,6 +1485,7 @@ export default function PropertyDetailsPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
@@ -1551,6 +1510,7 @@ export default function PropertyDetailsPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
@@ -1724,6 +1684,44 @@ export default function PropertyDetailsPage() {
           }
         }}
       />
+
+      {/* Info Modal - Admin Only */}
+      {showInfoModal && user?.role === 'admin' && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{
+            touchAction: 'none',
+            minHeight: '100vh',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowInfoModal(false);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center items-center mb-2">
+              <h3 className="text-xl font-semibold text-black m-0">Property actions</h3>
+            </div>
+            <p className="text-gray-600 text-center mb-4 mt-0">{infoModalMessage}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

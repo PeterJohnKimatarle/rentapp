@@ -60,6 +60,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [infoModalMessage, setInfoModalMessage] = useState('');
   const [notes, setNotes] = useState('');
   const [hasNotes, setHasNotes] = useState(false);
+  const [isNotesEditable, setIsNotesEditable] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
   const [bookingModalType, setBookingModalType] = useState<'book' | 'status'>('book');
   const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>(property.status);
@@ -761,9 +762,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 )}
               </div>
             )}
-            {/* Status Button and Three Dots - Only for staff and admin users */}
+            {/* Status Button - Only for staff and admin users */}
             {!hideBookmark && user && ((user.role === 'staff' && user.isApproved) || user.role === 'admin') && (
-              <div className="mt-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+              <div className="mt-2 flex items-center" onClick={(e) => e.stopPropagation()}>
                 {/* Status Button - Shows current property status */}
                 <button
                   className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium select-none"
@@ -805,15 +806,26 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                           setNotes(savedNotes);
                         }
                       }
+                      setIsNotesEditable(false);
                       setShowNotesModal(true);
                     } else if (showClosedButton || isClosed) {
-                      // Show message when Closed button is clicked
-                      setInfoModalMessage('This property has been rented successfully.');
-                      setShowInfoModal(true);
+                      // For admin, show info modal; for staff, open property actions modal
+                      markPropertyAsViewed(); // Track property view
+                      if (user?.role === 'admin') {
+                        setInfoModalMessage('This property has been rented successfully.');
+                        setShowInfoModal(true);
+                      } else {
+                        setShowThreeDotsModal(true);
+                      }
                     } else {
-                      // Show message when Idle button is clicked
-                      setInfoModalMessage('This property has no any activity going on.');
-                      setShowInfoModal(true);
+                      // For admin, show info modal; for staff, open property actions modal
+                      markPropertyAsViewed(); // Track property view
+                      if (user?.role === 'admin') {
+                        setInfoModalMessage('This property has no any activity going on.');
+                        setShowInfoModal(true);
+                      } else {
+                        setShowThreeDotsModal(true);
+                      }
                     }
                   }}
                 >
@@ -835,26 +847,6 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       <span className="select-none" style={{ WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', userSelect: 'none' }}>Default</span>
                     </>
                   )}
-                </button>
-                {/* Three Dots Button */}
-                <button
-                  className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg transition-colors hover:bg-gray-200 flex-shrink-0"
-                  style={{ minWidth: '2.5rem', minHeight: '2.5rem' }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    markPropertyAsViewed(); // Track property view
-                    // For admin users, show message instead of opening modal
-                    if (user?.role === 'admin') {
-                      setInfoModalMessage('Property actions are handled by staff members only.');
-                      setShowInfoModal(true);
-                      return;
-                    }
-                    setShowThreeDotsModal(true);
-                  }}
-                  title="Options"
-                >
-                  <MoreVertical size={20} />
                 </button>
               </div>
             )}
@@ -1245,30 +1237,55 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           }}
         >
           <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
+            className="bg-white rounded-xl px-4 py-2 sm:px-6 sm:pt-1 sm:pb-9 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
             style={{
               transform: notesKeyboardInset > 0 ? `translateY(-${notesKeyboardInset}px)` : 'translateY(0)',
               transition: 'transform 0.2s ease-out'
             }}
           >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">
+            <div className="flex justify-between items-center mb-3 relative">
+              <h3 className="text-xl font-semibold text-black flex-1 text-center">
                 Follow-up notes
               </h3>
+              {user?.role === 'staff' && user?.isApproved && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThreeDotsModal(true);
+                  }}
+                  className="absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center justify-center text-gray-700 hover:text-black cursor-pointer select-none"
+                  style={{ 
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    userSelect: 'none',
+                    outline: 'none'
+                  }}
+                  title="Options"
+                >
+                  <MoreVertical size={24} />
+                </button>
+              )}
             </div>
             
             <textarea
               ref={notesTextareaRef}
-              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-              placeholder={user?.role === 'admin' ? 'No notes available...' : 'Add your notes about this property...'}
+              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : !isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
+              placeholder={user?.role === 'admin' ? 'No notes available...' : isNotesEditable ? 'Add your notes about this property...' : 'Double-click to edit notes...'}
               rows={6}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              readOnly={user?.role === 'admin'}
+              readOnly={user?.role === 'admin' || !isNotesEditable}
+              onDoubleClick={() => {
+                if (user?.role !== 'admin' && user?.role === 'staff' && user?.isApproved) {
+                  setIsNotesEditable(true);
+                }
+              }}
             />
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-1.5">
               {user?.role !== 'admin' && (
                 <button
                   onClick={() => {
@@ -1277,6 +1294,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       saveStaffNotes(property.id, notes);
                       setHasNotes(notes.trim().length > 0);
                     }
+                    setIsNotesEditable(false);
                     setShowNotesModal(false);
                   }}
                   className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
@@ -1295,6 +1313,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               )}
               <button
                 onClick={() => {
+                  setIsNotesEditable(false);
                   setShowNotesModal(false);
                   setNotes('');
                 }}
@@ -1439,6 +1458,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
@@ -1469,6 +1489,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
@@ -1493,6 +1514,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
+                    setShowNotesModal(false);
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
@@ -1536,8 +1558,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         </div>
       )}
 
-      {/* Info Modal */}
-      {showInfoModal && (
+      {/* Info Modal - Admin Only */}
+      {showInfoModal && user?.role === 'admin' && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{
