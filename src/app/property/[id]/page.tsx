@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MapPin, Bed, Bath, Square, ArrowLeft, Phone, Mail, Calendar, Share2, Image as ImageIcon, Clock, Heart, MessageCircle, FileText, Check, MoreVertical, Radio } from 'lucide-react';
-import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark, getFollowUpPropertyIds, getClosedPropertyIds, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, confirmPropertyStatus, getStatusConfirmation, updateProperty, getPropertyById } from '@/utils/propertyUtils';
+import { getAllProperties, DisplayProperty, isBookmarked, addBookmark, removeBookmark, getFollowUpPropertyIds, getClosedPropertyIds, addToFollowUp, removeFromFollowUp, addToClosed, removeFromClosed, confirmPropertyStatus, getStatusConfirmation, updateProperty, getPropertyById, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser } from '@/utils/propertyUtils';
 import ImageLightbox from '@/components/ImageLightbox';
 import SharePopup from '@/components/SharePopup';
 import Layout from '@/components/Layout';
@@ -175,10 +175,16 @@ export default function PropertyDetailsPage() {
 
   // Check if property is in follow-up
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId && property) {
+    if (typeof window !== 'undefined' && property) {
       const checkPinged = () => {
-        const pinged = getFollowUpPropertyIds(userId).includes(property.id);
-        setIsPinged(pinged);
+        // For admin/staff, check across all users; for regular users, check only their own
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const pinged = isPropertyInFollowUpAnyUser(property.id);
+          setIsPinged(pinged);
+        } else if (userId) {
+          const pinged = getFollowUpPropertyIds(userId).includes(property.id);
+          setIsPinged(pinged);
+        }
       };
       checkPinged();
       window.addEventListener('followUpChanged', checkPinged);
@@ -186,14 +192,20 @@ export default function PropertyDetailsPage() {
         window.removeEventListener('followUpChanged', checkPinged);
       };
     }
-  }, [property?.id, userId]);
+  }, [property?.id, userId, user?.role, user?.isApproved]);
 
   // Check if property is closed
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId && property) {
+    if (typeof window !== 'undefined' && property) {
       const checkClosed = () => {
-        const closed = getClosedPropertyIds(userId).includes(property.id);
-        setIsClosed(closed);
+        // For admin/staff, check across all users; for regular users, check only their own
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const closed = isPropertyClosedAnyUser(property.id);
+          setIsClosed(closed);
+        } else if (userId) {
+          const closed = getClosedPropertyIds(userId).includes(property.id);
+          setIsClosed(closed);
+        }
       };
       checkClosed();
       window.addEventListener('closedChanged', checkClosed);
@@ -201,7 +213,7 @@ export default function PropertyDetailsPage() {
         window.removeEventListener('closedChanged', checkClosed);
       };
     }
-  }, [property?.id, userId]);
+  }, [property?.id, userId, user?.role, user?.isApproved]);
 
   // Check if property has notes
   useEffect(() => {

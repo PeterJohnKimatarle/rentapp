@@ -567,6 +567,31 @@ export const getFollowUpPropertyIds = (userId?: string): string[] => {
   }
 };
 
+// Check if a property is in follow-up across ALL users (for admin/staff visibility)
+export const isPropertyInFollowUpAnyUser = (propertyId: string): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Check all localStorage keys that match the follow-up pattern
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('rentapp_followup_')) {
+        const followUpList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+        if (followUpList.includes(propertyId)) {
+          return true;
+        }
+      }
+    }
+    // Also check the default key without userId
+    const defaultKey = 'rentapp_followup';
+    const defaultList: string[] = JSON.parse(localStorage.getItem(defaultKey) || '[]');
+    return defaultList.includes(propertyId);
+  } catch (error) {
+    console.error('Error checking follow-up across users:', error);
+    return false;
+  }
+};
+
 // Get all follow-up properties
 export const getFollowUpProperties = (userId?: string): DisplayProperty[] => {
   try {
@@ -651,6 +676,31 @@ export const getClosedPropertyIds = (userId?: string): string[] => {
   } catch (error) {
     console.error('Error reading closed properties:', error);
     return [];
+  }
+};
+
+// Check if a property is closed across ALL users (for admin/staff visibility)
+export const isPropertyClosedAnyUser = (propertyId: string): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Check all localStorage keys that match the closed pattern
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('rentapp_closed_')) {
+        const closedList: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+        if (closedList.includes(propertyId)) {
+          return true;
+        }
+      }
+    }
+    // Also check the default key without userId
+    const defaultKey = 'rentapp_closed';
+    const defaultList: string[] = JSON.parse(localStorage.getItem(defaultKey) || '[]');
+    return defaultList.includes(propertyId);
+  } catch (error) {
+    console.error('Error checking closed across users:', error);
+    return false;
   }
 };
 

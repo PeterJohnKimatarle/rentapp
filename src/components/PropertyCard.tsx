@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Image, Clock, Heart, Pencil, Radio, Share2, ChevronLeft, ChevronRight, Phone, MessageCircle, FileText, Check, MoreVertical } from 'lucide-react';
 import { Property } from '@/data/properties';
-import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, getFollowUpPropertyIds, removeFromFollowUp, addToClosed, getClosedPropertyIds, removeFromClosed } from '@/utils/propertyUtils';
+import { DisplayProperty, isBookmarked, addBookmark, removeBookmark, addToFollowUp, getFollowUpPropertyIds, removeFromFollowUp, addToClosed, getClosedPropertyIds, removeFromClosed, isPropertyInFollowUpAnyUser, isPropertyClosedAnyUser } from '@/utils/propertyUtils';
 
 // Helper functions for storage keys (matching propertyUtils.ts)
 const getClosedStorageKey = (userId?: string) => {
@@ -143,7 +143,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
   // Check if property is already pinged
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId) {
+    if (typeof window !== 'undefined') {
       // If showNotesButton is true, property is definitely in follow-up - set immediately
       if (showNotesButton) {
         setIsPinged(true);
@@ -151,8 +151,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       }
       
       const checkPinged = () => {
-        const pinged = getFollowUpPropertyIds(userId).includes(property.id);
-        setIsPinged(pinged);
+        // For admin/staff, check across all users; for regular users, check only their own
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const pinged = isPropertyInFollowUpAnyUser(property.id);
+          setIsPinged(pinged);
+        } else if (userId) {
+          const pinged = getFollowUpPropertyIds(userId).includes(property.id);
+          setIsPinged(pinged);
+        }
       };
       checkPinged();
 
@@ -162,11 +168,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         window.removeEventListener('followUpChanged', checkPinged);
       };
     }
-  }, [property.id, userId, showNotesButton]);
+  }, [property.id, userId, showNotesButton, user?.role, user?.isApproved]);
 
   // Check if property is already closed
   useEffect(() => {
-    if (typeof window !== 'undefined' && userId) {
+    if (typeof window !== 'undefined') {
       // If showClosedButton is true, property is definitely closed - set immediately
       if (showClosedButton) {
         setIsClosed(true);
@@ -174,8 +180,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
       }
       
       const checkClosed = () => {
-        const closed = getClosedPropertyIds(userId).includes(property.id);
-        setIsClosed(closed);
+        // For admin/staff, check across all users; for regular users, check only their own
+        if (user?.role === 'admin' || (user?.role === 'staff' && user?.isApproved)) {
+          const closed = isPropertyClosedAnyUser(property.id);
+          setIsClosed(closed);
+        } else if (userId) {
+          const closed = getClosedPropertyIds(userId).includes(property.id);
+          setIsClosed(closed);
+        }
       };
       checkClosed();
 
@@ -185,7 +197,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
         window.removeEventListener('closedChanged', checkClosed);
       };
     }
-  }, [property.id, userId, showClosedButton]);
+  }, [property.id, userId, showClosedButton, user?.role, user?.isApproved]);
 
   // Check if property has notes
   useEffect(() => {
