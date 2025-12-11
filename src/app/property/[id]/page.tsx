@@ -1155,7 +1155,7 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-2">
+            <div className="flex justify-center items-center mb-1">
               <h3 className="text-xl font-semibold text-black">
                 Status Confirmation
               </h3>
@@ -1243,7 +1243,7 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-4">
+            <div className="flex justify-center items-center mb-2">
               <h3 className="text-xl font-semibold text-black">
                 Confirm by:
               </h3>
