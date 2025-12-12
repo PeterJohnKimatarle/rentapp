@@ -41,12 +41,16 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     if (pathname === '/admin' && typeof totalCount === 'number') {
       return `${totalCount}`;
     }
-    // Show filtered count when there are active filters
-    if (hasActiveFilters && typeof filteredCount === 'number') {
-      return `${filteredCount}`;
+    // Show filtered count as [x/x] when there are active filters (priority over admin homepage)
+    if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
+      return `${filteredCount}/${totalCount}`;
+    }
+    // Show total count for admin users on homepage (only when no filters)
+    if (pathname === '/' && user?.role === 'admin' && typeof totalCount === 'number') {
+      return `${totalCount}`;
     }
     return null;
-  }, [filteredCount, hasActiveFilters, totalCount, pathname]);
+  }, [filteredCount, hasActiveFilters, totalCount, pathname, user?.role]);
 
   // Get search placeholder based on current page
   const getSearchPlaceholder = () => {
@@ -223,6 +227,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     setIsClient(true);
   }, []);
 
+
   useEffect(() => {
     if (!isAuthenticated) {
       setIsUserMenuOpen(false);
@@ -370,7 +375,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           className="flex items-center cursor-pointer -ml-3"
         >
           <NextImage src="/icon.png" alt="Rentapp Logo" width={56} height={56} />
-          <h1 className="text-3xl font-bold text-booking-blue flex items-baseline gap-1 mt-1 -ml-1">
+          <h1 className="text-3xl font-semibold text-booking-blue flex items-baseline gap-1 mt-1 -ml-1">
             Rentapp
             {countLabel && (
               <span className="text-2xl font-medium leading-none">[{countLabel}]</span>

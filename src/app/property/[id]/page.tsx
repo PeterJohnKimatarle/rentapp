@@ -596,23 +596,13 @@ export default function PropertyDetailsPage() {
                           setIsNotesEditable(false);
                           setShowNotesModal(true);
                         } else if (isClosed) {
-                          // For admin, show info modal; for staff, open property actions modal
+                          // Staff and admin can open property actions modal
                           markPropertyAsViewed(); // Track property view
-                          if (user?.role === 'admin') {
-                            setInfoModalMessage('This property has been rented successfully.');
-                            setShowInfoModal(true);
-                          } else {
-                            setShowThreeDotsModal(true);
-                          }
+                          setShowThreeDotsModal(true);
                         } else {
-                          // For admin, show info modal; for staff, open property actions modal
+                          // Staff and admin can open property actions modal
                           markPropertyAsViewed(); // Track property view
-                          if (user?.role === 'admin') {
-                            setInfoModalMessage('This property has no any activity going on.');
-                            setShowInfoModal(true);
-                          } else {
-                            setShowThreeDotsModal(true);
-                          }
+                          setShowThreeDotsModal(true);
                         }
                       }}
                       className="text-white rounded-lg px-4 py-2 xl:px-6 xl:py-3 cursor-pointer flex items-center justify-center gap-2 shadow-lg select-none"
@@ -791,23 +781,13 @@ export default function PropertyDetailsPage() {
                       setIsNotesEditable(false);
                       setShowNotesModal(true);
                     } else if (isClosed) {
-                      // For admin, show info modal; for staff, open property actions modal
+                      // Staff and admin can open property actions modal
                       markPropertyAsViewed(); // Track property view
-                      if (user?.role === 'admin') {
-                        setInfoModalMessage('This property has been rented successfully.');
-                        setShowInfoModal(true);
-                      } else {
-                        setShowThreeDotsModal(true);
-                      }
+                      setShowThreeDotsModal(true);
                     } else {
-                      // For admin, show info modal; for staff, open property actions modal
+                      // Staff and admin can open property actions modal
                       markPropertyAsViewed(); // Track property view
-                      if (user?.role === 'admin') {
-                        setInfoModalMessage('This property has no any activity going on.');
-                        setShowInfoModal(true);
-                      } else {
-                        setShowThreeDotsModal(true);
-                      }
+                      setShowThreeDotsModal(true);
                     }
                   }}
                   className="flex-1 max-w-md text-white rounded-lg px-4 py-3 xl:px-6 xl:py-3.5 cursor-pointer flex items-center justify-center gap-2 select-none"
@@ -1043,7 +1023,7 @@ export default function PropertyDetailsPage() {
               <h3 className="text-xl font-semibold text-black flex-1 text-center">
                 Follow-up notes
               </h3>
-              {user?.role === 'staff' && user?.isApproved && (
+              {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1066,52 +1046,89 @@ export default function PropertyDetailsPage() {
             </div>
             
             <textarea
-              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : !isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
-              placeholder={user?.role === 'admin' ? 'No notes available...' : isNotesEditable ? 'Add your notes about this property...' : 'Double-click to edit notes...'}
+              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${!isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
+              placeholder={isNotesEditable ? "Add your notes about this property..." : "Double-click to edit/add notes..."}
               rows={6}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              readOnly={user?.role === 'admin' || !isNotesEditable}
-              onDoubleClick={() => {
-                if (user?.role !== 'admin' && user?.role === 'staff' && user?.isApproved) {
+              readOnly={!isNotesEditable}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                if ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') {
+                  // First remove readOnly by enabling edit mode
                   setIsNotesEditable(true);
+                  // Then focus after a short delay to ensure readOnly is removed
+                  requestAnimationFrame(() => {
+                    setTimeout(() => {
+                      const textarea = e.currentTarget as HTMLTextAreaElement;
+                      if (textarea) {
+                        // Remove readOnly attribute directly to ensure keyboard opens
+                        textarea.removeAttribute('readonly');
+                        textarea.focus();
+                        // Move cursor to end of text
+                        const length = textarea.value.length;
+                        textarea.setSelectionRange(length, length);
+                      }
+                    }, 0);
+                  });
+                }
+              }}
+              onTouchStart={(e) => {
+                // On mobile, handle double tap to enable edit and focus
+                if (!isNotesEditable && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
+                  const target = e.currentTarget;
+                  const now = Date.now();
+                  const lastTap = (target as any).lastTap || 0;
+                  
+                  if (now - lastTap < 300) {
+                    // Double tap detected
+                    e.preventDefault();
+                    setIsNotesEditable(true);
+                    requestAnimationFrame(() => {
+                      setTimeout(() => {
+                        target.removeAttribute('readonly');
+                        target.focus();
+                        const length = target.value.length;
+                        target.setSelectionRange(length, length);
+                      }, 0);
+                    });
+                  }
+                  (target as any).lastTap = now;
                 }
               }}
             />
 
             <div className="flex gap-2 mt-1.5">
-              {user?.role !== 'admin' && (
-                <button
-                  onClick={() => {
-                    // Save notes to localStorage - only staff can save
-                    if (typeof window !== 'undefined' && property && user?.role === 'staff' && user?.isApproved) {
-                      saveStaffNotes(property.id, notes);
-                      setHasNotes(notes.trim().length > 0);
-                    }
-                    setIsNotesEditable(false);
-                    setShowNotesModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  Save
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  // Save notes to localStorage - staff and admin can save
+                  if (typeof window !== 'undefined' && property && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
+                    saveStaffNotes(property.id, notes);
+                    setHasNotes(notes.trim().length > 0);
+                  }
+                  setIsNotesEditable(false);
+                  setShowNotesModal(false);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
+                style={{ 
+                  backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                  WebkitTapHighlightColor: 'transparent',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none',
+                  userSelect: 'none',
+                  outline: 'none'
+                }}
+              >
+                Save
+              </button>
               <button
                 onClick={() => {
                   setIsNotesEditable(false);
                   setShowNotesModal(false);
                   setNotes('');
                 }}
-                className={`px-4 py-2 rounded-lg font-medium text-white select-none ${user?.role === 'admin' ? 'flex-1' : 'flex-1'}`}
+                className="px-4 py-2 rounded-lg font-medium text-white select-none flex-1"
                 style={{ 
                   backgroundColor: '#ef4444',
                   WebkitTapHighlightColor: 'transparent',
@@ -1215,51 +1232,41 @@ export default function PropertyDetailsPage() {
             </div>
             <div className="mb-4">
               <p className="text-gray-600 text-center text-[1.05rem]">
-                {user?.role === 'admin' 
-                  ? (statusConfirmation 
-                      ? (
-                          <>
-                            Status confirmed <span className="font-bold">{getRelativeTime(statusConfirmation.confirmedAt)}</span> by {statusConfirmation.staffName}.
-                          </>
-                        )
-                      : 'The status of this property is not confirmed by any staff member.')
-                  : (statusConfirmation 
-                      ? (
-                          <>
-                            Status confirmed <span className="font-bold">{getRelativeTime(statusConfirmation.confirmedAt)}</span> by {statusConfirmation.staffName}. Click the button below to confirm again
-                          </>
-                        )
-                      : 'The status of this property is not confirmed by any staff member. click the button below to confirm')
+                {statusConfirmation 
+                  ? (
+                      <>
+                        Status confirmed <span className="font-bold">{getRelativeTime(statusConfirmation.confirmedAt)}</span> by {statusConfirmation.staffName}. Click the button below to confirm again
+                      </>
+                    )
+                  : 'The status of this property is not confirmed by any staff member. Click the button below to confirm'
                 }
               </p>
             </div>
 
-            <div className="flex gap-2">
-              {user?.role !== 'admin' && (
-                <button
-                  onClick={() => {
-                    setShowStatusConfirmationModal(false);
-                    setShowConfirmByModal(true);
-                  }}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
-                  style={{ 
-                    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                    WebkitTapHighlightColor: 'transparent',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    userSelect: 'none',
-                    outline: 'none'
-                  }}
-                >
-                  {statusConfirmation ? 'Confirm again' : 'Confirm'}
-                </button>
-              )}
+            <div className="flex gap-2 justify-start">
+              <button
+                onClick={() => {
+                  setShowStatusConfirmationModal(false);
+                  setShowConfirmByModal(true);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
+                style={{ 
+                  backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                  WebkitTapHighlightColor: 'transparent',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none',
+                  userSelect: 'none',
+                  outline: 'none'
+                }}
+              >
+                {statusConfirmation ? 'Confirm again' : 'Confirm'}
+              </button>
               <button
                 onClick={() => {
                   setShowStatusConfirmationModal(false);
                 }}
-                className={`px-4 py-2 rounded-lg font-medium bg-gray-300 text-gray-700 select-none ${user?.role === 'admin' ? 'flex-1' : 'flex-1'}`}
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 text-gray-700 select-none flex-1"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
                   WebkitUserSelect: 'none',
@@ -1269,7 +1276,7 @@ export default function PropertyDetailsPage() {
                   outline: 'none'
                 }}
               >
-                {user?.role === 'admin' ? 'OK' : 'Cancel'}
+                Cancel
               </button>
             </div>
           </div>
@@ -1306,33 +1313,6 @@ export default function PropertyDetailsPage() {
                   if (property && user?.id && user?.name) {
                     confirmPropertyStatus(property.id, user.id, user.name);
                   }
-                  window.open('tel:+255755123500', '_self');
-                  setShowConfirmByModal(false);
-                }}
-                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 rounded-lg select-none"
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  userSelect: 'none',
-                  outline: 'none'
-                }}
-              >
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800">Phone</p>
-                  <p className="text-sm text-gray-600">Call directly</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (property && user?.id && user?.name) {
-                    confirmPropertyStatus(property.id, user.id, user.name);
-                  }
                   if (property) {
                     // Construct property URL using ShareManager's method
                     const propertyUrl = ShareManager.getShareUrl(property.id);
@@ -1363,6 +1343,33 @@ export default function PropertyDetailsPage() {
                 <div className="text-left">
                   <p className="font-medium text-gray-800">WhatsApp</p>
                   <p className="text-sm text-gray-600">Message via WhatsApp</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (property && user?.id && user?.name) {
+                    confirmPropertyStatus(property.id, user.id, user.name);
+                  }
+                  window.open('tel:+255755123500', '_self');
+                  setShowConfirmByModal(false);
+                }}
+                className="w-full flex items-center space-x-3 p-2 sm:p-3 bg-blue-300 rounded-lg select-none"
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none',
+                  userSelect: 'none',
+                  outline: 'none'
+                }}
+              >
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-800">Phone</p>
+                  <p className="text-sm text-gray-600">Call directly</p>
                 </div>
               </button>
 
@@ -1455,9 +1462,9 @@ export default function PropertyDetailsPage() {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
+                    // Staff and admin can change status
                     // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       if (isPinged) {
                         removeFromFollowUp(property.id, userId, user.name);
                       }
@@ -1486,8 +1493,8 @@ export default function PropertyDetailsPage() {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    // Staff and admin can change status
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
                     }
                   }}
@@ -1511,9 +1518,9 @@ export default function PropertyDetailsPage() {
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
+                    // Staff and admin can change status
                     // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToClosed(property.id, userId, user.name);
                     }
                   }}

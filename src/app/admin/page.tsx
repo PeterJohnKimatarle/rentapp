@@ -4,12 +4,13 @@ import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
 import PropertyCard from '@/components/PropertyCard';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, Users, Settings, UserCheck, Check, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical, Archive, Clock } from 'lucide-react';
+import { ShieldCheck, Users, Settings, UserCheck, Check, Menu, X, ChevronRight, LogIn, User as UserIcon, MoreVertical, Archive, Clock, UserCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllProperties, getClosedProperties, getFollowUpProperties, DisplayProperty } from '@/utils/propertyUtils';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { isStaffEnrollmentEnabled, toggleStaffEnrollment } from '@/utils/adminSettings';
+import { getOnlineUserCount, getActiveSessions } from '@/utils/sessionTracking';
 
 interface User {
   id: string;
@@ -23,7 +24,7 @@ interface User {
   profileImage?: string;
 }
 
-type ViewType = 'staff' | 'users' | 'settings' | 'closed' | 'followup';
+type ViewType = 'staff' | 'users' | 'guests' | 'settings' | 'closed' | 'followup';
 
 // Delete Confirmation Popup Component
 function DeleteConfirmPopup({ 
@@ -125,6 +126,7 @@ export default function AdminPage() {
   const [closedProperties, setClosedProperties] = useState<DisplayProperty[]>([]);
   const [followUpProperties, setFollowUpProperties] = useState<DisplayProperty[]>([]);
   const [staffEnrollmentEnabled, setStaffEnrollmentEnabled] = useState(false);
+  const [onlineUserCount, setOnlineUserCount] = useState(0);
 
   // Prevent body scroll when delete confirmation popup or mobile menu is open
   usePreventScroll(deleteConfirm !== null || isLoginPopupOpen || isMenuOpen);
@@ -352,6 +354,19 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => {
+                  setCurrentView('guests');
+                }}
+                className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
+                  currentView === 'guests'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <UserCircle size={20} />
+                Guest Users
+              </button>
+              <button
+                onClick={() => {
                   setCurrentView('closed');
                 }}
                 className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left ${
@@ -397,8 +412,12 @@ export default function AdminPage() {
       <div className="space-y-6 relative">
 
         {/* All Staff View */}
-        {currentView === 'staff' && (
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        {currentView === 'staff' && (() => {
+          const activeSessions = getActiveSessions();
+          const onlineUserIds = new Set(activeSessions.map(s => s.userId));
+          
+          return (
+          <>
           <div className="flex items-center gap-2 mb-6 flex-wrap">
             <UserCheck size={24} className="text-purple-500" />
             <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
@@ -408,6 +427,7 @@ export default function AdminPage() {
               )}
             </h3>
             <p className="text-lg font-medium text-gray-900">[{staffMembers.length}]</p>
+            <span className="text-xl text-gray-600">online [{staffMembers.filter(s => onlineUserIds.has(s.id)).length}]</span>
           </div>
 
           {message && (
@@ -424,7 +444,9 @@ export default function AdminPage() {
             <p className="text-gray-600 text-center py-8">No staff members found.</p>
           ) : (
             <div className="space-y-4">
-              {staffMembers.map((staff) => (
+              {staffMembers.map((staff) => {
+                const isOnline = onlineUserIds.has(staff.id);
+                return (
                 <div
                   key={staff.id}
                   className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
@@ -485,12 +507,14 @@ export default function AdminPage() {
                             {staff.firstName || staff.name || 'Unknown'}
                           </h4>
                           {staff.isApproved ? (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full flex items-center gap-1.5">
                               Approved
+                              {isOnline && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mt-0.5 flex-shrink-0"></span>}
                             </span>
                           ) : (
-                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full flex items-center gap-1.5">
                               Pending
+                              {isOnline && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mt-0.5 flex-shrink-0"></span>}
                             </span>
                           )}
                         </div>
@@ -551,15 +575,30 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
-        </section>
-        )}
+        </>
+          );
+        })()}
 
         {/* All Users View */}
-        {currentView === 'users' && (
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        {currentView === 'users' && (() => {
+          const activeSessions = getActiveSessions();
+          const onlineUserIds = new Set(activeSessions.map(s => s.userId));
+          
+          return (
+          <>
+          {/* Total Users Heading */}
+          <div className="mb-6 sticky top-14 z-10">
+            <div className="flex items-center justify-center gap-2 flex-wrap bg-blue-500 px-4 py-3 rounded-lg">
+              <h4 className="text-xl font-semibold text-white">Total Users</h4>
+              <p className="text-lg font-medium text-white">[{allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').length}]</p>
+              <span className="text-xl text-white">online [{onlineUserCount}]</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2 mb-6 flex-wrap">
             <Users size={24} className="text-purple-500" />
             <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
@@ -569,6 +608,7 @@ export default function AdminPage() {
               )}
             </h3>
             <p className="text-lg font-medium text-gray-900">[{allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').length}]</p>
+            <span className="text-xl text-gray-600">online [{onlineUserCount}]</span>
           </div>
 
           {message && (
@@ -585,7 +625,9 @@ export default function AdminPage() {
             <p className="text-gray-600 text-center py-8">No users found.</p>
           ) : (
             <div className="space-y-4">
-              {allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').map((userItem) => (
+              {allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').map((userItem) => {
+                const isOnline = onlineUserIds.has(userItem.id);
+                return (
                 <div
                   key={userItem.id}
                   className="border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative"
@@ -651,8 +693,9 @@ export default function AdminPage() {
                           <h4 className="font-semibold text-gray-900">
                             {userItem.firstName || userItem.name || 'Unknown'}
                           </h4>
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 flex items-center gap-1.5">
                             Member
+                            {isOnline && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mt-0.5 flex-shrink-0"></span>}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{userItem.email}</p>
@@ -689,10 +732,31 @@ export default function AdminPage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
-        </section>
+        </>
+          );
+        })()}
+
+        {/* Guest Users View */}
+        {currentView === 'guests' && (
+        <>
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            <UserCircle size={24} className="text-purple-500" />
+            <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-1">
+              Guest Users
+              {isImpersonating && (
+                <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
+              )}
+            </h3>
+            <p className="text-lg font-medium text-gray-900">[0]</p>
+            <span className="text-xl text-gray-600">active [0]</span>
+          </div>
+
+          <p className="text-gray-600 text-center py-8">No guest users found.</p>
+        </>
         )}
 
         {/* All Closed Properties View */}
@@ -839,6 +903,20 @@ export default function AdminPage() {
                 >
                   <Users size={20} />
                   All Users
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentView('guests');
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-3 text-left mt-2 ${
+                    currentView === 'guests'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <UserCircle size={20} />
+                  Guest Users
                 </button>
                 <button
                   onClick={() => {

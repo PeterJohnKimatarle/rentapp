@@ -809,23 +809,13 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       setIsNotesEditable(false);
                       setShowNotesModal(true);
                     } else if (showClosedButton || isClosed) {
-                      // For admin, show info modal; for staff, open property actions modal
+                      // Staff and admin can open property actions modal
                       markPropertyAsViewed(); // Track property view
-                      if (user?.role === 'admin') {
-                      setInfoModalMessage('This property has been rented successfully.');
-                      setShowInfoModal(true);
+                      setShowThreeDotsModal(true);
                     } else {
-                        setShowThreeDotsModal(true);
-                      }
-                    } else {
-                      // For admin, show info modal; for staff, open property actions modal
+                      // Staff and admin can open property actions modal
                       markPropertyAsViewed(); // Track property view
-                      if (user?.role === 'admin') {
-                      setInfoModalMessage('This property has no any activity going on.');
-                      setShowInfoModal(true);
-                      } else {
-                        setShowThreeDotsModal(true);
-                      }
+                      setShowThreeDotsModal(true);
                     }
                   }}
                 >
@@ -1248,7 +1238,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <h3 className="text-xl font-semibold text-black flex-1 text-center">
                 Follow-up notes
               </h3>
-              {user?.role === 'staff' && user?.isApproved && (
+              {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1272,25 +1262,62 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             
             <textarea
               ref={notesTextareaRef}
-              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${user?.role === 'admin' ? 'bg-gray-100 cursor-not-allowed' : !isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
-              placeholder={user?.role === 'admin' ? 'No notes available...' : isNotesEditable ? 'Add your notes about this property...' : 'Double-click to edit notes...'}
+              className={`w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${!isNotesEditable ? 'bg-gray-50 cursor-pointer' : ''}`}
+              placeholder={isNotesEditable ? "Add your notes about this property..." : "Double-click to edit/add notes..."}
               rows={6}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              readOnly={user?.role === 'admin' || !isNotesEditable}
-              onDoubleClick={() => {
-                if (user?.role !== 'admin' && user?.role === 'staff' && user?.isApproved) {
+              readOnly={!isNotesEditable}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                if ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') {
+                  // First remove readOnly by enabling edit mode
                   setIsNotesEditable(true);
+                  // Then focus after a short delay to ensure readOnly is removed
+                  requestAnimationFrame(() => {
+                    setTimeout(() => {
+                      if (notesTextareaRef.current) {
+                        // Remove readOnly attribute directly to ensure keyboard opens
+                        notesTextareaRef.current.removeAttribute('readonly');
+                        notesTextareaRef.current.focus();
+                        // Move cursor to end of text
+                        const length = notesTextareaRef.current.value.length;
+                        notesTextareaRef.current.setSelectionRange(length, length);
+                      }
+                    }, 0);
+                  });
+                }
+              }}
+              onTouchStart={(e) => {
+                // On mobile, handle double tap to enable edit and focus
+                if (!isNotesEditable && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
+                  const target = e.currentTarget;
+                  const now = Date.now();
+                  const lastTap = (target as any).lastTap || 0;
+                  
+                  if (now - lastTap < 300) {
+                    // Double tap detected
+                    e.preventDefault();
+                    setIsNotesEditable(true);
+                    requestAnimationFrame(() => {
+                      setTimeout(() => {
+                        target.removeAttribute('readonly');
+                        target.focus();
+                        const length = target.value.length;
+                        target.setSelectionRange(length, length);
+                      }, 0);
+                    });
+                  }
+                  (target as any).lastTap = now;
                 }
               }}
             />
 
             <div className="flex gap-2 mt-1.5">
-              {user?.role !== 'admin' && (
               <button
                 onClick={() => {
-                    // Save notes to localStorage - only staff can save
-                    if (typeof window !== 'undefined' && user?.role === 'staff' && user?.isApproved) {
+                    // Save notes to localStorage - staff and admin can save
+                    if (typeof window !== 'undefined' && ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin')) {
                       saveStaffNotes(property.id, notes);
                     setHasNotes(notes.trim().length > 0);
                   }
@@ -1307,10 +1334,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     userSelect: 'none',
                     outline: 'none'
                   }}
-              >
-                Save
-              </button>
-              )}
+                >
+                  Save
+                </button>
               <button
                 onClick={() => {
                   setIsNotesEditable(false);
@@ -1360,8 +1386,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                    // Only staff can change status (admin is read-only)
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    // Staff and admin can change status
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                   if (isPinged) {
                         removeFromFollowUp(property.id, userId, user.name);
                   }
@@ -1382,8 +1408,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                    // Only staff can change status (admin is read-only)
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    // Staff and admin can change status
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
                   }
                   setShowStatusModal(false);
@@ -1400,9 +1426,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                    // Only staff can change status (admin is read-only)
+                    // Staff and admin can change status
                     // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToClosed(property.id, userId, user.name);
                   }
                   setShowStatusModal(false);
@@ -1459,9 +1485,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
+                    // Staff and admin can change status
                     // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                     if (isPinged) {
                         removeFromFollowUp(property.id, userId, user.name);
                     }
@@ -1490,8 +1516,8 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    // Staff and admin can change status
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
                     }
                   }}
@@ -1515,9 +1541,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     e.stopPropagation();
                     setShowThreeDotsModal(false);
                     setShowNotesModal(false);
-                    // Only staff can change status (admin is read-only)
+                    // Staff and admin can change status
                     // This will override follow-up status if property is in follow-up
-                    if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
+                    if (((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') && userId && user?.name) {
                       addToClosed(property.id, userId, user.name);
                     }
                   }}

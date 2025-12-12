@@ -73,14 +73,6 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
           setError('Failed to copy to clipboard. Please try again.');
           setTimeout(() => setError(null), 3000);
         }
-      } else if (shareMethod === 'native') {
-        const success = await ShareManager.shareNative(shareOptions);
-        if (success) {
-          onClose();
-        } else {
-          setError('Native sharing is not available. Please try another method.');
-          setTimeout(() => setError(null), 3000);
-        }
       } else {
         shareFunction();
         // Don't close immediately for app-based sharing (let user interact with app)
@@ -100,14 +92,6 @@ export default function SharePopup({ isOpen, onClose, shareOptions }: SharePopup
   };
 
   const shareButtons = [
-    {
-      id: 'native',
-      label: 'Share',
-      icon: Share2,
-      color: 'bg-blue-500 hover:bg-blue-600',
-      action: () => ShareManager.shareNative(shareOptions),
-      show: ShareManager.isNativeShareSupported() // Show native share when supported
-    },
     {
       id: 'email',
       label: 'Email',

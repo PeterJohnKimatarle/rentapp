@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { addActiveSession, removeActiveSession } from '@/utils/sessionTracking';
 
 interface User {
   id: string;
@@ -228,6 +229,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(newUser);
       localStorage.setItem(SESSION_KEY, JSON.stringify(newUser));
+      // Track active session
+      addActiveSession(newUser.id, newUser.email);
       setIsLoading(false);
       return { success: true };
     } catch (error) {
@@ -303,6 +306,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const safeUserWithoutPassword = sanitizeStoredUser(updatedRecord);
       setUser(safeUserWithoutPassword);
       localStorage.setItem(SESSION_KEY, JSON.stringify(safeUserWithoutPassword));
+      // Track active session
+      addActiveSession(safeUserWithoutPassword.id, safeUserWithoutPassword.email);
       setIsLoading(false);
       return { success: true };
     } catch (error) {
@@ -562,6 +567,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const safeUser = sanitizeStoredUser(targetUser);
       setUser(safeUser);
       localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
+      // Track active session for impersonated user
+      addActiveSession(safeUser.id, safeUser.email);
       
       return { success: true };
     } catch (error) {
@@ -589,6 +596,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Restore the original admin session
       setUser(originalAdmin);
       localStorage.setItem(SESSION_KEY, JSON.stringify(originalAdmin));
+      // Track active session for restored admin
+      addActiveSession(originalAdmin.id, originalAdmin.email);
       localStorage.removeItem(ORIGINAL_ADMIN_KEY);
       setIsImpersonating(false);
       
