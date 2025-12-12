@@ -536,7 +536,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
             <LogIn size={20} className="flex-shrink-0" />
 
-            <span className="text-base font-medium">Login</span>
+            <span className="text-base font-medium">Login/Register</span>
 
           </button>
 
