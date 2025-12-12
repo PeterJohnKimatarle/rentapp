@@ -340,12 +340,12 @@ export default function PropertyDetailsPage() {
     const now = new Date();
     const updatedAt = new Date(dateString);
     let diffInSeconds = Math.floor((now.getTime() - updatedAt.getTime()) / 1000);
-
+    
     // Ensure minimum is 2 seconds (handle 0, 1, and negative values)
     if (diffInSeconds < 2) {
       diffInSeconds = 2;
     }
-
+    
     if (diffInSeconds < 60) {
       return `${diffInSeconds} sec${diffInSeconds === 1 ? '' : 's'} ago`;
     } else if (diffInSeconds < 3600) {
@@ -516,7 +516,7 @@ export default function PropertyDetailsPage() {
                   strokeWidth: 1.5
                 }}
               />
-            </div>
+      </div>
 
             {/* Bookmark Icon */}
             <div 
@@ -573,7 +573,7 @@ export default function PropertyDetailsPage() {
             )}
 
             {/* Confirm & Book / Confirm Status Button - Desktop Only */}
-            <div className="hidden xl:block absolute bottom-2 right-2 z-30">
+              <div className="hidden xl:block absolute bottom-2 right-2 z-30">
               {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? (
                   <>
                     <button
@@ -691,7 +691,7 @@ export default function PropertyDetailsPage() {
                     <span className="text-sm xl:text-base font-medium">Confirm Status</span>
                   </button>
                 )}
-            </div>
+              </div>
             </div>
           </div>
         )}
@@ -763,12 +763,12 @@ export default function PropertyDetailsPage() {
                 </div>
                   </div>
             )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
       {/* Fixed Confirm & Book / Confirm Status Button - Mobile Only - Visible for all users */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg px-4 py-3">
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg px-4 py-3">
         <div className="max-w-7xl mx-auto flex justify-center gap-2">
           {((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? (
               <>
@@ -1010,7 +1010,7 @@ export default function PropertyDetailsPage() {
               </button>
             </div>
 
-            <button
+              <button
               onClick={() => setShowBookingModal(false)}
               className="w-full px-4 py-2 rounded-lg font-medium transition-colors bg-gray-300 hover:bg-gray-400 text-gray-700"
             >
@@ -1030,7 +1030,7 @@ export default function PropertyDetailsPage() {
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)'
           }}
-          onClick={() => {
+                onClick={() => {
             setShowNotesModal(false);
             setNotes('');
           }}

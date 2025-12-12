@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, ChevronRight, Pencil } from 'lucide-react';
 import Layout from '@/components/Layout';
 import LoginPopup from '@/components/LoginPopup';
+import { isStaffEnrollmentEnabled } from '@/utils/adminSettings';
 
 const RegisterPage: React.FC = () => {
   const [registrationType, setRegistrationType] = useState<'member' | 'staff' | 'admin'>('member');
@@ -26,9 +27,21 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [isRegisterAsExpanded, setIsRegisterAsExpanded] = useState(false);
+  const [staffEnrollmentEnabled, setStaffEnrollmentEnabled] = useState(false);
   
   const { register } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if staff enrollment is enabled
+    const enabled = isStaffEnrollmentEnabled();
+    setStaffEnrollmentEnabled(enabled);
+    
+    // Reset to member if staff is selected but enrollment is disabled
+    if (registrationType === 'staff' && !enabled) {
+      setRegistrationType('member');
+    }
+  }, [registrationType]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -71,6 +84,20 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Prevent admin registration
+      if (registrationType === 'admin') {
+        setError('Admin registration is not available');
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if staff enrollment is enabled
+      if (registrationType === 'staff' && !staffEnrollmentEnabled) {
+        setError('Staff registration is currently disabled');
+        setIsLoading(false);
+        return;
+      }
+
       // Map registration type to role
       let finalRole: 'tenant' | 'landlord' | 'broker' | 'staff' | 'admin';
       if (registrationType === 'member') {
@@ -78,7 +105,7 @@ const RegisterPage: React.FC = () => {
       } else if (registrationType === 'staff') {
         finalRole = 'staff';
       } else {
-        finalRole = 'admin';
+        finalRole = 'tenant'; // Fallback to tenant
       }
 
       const result = await register({
@@ -214,11 +241,13 @@ const RegisterPage: React.FC = () => {
                           setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
                           setIsRegisterAsExpanded(false);
                         }}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 text-blue-600 focus:ring-0 focus:outline-none"
                       />
                       <span className="ml-3 text-sm text-gray-700">Member (Tenant, Landlord, or Broker)</span>
                     </label>
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors ${
+                      !staffEnrollmentEnabled ? 'cursor-not-allowed opacity-75 bg-gray-50' : 'cursor-pointer hover:bg-gray-50'
+                    }`}>
                       <input
                         type="radio"
                         name="registrationType"
@@ -228,24 +257,30 @@ const RegisterPage: React.FC = () => {
                           setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
                           setIsRegisterAsExpanded(false);
                         }}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        disabled={!staffEnrollmentEnabled}
+                        className="w-4 h-4 text-blue-600 focus:ring-0 focus:outline-none"
                       />
-                      <span className="ml-3 text-sm text-gray-700">Staff (Requires admin approval)</span>
+                      <span className={`ml-3 text-sm ${!staffEnrollmentEnabled ? 'text-gray-600' : 'text-gray-700'}`}>
+                        Staff {!staffEnrollmentEnabled ? '(Disabled)' : '(Requires admin approval)'}
+                      </span>
                     </label>
-                  <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="registrationType"
-                      value="admin"
-                      checked={registrationType === 'admin'}
-                      onChange={(e) => {
-                        setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
-                        setIsRegisterAsExpanded(false);
-                      }}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-3 text-sm text-gray-700">Admin</span>
-                  </label>
+                    <label className={`flex items-center p-3 border border-gray-300 rounded-lg transition-colors ${
+                      true ? 'cursor-not-allowed opacity-75 bg-gray-50' : 'cursor-pointer hover:bg-gray-50'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="registrationType"
+                        value="admin"
+                        checked={registrationType === 'admin'}
+                        onChange={(e) => {
+                          setRegistrationType(e.target.value as 'member' | 'staff' | 'admin');
+                          setIsRegisterAsExpanded(false);
+                        }}
+                        disabled={true}
+                        className="w-4 h-4 text-blue-600 focus:ring-0 focus:outline-none"
+                      />
+                      <span className="ml-3 text-sm text-gray-600">Admin (Not applicable)</span>
+                    </label>
                   </div>
                 )}
               </div>

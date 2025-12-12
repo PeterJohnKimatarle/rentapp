@@ -4,14 +4,16 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { LogOut } from 'lucide-react';
 
 interface UserMenuProps {
   isOpen: boolean;
   onClose: () => void;
   anchorPosition: { top: number; right: number } | null;
+  onLogoutClick?: () => void;
 }
 
-export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuProps) {
+export default function UserMenu({ isOpen, onClose, anchorPosition, onLogoutClick }: UserMenuProps) {
   const router = useRouter();
   const { user } = useAuth();
   const isStaff = user?.role === 'staff';
@@ -57,7 +59,7 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
     if (isAdmin) {
       return {
         text: 'ADMIN',
-        bgColor: 'bg-red-500',
+        bgColor: 'bg-red-400',
         textColor: 'text-white'
       };
     }
@@ -108,14 +110,15 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative p-5 bg-blue-500 text-white">
-          <div className="flex items-center gap-3 flex-wrap mb-0.5">
-            <p className="text-sm tracking-wide text-gray-100 font-semibold">Logged in as</p>
-            <div className={`inline-block ${roleBanner.bgColor} ${roleBanner.textColor} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider`}>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold leading-tight">{displayFirstName}</h3>
+              <p className="text-gray-100 text-sm mt-0.5">{user?.email || 'No email provided'}</p>
+            </div>
+            <div className={`inline-block ${roleBanner.bgColor} ${roleBanner.textColor} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider flex-shrink-0 mb-0.5`}>
               {roleBanner.text}
             </div>
           </div>
-          <h3 className="text-2xl font-bold leading-tight">{displayFirstName}</h3>
-          <p className="text-gray-100 text-sm mt-0.5">{user?.email || 'No email provided'}</p>
         </div>
 
         <div className="p-5 space-y-4">
@@ -138,6 +141,17 @@ export default function UserMenu({ isOpen, onClose, anchorPosition }: UserMenuPr
                 }}
               >
                 Feedback
+              </button>
+              <button
+                className="w-full px-4 py-3 rounded-xl bg-red-400 text-white hover:bg-red-500 transition-colors flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (onLogoutClick) {
+                    onLogoutClick();
+                  }
+                }}
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
               </button>
             <button
                 className="xl:hidden w-full px-4 py-3 rounded-xl bg-gray-500 text-white hover:bg-gray-600 transition-colors flex items-center justify-center"

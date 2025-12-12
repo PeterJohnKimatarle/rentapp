@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllProperties, getClosedProperties, getFollowUpProperties, DisplayProperty } from '@/utils/propertyUtils';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { isStaffEnrollmentEnabled, toggleStaffEnrollment } from '@/utils/adminSettings';
 
 interface User {
   id: string;
@@ -123,9 +124,17 @@ export default function AdminPage() {
   const [isLoggingAs, setIsLoggingAs] = useState(false);
   const [closedProperties, setClosedProperties] = useState<DisplayProperty[]>([]);
   const [followUpProperties, setFollowUpProperties] = useState<DisplayProperty[]>([]);
+  const [staffEnrollmentEnabled, setStaffEnrollmentEnabled] = useState(false);
 
   // Prevent body scroll when delete confirmation popup or mobile menu is open
   usePreventScroll(deleteConfirm !== null || isLoginPopupOpen || isMenuOpen);
+
+  useEffect(() => {
+    // Load staff enrollment status
+    if (isAdmin && typeof window !== 'undefined') {
+      setStaffEnrollmentEnabled(isStaffEnrollmentEnabled());
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     // Load total properties count
@@ -746,43 +755,43 @@ export default function AdminPage() {
 
         {/* Settings View */}
         {currentView === 'settings' && (
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        <div>
           <div className="flex items-center gap-3 mb-6">
             <Settings size={24} className="text-purple-500" />
-            <h3 className="text-xl font-semibold text-gray-900">Settings</h3>
+            <h3 className="text-xl font-semibold text-gray-900">Platform Settings</h3>
           </div>
           
           <div className="space-y-6">
-            <div className="border-b border-gray-200 pb-4">
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Platform Statistics</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">Total Properties</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalProperties}</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex-1">
+                  <h5 className="text-base font-semibold text-gray-900 mb-1">Staff Enrollment</h5>
+                  <p className="text-sm text-gray-600">Allow users to register as staff members</p>
                 </div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{allUsers.length}</p>
-                </div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">Total Staff</p>
-                  <p className="text-2xl font-bold text-gray-900">{staffMembers.length}</p>
-                </div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">Approved Staff</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {staffMembers.filter(s => s.isApproved).length}
-                  </p>
-                </div>
+                  <button
+                    onClick={() => {
+                      const newStatus = toggleStaffEnrollment();
+                      setStaffEnrollmentEnabled(newStatus);
+                      setMessage({
+                        type: 'success',
+                        text: newStatus ? 'Staff enrollment enabled' : 'Staff enrollment disabled'
+                      });
+                      setTimeout(() => setMessage(null), 3000);
+                    }}
+                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-0 items-center ${
+                      staffEnrollmentEnabled ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-[22px] w-[22px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        staffEnrollmentEnabled ? 'translate-x-[21px]' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
               </div>
             </div>
-
-            <div className="border-b border-gray-200 pb-4">
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Platform Settings</h4>
-              <p className="text-gray-600">Platform configuration options will be available here.</p>
-            </div>
           </div>
-        </section>
+        </div>
         )}
         </div>
 

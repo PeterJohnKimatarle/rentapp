@@ -590,6 +590,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
           isOpen={isUserMenuOpen}
           onClose={closeUserMenu}
           anchorPosition={anchorPosition}
+          onLogoutClick={() => setShowLogoutConfirm(true)}
         />
       )}
 

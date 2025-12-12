@@ -770,7 +770,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                   className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium select-none"
                   style={{ 
                     backgroundColor: (showNotesButton || isPinged)
-                      ? 'rgba(59, 130, 246, 0.9)' 
+                        ? 'rgba(59, 130, 246, 0.9)' 
                       : (showClosedButton || isClosed)
                         ? 'rgba(34, 197, 94, 0.9)' 
                         : 'rgba(107, 114, 128, 0.9)',
@@ -801,10 +801,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                           const notes = getStaffNotes(property.id);
                           setNotes(notes);
                         } else if (user?.id) {
-                          const key = `rentapp_notes_${user.id}_${property.id}`;
-                          const savedNotes = localStorage.getItem(key) || '';
-                          setNotes(savedNotes);
-                        }
+                        const key = `rentapp_notes_${user.id}_${property.id}`;
+                        const savedNotes = localStorage.getItem(key) || '';
+                        setNotes(savedNotes);
+                      }
                       }
                       setIsNotesEditable(false);
                       setShowNotesModal(true);
@@ -812,17 +812,17 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                       // For admin, show info modal; for staff, open property actions modal
                       markPropertyAsViewed(); // Track property view
                       if (user?.role === 'admin') {
-                        setInfoModalMessage('This property has been rented successfully.');
-                        setShowInfoModal(true);
-                      } else {
+                      setInfoModalMessage('This property has been rented successfully.');
+                      setShowInfoModal(true);
+                    } else {
                         setShowThreeDotsModal(true);
                       }
                     } else {
                       // For admin, show info modal; for staff, open property actions modal
                       markPropertyAsViewed(); // Track property view
                       if (user?.role === 'admin') {
-                        setInfoModalMessage('This property has no any activity going on.');
-                        setShowInfoModal(true);
+                      setInfoModalMessage('This property has no any activity going on.');
+                      setShowInfoModal(true);
                       } else {
                         setShowThreeDotsModal(true);
                       }
@@ -1287,16 +1287,16 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
 
             <div className="flex gap-2 mt-1.5">
               {user?.role !== 'admin' && (
-                <button
-                  onClick={() => {
+              <button
+                onClick={() => {
                     // Save notes to localStorage - only staff can save
                     if (typeof window !== 'undefined' && user?.role === 'staff' && user?.isApproved) {
                       saveStaffNotes(property.id, notes);
-                      setHasNotes(notes.trim().length > 0);
-                    }
+                    setHasNotes(notes.trim().length > 0);
+                  }
                     setIsNotesEditable(false);
-                    setShowNotesModal(false);
-                  }}
+                  setShowNotesModal(false);
+                }}
                   className="flex-1 px-4 py-2 rounded-lg font-medium text-white select-none"
                   style={{ 
                     backgroundColor: 'rgba(34, 197, 94, 0.9)',
@@ -1307,9 +1307,9 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     userSelect: 'none',
                     outline: 'none'
                   }}
-                >
-                  Save
-                </button>
+              >
+                Save
+              </button>
               )}
               <button
                 onClick={() => {
@@ -1358,19 +1358,19 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           >
             <div className="space-y-2">
               <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                onClick={(e) => {
+                  e.stopPropagation();
                     // Only staff can change status (admin is read-only)
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                      if (isPinged) {
+                  if (isPinged) {
                         removeFromFollowUp(property.id, userId, user.name);
-                      }
-                      if (isClosed) {
+                  }
+                  if (isClosed) {
                         removeFromClosed(property.id, userId, user.name);
                       }
-                    }
-                    setShowStatusModal(false);
-                  }}
+                  }
+                  setShowStatusModal(false);
+                }}
                 className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
                 style={{ backgroundColor: 'rgba(107, 114, 128, 0.9)' }}
                 onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(107, 114, 128, 1)'}
@@ -1379,41 +1379,41 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 Default
               </button>
               {!isPinged && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                     // Only staff can change status (admin is read-only)
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToFollowUp(property.id, userId, user.name);
-                    }
-                    setShowStatusModal(false);
-                  }}
-                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.9)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.9)'}
-                >
+                  }
+                  setShowStatusModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
+                style={{ backgroundColor: 'rgba(59, 130, 246, 0.9)' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.9)'}
+              >
                   Set to Follow Up
-                </button>
+              </button>
               )}
               {!isClosed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
                       addToClosed(property.id, userId, user.name);
-                    }
-                    setShowStatusModal(false);
-                  }}
-                  className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
-                  style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
-                  onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
-                  onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
-                >
+                  }
+                  setShowStatusModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-lg font-medium transition-colors text-white text-base"
+                style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)' }}
+                onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}
+                onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 0.9)'}
+              >
                   Set to Closed
-                </button>
+              </button>
               )}
               <button
                 onClick={(e) => {
@@ -1462,10 +1462,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                     // Only staff can change status (admin is read-only)
                     // This will override follow-up status if property is in follow-up
                     if (user?.role === 'staff' && user?.isApproved && userId && user?.name) {
-                      if (isPinged) {
+                    if (isPinged) {
                         removeFromFollowUp(property.id, userId, user.name);
-                      }
-                      if (isClosed) {
+                    }
+                    if (isClosed) {
                         removeFromClosed(property.id, userId, user.name);
                       }
                     }

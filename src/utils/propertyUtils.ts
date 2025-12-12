@@ -584,13 +584,13 @@ export const setPropertyStatus = (
       }
     };
     savePropertyStatusMap(statusMap);
-    
+      
     // Dispatch events for UI updates
     window.dispatchEvent(new CustomEvent('propertyStatusChanged', { detail: { propertyId, status } }));
-    window.dispatchEvent(new CustomEvent('followUpChanged'));
+      window.dispatchEvent(new CustomEvent('followUpChanged'));
     window.dispatchEvent(new CustomEvent('closedChanged'));
     
-    return true;
+      return true;
   } catch (error) {
     console.error('Error setting property status:', error);
     return false;
@@ -657,10 +657,10 @@ export const getFollowUpPropertiesByStaff = (staffId: string): DisplayProperty[]
       // Check if property has notes (staff contributed to notes)
       const notes = getStaffNotes(property.id);
       if (notes && notes.trim().length > 0) {
-        return true;
-      }
+      return true;
+    }
       
-      return false;
+    return false;
     });
   } catch (error) {
     console.error('Error getting follow-up properties by staff:', error);
@@ -764,7 +764,7 @@ export const saveStaffNotes = (propertyId: string, notes: string): boolean => {
     localStorage.setItem(key, notes);
     // Dispatch event to notify other components
     window.dispatchEvent(new CustomEvent('notesChanged'));
-    return true;
+      return true;
   } catch (error) {
     console.error('Error saving staff notes:', error);
     return false;
