@@ -33,6 +33,7 @@ export default function PropertyDetailsPage() {
   const [notes, setNotes] = useState('');
   const [hasNotes, setHasNotes] = useState(false);
   const [isNotesEditable, setIsNotesEditable] = useState(false);
+  const [notesKeyboardInset, setNotesKeyboardInset] = useState(0);
   const [showUpdatedDateModal, setShowUpdatedDateModal] = useState(false);
   const [showStatusConfirmationModal, setShowStatusConfirmationModal] = useState(false);
   const [showConfirmByModal, setShowConfirmByModal] = useState(false);
@@ -271,6 +272,30 @@ export default function PropertyDetailsPage() {
       setHasNotes(false);
     }
   }, [property?.id, userId, isPinged, isClosed, user?.role]);
+
+  // Detect keyboard visibility and move modal up by 100px when keyboard is visible
+  useEffect(() => {
+    if (!showNotesModal) {
+      setNotesKeyboardInset(0);
+      return;
+    }
+    const vv = typeof window !== 'undefined'
+      ? (window as Window & { visualViewport?: VisualViewport }).visualViewport
+      : undefined;
+    if (!vv) return;
+    const handleResize = () => {
+      const covered = Math.max(0, window.innerHeight - vv.height);
+      // Move modal up by 100px when keyboard is visible, return to center when not visible
+      setNotesKeyboardInset(covered > 0 ? 100 : 0);
+    };
+    handleResize();
+    vv.addEventListener('resize', handleResize);
+    vv.addEventListener('scroll', handleResize);
+    return () => {
+      vv.removeEventListener('resize', handleResize);
+      vv.removeEventListener('scroll', handleResize);
+    };
+  }, [showNotesModal]);
 
   const handleBookmarkClick = () => {
     if (!property) {
@@ -1018,6 +1043,10 @@ export default function PropertyDetailsPage() {
           <div
             className="bg-white rounded-xl px-4 py-2 sm:px-6 sm:pt-1 sm:pb-9 max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              transform: notesKeyboardInset > 0 ? `translateY(-${notesKeyboardInset}px)` : 'translateY(0)',
+              transition: 'transform 0.2s ease-out'
+            }}
           >
             <div className="flex justify-between items-center mb-3 relative">
               <h3 className="text-xl font-semibold text-black flex-1 text-center">

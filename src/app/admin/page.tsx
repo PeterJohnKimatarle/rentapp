@@ -11,6 +11,7 @@ import { getAllProperties, getClosedProperties, getFollowUpProperties, DisplayPr
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { isStaffEnrollmentEnabled, toggleStaffEnrollment } from '@/utils/adminSettings';
 import { getOnlineUserCount, getActiveSessions } from '@/utils/sessionTracking';
+import { getGuestUsers, getGuestUserCount, getActiveGuestCount } from '@/utils/guestTracking';
 
 interface User {
   id: string;
@@ -127,6 +128,7 @@ export default function AdminPage() {
   const [followUpProperties, setFollowUpProperties] = useState<DisplayProperty[]>([]);
   const [staffEnrollmentEnabled, setStaffEnrollmentEnabled] = useState(false);
   const [onlineUserCount, setOnlineUserCount] = useState(0);
+  const [guestUsers, setGuestUsers] = useState<Array<{ id: string; firstVisit: number; lastVisit: number; isActive: boolean }>>([]);
 
   // Prevent body scroll when delete confirmation popup or mobile menu is open
   usePreventScroll(deleteConfirm !== null || isLoginPopupOpen || isMenuOpen);
@@ -191,6 +193,26 @@ export default function AdminPage() {
         window.removeEventListener('closedChanged', handleClosedChange);
         window.removeEventListener('followUpChanged', handleFollowUpChange);
       };
+    }
+  }, [isAdmin]);
+
+  // Load guest users and update periodically
+  useEffect(() => {
+    if (isAdmin && typeof window !== 'undefined') {
+      const loadGuestUsers = () => {
+        const guests = getGuestUsers();
+        setGuestUsers(guests);
+      };
+      
+      // Load immediately
+      loadGuestUsers();
+      
+      // Update every 5 seconds
+      const interval = setInterval(() => {
+        loadGuestUsers();
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [isAdmin]);
 
@@ -594,8 +616,8 @@ export default function AdminPage() {
           <div className="mb-6 sticky top-14 z-10">
             <div className="flex items-center justify-center gap-2 flex-wrap bg-blue-500 px-4 py-3 rounded-lg">
               <h4 className="text-xl font-semibold text-white">Total Users</h4>
-              <p className="text-lg font-medium text-white">[{allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').length}]</p>
-              <span className="text-xl text-white">online [{onlineUserCount}]</span>
+              <p className="text-lg font-medium text-white">[{allUsers.filter(u => u.role !== 'admin' && u.role !== 'staff').length + getGuestUserCount()}]</p>
+              <span className="text-xl text-white">online [{onlineUserCount + getActiveGuestCount()}]</span>
             </div>
           </div>
 
@@ -751,11 +773,36 @@ export default function AdminPage() {
                 <span className="w-2 h-2 bg-red-500 rounded-full mt-0.5"></span>
               )}
             </h3>
-            <p className="text-lg font-medium text-gray-900">[0]</p>
-            <span className="text-xl text-gray-600">active [0]</span>
+            <p className="text-lg font-medium text-gray-900">[{guestUsers.length}]</p>
+            <span className="text-xl text-gray-600">active [{guestUsers.filter(g => g.isActive).length}]</span>
           </div>
 
-          <p className="text-gray-600 text-center py-8">No guest users found.</p>
+          {guestUsers.length === 0 ? (
+            <p className="text-gray-600 text-center py-8">No guest users found.</p>
+          ) : (
+            <div className="space-y-3">
+              {guestUsers.map((guest, index) => (
+                <div key={guest.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 font-medium">{index + 1}.</span>
+                      <span className="text-gray-900 font-medium">Guest User</span>
+                      {guest.isActive && (
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {guest.isActive ? (
+                        <span className="text-green-600 font-medium">Active</span>
+                      ) : (
+                        <span className="text-gray-500">Inactive</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </>
         )}
 

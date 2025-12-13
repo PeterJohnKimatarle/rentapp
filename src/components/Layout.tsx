@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LoginPopup from './LoginPopup';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import UserMenu from './UserMenu';
+import { trackGuestVisit, markGuestInactive } from '@/utils/guestTracking';
 
 interface LayoutProps {
   children: ReactNode;
@@ -227,6 +228,42 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     setIsClient(true);
   }, []);
 
+  // Track guest visits and handle active/inactive status
+  useEffect(() => {
+    if (!isAuthenticated && typeof window !== 'undefined') {
+      // Track guest visit when not authenticated
+      trackGuestVisit();
+      
+      // Mark inactive when page becomes hidden or closes
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          markGuestInactive();
+        } else {
+          // Reactivate if page becomes visible again
+          trackGuestVisit();
+        }
+      };
+      
+      const handleBeforeUnload = () => {
+        markGuestInactive();
+      };
+      
+      const handlePageHide = () => {
+        markGuestInactive();
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('pagehide', handlePageHide);
+      
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('pagehide', handlePageHide);
+        markGuestInactive();
+      };
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) {

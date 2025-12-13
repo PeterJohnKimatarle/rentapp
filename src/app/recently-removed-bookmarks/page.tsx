@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { 
@@ -22,6 +23,7 @@ type SearchFilters = {
 
 export default function RecentlyRemovedBookmarksPage() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
   const userId = user?.id;
   const [removedProperties, setRemovedProperties] = useState<DisplayProperty[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -110,7 +112,12 @@ export default function RecentlyRemovedBookmarksPage() {
     if (userId) {
       const success = restoreBookmark(property.id, userId);
       if (success) {
-        setRemovedProperties(getRecentlyRemovedProperties(userId));
+        const updatedRemovedProperties = getRecentlyRemovedProperties(userId);
+        setRemovedProperties(updatedRemovedProperties);
+        // If all properties are restored, redirect to bookmarks page
+        if (updatedRemovedProperties.length === 0) {
+          router.push('/bookmarks');
+        }
       }
     }
   };
@@ -164,9 +171,27 @@ export default function RecentlyRemovedBookmarksPage() {
                 hideBookmark={true}
                 isRemovedBookmark={true}
                 renderAfterUpdated={
-                  <div className="mt-2 flex gap-2">
+                  <div 
+                    className="mt-2 flex gap-2" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                  >
                     <button
-                      onClick={() => handleRestoreClick(property)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleRestoreClick(property);
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
                       className="flex-1 flex items-center justify-center gap-2 text-white px-4 py-2 rounded-lg text-base font-medium transition-colors"
                       style={{ backgroundColor: 'rgba(34, 197, 94, 0.9)', maxWidth: '250px' }}
                       onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(34, 197, 94, 1)'}

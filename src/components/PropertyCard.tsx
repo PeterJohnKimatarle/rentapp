@@ -708,7 +708,17 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             </div>
             {/* Custom content after Updated section in card preview */}
             {renderAfterUpdated && (
-              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              <div 
+                className="mt-2" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
+              >
                 {renderAfterUpdated}
               </div>
             )}
