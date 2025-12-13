@@ -56,6 +56,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showThreeDotsModal, setShowThreeDotsModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [wasOpenedFromNotesModal, setWasOpenedFromNotesModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoModalMessage, setInfoModalMessage] = useState('');
   const [notes, setNotes] = useState('');
@@ -1237,14 +1238,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           }}
         >
           <div
-            className="bg-white rounded-xl px-4 py-2 sm:px-6 sm:pt-1 sm:pb-9 max-w-sm w-full mx-4"
+            className="bg-white rounded-xl px-4 py-2 sm:px-6 sm:pt-1 sm:pb-14 md:pb-4 max-w-sm md:max-w-[414px] w-full mx-4"
             onClick={(e) => e.stopPropagation()}
             style={{
               transform: notesKeyboardInset > 0 ? `translateY(-${notesKeyboardInset}px)` : 'translateY(0)',
               transition: 'transform 0.2s ease-out'
             }}
           >
-            <div className="flex justify-between items-center mb-3 relative">
+            <div className="flex justify-between items-center mb-3 relative pt-1">
               <h3 className="text-xl font-semibold text-black flex-1 text-center">
                 Follow-up notes
               </h3>
@@ -1252,9 +1253,11 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    setWasOpenedFromNotesModal(true);
+                    setShowNotesModal(false);
                     setShowThreeDotsModal(true);
                   }}
-                  className="absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center justify-center text-gray-700 hover:text-black cursor-pointer select-none"
+                  className="absolute top-0 md:top-[60%] md:-translate-y-1/2 right-2 md:right-3 flex items-center justify-center text-gray-700 hover:text-black cursor-pointer select-none hover:bg-black/20 rounded p-1.5 transition-colors"
                   style={{ 
                     WebkitTapHighlightColor: 'transparent',
                     WebkitUserSelect: 'none',
@@ -1478,6 +1481,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowThreeDotsModal(false);
+              if (wasOpenedFromNotesModal) {
+                setShowNotesModal(true);
+                setWasOpenedFromNotesModal(false);
+              }
             }
           }}
         >
@@ -1576,6 +1583,10 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowThreeDotsModal(false);
+                  if (wasOpenedFromNotesModal) {
+                    setShowNotesModal(true);
+                    setWasOpenedFromNotesModal(false);
+                  }
                 }}
                 className="w-full px-4 py-3 rounded-lg font-medium bg-gray-300 text-gray-700 select-none"
                 style={{ 
