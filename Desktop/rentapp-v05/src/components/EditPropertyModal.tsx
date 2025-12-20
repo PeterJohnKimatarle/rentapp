@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { PropertyFormData } from '@/utils/propertyUtils';
 import { Image, MoreVertical, ChevronRight } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
