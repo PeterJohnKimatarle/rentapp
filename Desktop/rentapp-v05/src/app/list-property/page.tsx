@@ -114,7 +114,7 @@ export default function ListPropertyPage() {
 
 
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
-  const [rentalRateValue, setRentalRateValue] = useState('');
+  const [rentalRateValue, setRentalRateValue] = useState('price-month');
   
 
   
@@ -143,8 +143,8 @@ export default function ListPropertyPage() {
   // Touch gesture handling for tab switching across entire page
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchEndRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const minSwipeDistance = 30; // Minimum horizontal distance for swipe recognition
-  const maxVerticalThreshold = 100; // Maximum vertical movement allowed for horizontal swipe
+  const minSwipeDistance = 0; // Minimum horizontal distance for swipe recognition
+  const maxVerticalThreshold = 30; // Maximum vertical movement allowed for horizontal swipe
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.targetTouches[0];
@@ -168,13 +168,6 @@ export default function ListPropertyPage() {
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    // Disable tab switching gestures when image modals are open
-    if (showMainImagePopup || showOtherImagesPopup) {
-      touchStartRef.current = null;
-      touchEndRef.current = null;
-      return;
-    }
-
     if (!touchStartRef.current || !touchEndRef.current) {
       touchStartRef.current = null;
       touchEndRef.current = null;
@@ -207,7 +200,7 @@ export default function ListPropertyPage() {
       // On Extra Info: right-to-left swipe → switch to Basic Info
       setActiveTab('basic');
     }
-  }, [activeTab, showMainImagePopup, showOtherImagesPopup]);
+  }, [activeTab]);
 
   // Keyboard navigation for tabs (desktop only)
   useEffect(() => {
@@ -867,7 +860,7 @@ export default function ListPropertyPage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
-                    Price{rentalRateValue ? '/' + rentalRateValue.replace('price-', '').charAt(0).toUpperCase() + rentalRateValue.replace('price-', '').slice(1) : ''} (Tsh)
+                    Price/{rentalRateValue.replace('price-', '').charAt(0).toUpperCase() + rentalRateValue.replace('price-', '').slice(1)} (Tsh)
                   </label>
                   <input
                     type="text"
@@ -903,11 +896,11 @@ export default function ListPropertyPage() {
                 </div>
 
                 {/* Pricing Details Dropdown */}
-                <div className="col-span-2 flex justify-end">
+                <div className="col-span-2">
                   <div className="relative">
                     <button
                       type="button"
-                      className="flex items-center gap-1 w-fit px-1 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
+                      className="flex items-center justify-end gap-2 w-full pr-2 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
                       style={{ backgroundColor: 'transparent' }}
                       onClick={(e) => {
                         const select = e.currentTarget.nextElementSibling as HTMLSelectElement;
@@ -923,13 +916,12 @@ export default function ListPropertyPage() {
                     <select
                       value={rentalRateValue}
                       onChange={(e) => {
-                        const value = e.target.value;
+                        const value = e.target.value as 'month' | 'night' | 'day' | 'hour';
                         setRentalRateValue(value);
-                        handleInputChange('pricingUnit', value || 'month'); // Default to month if empty
+                        handleInputChange('pricingUnit', value);
                       }}
-                      className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     >
-                      <option value="" className="text-gray-800">---</option>
                       <option value="price-month" className="text-gray-800">Price/month</option>
                       <option value="price-night" className="text-gray-800">Price/night</option>
                       <option value="price-hour" className="text-gray-800">Price/hour</option>

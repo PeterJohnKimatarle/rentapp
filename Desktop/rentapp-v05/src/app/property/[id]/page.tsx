@@ -1900,10 +1900,22 @@ export default function PropertyDetailsPage() {
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
           <div className="flex justify-center">
             <span
-              className="text-blue-600 hover:text-blue-800 text-base font-normal cursor-pointer transition-colors duration-200 hover:scale-105 transform"
+              className="text-blue-600 text-base md:text-lg font-normal cursor-pointer underline relative"
+              style={{
+                paddingLeft: '8px',
+                paddingRight: '8px',
+                textDecoration: 'none'
+              }}
               onClick={() => setShowDescriptionModal(true)}
             >
               Description
+              <span
+                className="absolute bottom-0 left-0 right-0 bg-blue-600"
+                style={{
+                  width: '100%',
+                  height: '1.7px'
+                }}
+              ></span>
             </span>
           </div>
         </div>
