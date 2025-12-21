@@ -232,7 +232,12 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
   useEffect(() => {
     if (property) {
       try {
-        setFormData(property);
+        // Ensure pricingUnit has a default value if missing
+        const propertyWithDefaults = {
+          ...property,
+          pricingUnit: property.pricingUnit || 'month'
+        };
+        setFormData(propertyWithDefaults);
         setOriginalProperty(property);
         setSelectedRegion(property.region || '');
         setSelectedWard(property.ward || '');
@@ -256,8 +261,8 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
           setSelectedPropertySubType('');
         }
         
-        // Initialize rental rate value from existing property (empty if no pricingUnit)
-        setRentalRateValue(property.pricingUnit ? `price-${property.pricingUnit}` : '');
+        // Initialize rental rate value from existing property (default to month if no pricingUnit)
+        setRentalRateValue(property.pricingUnit ? `price-${property.pricingUnit}` : 'price-month');
 
         // Reset staged changes
         setStagedFormData(null);
