@@ -442,9 +442,18 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{ minHeight: '100vh', height: '100%', touchAction: 'none', padding: '0.3125rem 10px' }}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+        onTouchStart(e);
+      }}
+      onTouchMove={(e) => {
+        e.stopPropagation();
+        onTouchMove(e);
+      }}
+      onTouchEnd={(e) => {
+        e.stopPropagation();
+        onTouchEnd();
+      }}
     >
       <div
         className="bg-white flex flex-col shadow-2xl max-h-[calc(90vh-2px)] xl:max-h-[calc(95vh-2px)]"

@@ -427,7 +427,6 @@ export default function MyPropertiesPage() {
   return (
     <Layout
       totalCount={properties.length}
-      hasModalOpen={isEditModalOpen || isImageEditModalOpen}
     >
       {renderContent()}
 
