@@ -930,10 +930,10 @@ export default function ListPropertyPage() {
                       className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
                     >
                       <option value="" className="text-gray-800">---</option>
-                      <option value="price-month" className="text-gray-800">Price/Month</option>
-                      <option value="price-night" className="text-gray-800">Price/Night</option>
-                      <option value="price-hour" className="text-gray-800">Price/Hour</option>
-                      <option value="price-day" className="text-gray-800">Price/Day</option>
+                      <option value="price-month" className="text-gray-800">Price/month</option>
+                      <option value="price-night" className="text-gray-800">Price/night</option>
+                      <option value="price-hour" className="text-gray-800">Price/hour</option>
+                      <option value="price-day" className="text-gray-800">Price/day</option>
                     </select>
                   </div>
 
