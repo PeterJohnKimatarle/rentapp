@@ -29,13 +29,12 @@ export default function MyPropertiesPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
-  // Load active property ID from localStorage on mount (for navigation persistence)
+  // Clear active property ID on page refresh (yellow dot tracker should hide)
   useEffect(() => {
     if (typeof window !== 'undefined' && userId) {
-      const storedActivePropertyId = localStorage.getItem(`rentapp_active_property_${userId}`);
-      if (storedActivePropertyId) {
-        setActivePropertyId(storedActivePropertyId);
-      }
+      // Clear the active property tracker on page refresh
+      localStorage.removeItem(`rentapp_active_property_${userId}`);
+      setActivePropertyId(null);
     }
   }, [userId]);
 
