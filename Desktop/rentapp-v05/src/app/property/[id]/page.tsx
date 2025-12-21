@@ -1894,6 +1894,18 @@ export default function PropertyDetailsPage() {
         </div>
       )}
 
+      {/* Property Description Section */}
+      {property && property.description && property.description.trim() && (
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Description</h2>
+            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+              {property.description}
+            </div>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 }
