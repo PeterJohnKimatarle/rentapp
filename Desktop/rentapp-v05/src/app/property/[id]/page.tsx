@@ -1900,7 +1900,7 @@ export default function PropertyDetailsPage() {
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
           <div className="flex justify-center">
             <span
-              className="text-blue-600 hover:text-blue-800 text-base font-normal cursor-pointer underline decoration-2 underline-offset-2 transition-colors duration-200 hover:scale-105 transform"
+              className="text-blue-600 hover:text-blue-800 text-base font-normal cursor-pointer transition-colors duration-200 hover:scale-105 transform"
               onClick={() => setShowDescriptionModal(true)}
             >
               Description
