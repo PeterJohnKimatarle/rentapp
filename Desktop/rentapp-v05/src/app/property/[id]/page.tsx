@@ -1925,7 +1925,7 @@ export default function PropertyDetailsPage() {
               </div>
             ) : (
               <div className="text-gray-600 text-center py-4">
-                This property has no description or extra details
+                This property has no any description or extra details
               </div>
             )}
             <div className="mt-6 flex justify-end">
