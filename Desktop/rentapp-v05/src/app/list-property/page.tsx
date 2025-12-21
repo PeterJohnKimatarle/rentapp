@@ -168,6 +168,13 @@ export default function ListPropertyPage() {
   }, []);
 
   const handleTouchEnd = useCallback(() => {
+    // Disable tab switching gestures when image modals are open
+    if (showMainImagePopup || showOtherImagesPopup) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+
     if (!touchStartRef.current || !touchEndRef.current) {
       touchStartRef.current = null;
       touchEndRef.current = null;
@@ -200,7 +207,7 @@ export default function ListPropertyPage() {
       // On Extra Info: right-to-left swipe → switch to Basic Info
       setActiveTab('basic');
     }
-  }, [activeTab]);
+  }, [activeTab, showMainImagePopup, showOtherImagesPopup]);
 
   // Keyboard navigation for tabs (desktop only)
   useEffect(() => {

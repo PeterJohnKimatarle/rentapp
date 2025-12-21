@@ -72,13 +72,9 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const minSwipeDistance = 50;
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    // Disable global swipe gestures on list-property page when image modals are open
+    // Disable global swipe gestures on list-property page to allow custom in-page gestures
     if (pathname === '/list-property') {
-      // Check if main image or other images modal is open (high z-index modals)
-      const imageModalOpen = document.querySelector('div.fixed.inset-0.flex.items-center.justify-center.z-50');
-      if (imageModalOpen) {
-        return; // Disable global gestures when image modals are open
-      }
+      return;
     }
 
     touchEndRef.current = null;
@@ -97,13 +93,9 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   }, []);
 
   const onTouchEnd = useCallback(() => {
-    // Disable global swipe gestures on list-property page when image modals are open
+    // Disable global swipe gestures on list-property page
     if (pathname === '/list-property') {
-      // Check if main image or other images modal is open (high z-index modals)
-      const imageModalOpen = document.querySelector('div.fixed.inset-0.flex.items-center.justify-center.z-50');
-      if (imageModalOpen) {
-        return; // Disable global gestures when image modals are open
-      }
+      return;
     }
 
     const touchStart = touchStartRef.current;
