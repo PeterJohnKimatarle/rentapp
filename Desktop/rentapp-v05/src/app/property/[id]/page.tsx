@@ -867,6 +867,21 @@ export default function PropertyDetailsPage() {
                 </div>
               </div>
             )}
+
+            {/* Description Text - Positioned absolutely on the image */}
+            {property && property.description && property.description.trim().length > 0 && (
+              <div className="absolute bottom-2 left-2 z-20">
+                <span
+                  className="text-white text-sm xl:text-base font-medium cursor-pointer underline bg-black bg-opacity-50 px-2 py-1 rounded"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDescriptionModal(true);
+                  }}
+                >
+                  Description
+                </span>
+              </div>
+            )}
                 </div>
               </div>
             </div>
@@ -981,19 +996,6 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
 
-        {/* Description Text - Right below the image */}
-        {property && property.description && property.description.trim().length > 0 && (
-          <div className="max-w-7xl mx-auto mt-2 pl-2 pr-2 sm:pl-4 sm:pr-4 lg:pl-6 lg:pr-6">
-            <div className="flex justify-end">
-              <span
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer underline"
-                onClick={() => setShowDescriptionModal(true)}
-              >
-                Description
-              </span>
-            </div>
-          </div>
-        )}
 
       {/* Image Lightbox */}
       {isLightboxOpen && property.images && property.images.length > 0 && (
