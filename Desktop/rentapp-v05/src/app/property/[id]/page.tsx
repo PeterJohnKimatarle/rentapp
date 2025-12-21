@@ -1935,7 +1935,7 @@ export default function PropertyDetailsPage() {
                   {description}
                 </div>
               ) : (
-              <div className="text-gray-600 text-center py-1">
+              <div className="text-gray-600 text-center py-2">
                 This property has no any description or extra details
               </div>
               );
