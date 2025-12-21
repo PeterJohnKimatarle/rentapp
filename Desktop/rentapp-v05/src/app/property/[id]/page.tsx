@@ -1898,14 +1898,13 @@ export default function PropertyDetailsPage() {
       {/* Property Description Section */}
       {property && property.description && property.description.trim() && (
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
-          <div
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setShowDescriptionModal(true)}
-          >
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Description</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
-              {property.description}
-            </div>
+          <div className="flex justify-center">
+            <span
+              className="text-blue-600 hover:text-blue-800 text-lg font-medium cursor-pointer underline decoration-2 underline-offset-2 transition-colors duration-200 hover:scale-105 transform"
+              onClick={() => setShowDescriptionModal(true)}
+            >
+              Description
+            </span>
           </div>
         </div>
       )}
