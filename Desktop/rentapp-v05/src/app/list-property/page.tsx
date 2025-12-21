@@ -867,7 +867,7 @@ export default function ListPropertyPage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
-                    Price{rentalRateValue ? '/' + rentalRateValue.replace('price-', '') : ''} (Tsh)
+                    Price{rentalRateValue ? '/' + rentalRateValue.replace('price-', '').charAt(0).toUpperCase() + rentalRateValue.replace('price-', '').slice(1) : ''} (Tsh)
                   </label>
                   <input
                     type="text"

@@ -813,7 +813,7 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
                 </h3>
               </div>
                 <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
-                  <span className="font-bold">Price:</span> {formatPrice(property.price)}/{'pricingUnit' in property ? ((property.pricingUnit?.replace('price-', '') || 'month').charAt(0).toUpperCase() + (property.pricingUnit?.replace('price-', '') || 'month').slice(1)) : 'Month'}
+                  <span className="font-bold">Price:</span> {formatPrice(property.price)}/{'pricingUnit' in property ? (property.pricingUnit?.replace('price-', '') || 'month') : 'month'}
                 </div>
               <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
                 <span className="font-bold">Plan:</span> {property.plan === 'flexible' ? 'Flexible' : `${property.plan} Months`}
