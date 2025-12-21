@@ -18,9 +18,10 @@ interface LayoutProps {
   totalCount?: number;
   filteredCount?: number;
   hasActiveFilters?: boolean;
+  hasModalOpen?: boolean;
 }
 
-export default function Layout({ children, totalCount, filteredCount, hasActiveFilters = false }: LayoutProps) {
+export default function Layout({ children, totalCount, filteredCount, hasActiveFilters = false, hasModalOpen = false }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
@@ -77,6 +78,11 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
       return;
     }
 
+    // Disable global swipe gestures when any modal is open (e.g., EditPropertyModal)
+    if (hasModalOpen) {
+      return;
+    }
+
     touchEndRef.current = null;
     touchStartRef.current = {
       x: e.targetTouches[0].clientX,
@@ -95,6 +101,11 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const onTouchEnd = useCallback(() => {
     // Disable global swipe gestures on list-property page
     if (pathname === '/list-property') {
+      return;
+    }
+
+    // Disable global swipe gestures when any modal is open (e.g., EditPropertyModal)
+    if (hasModalOpen) {
       return;
     }
 
@@ -157,7 +168,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     // Reset refs after handling
     touchStartRef.current = null;
     touchEndRef.current = null;
-  }, [isMobileMenuOpen, isSearchPopupOpen]);
+  }, [isMobileMenuOpen, isSearchPopupOpen, hasModalOpen]);
 
   const handleLogoClick = () => {
     if (pathname === '/') {
