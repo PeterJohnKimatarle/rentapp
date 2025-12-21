@@ -264,7 +264,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
         // Initialize rental rate value from existing property (default to month if no pricingUnit)
         const pricingUnit = property.pricingUnit || 'month';
         console.log('🎯 EditPropertyModal - Property pricingUnit:', property.pricingUnit, 'Final pricingUnit:', pricingUnit);
-        setRentalRateValue(`price-${pricingUnit}`);
+
+        // Handle pricing unit format - some properties might already have 'price-' prefix
+        const rentalRateValue = pricingUnit.startsWith('price-') ? pricingUnit : `price-${pricingUnit}`;
+        console.log('🎯 EditPropertyModal - Final rentalRateValue:', rentalRateValue);
+        setRentalRateValue(rentalRateValue);
 
         // Reset staged changes
         setStagedFormData(null);
@@ -792,10 +796,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
                    rentalRateValue === 'price-hour' ? 'Price/hour (Tsh)' :
                    rentalRateValue === 'price-day' ? 'Price/day (Tsh)' :
                    rentalRateValue === 'price-month' ? 'Price/month (Tsh)' :
-                   (() => {
-                     console.log('⚠️ EditPropertyModal - Unknown rentalRateValue:', rentalRateValue);
-                     return 'Price (Tsh)';
-                   })()}
+                   'Price (Tsh)'}
                 </label>
                 <input
                   type="text"
