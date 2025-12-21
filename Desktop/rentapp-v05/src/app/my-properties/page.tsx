@@ -472,6 +472,8 @@ export default function MyPropertiesPage() {
   return (
     <Layout
       totalCount={properties.length}
+      filteredCount={filteredProperties.length}
+      hasActiveFilters={hasActiveFilters}
     >
       {renderContent()}
 
