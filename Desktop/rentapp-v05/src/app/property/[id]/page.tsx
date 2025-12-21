@@ -43,9 +43,10 @@ export default function PropertyDetailsPage() {
   const [pendingStatus, setPendingStatus] = useState<'available' | 'occupied' | ''>('');
   const [showAllAmenitiesModal, setShowAllAmenitiesModal] = useState(false);
   const [showDesktopMore, setShowDesktopMore] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   // Prevent body scrolling when booking modal is open
-  usePreventScroll(showBookingModal || showSharePopup || showThreeDotsModal || showNotesModal || showInfoModal || showUpdatedDateModal || showStatusConfirmationModal || showConfirmByModal || showStatusUpdateModal || showAllAmenitiesModal);
+  usePreventScroll(showBookingModal || showSharePopup || showThreeDotsModal || showNotesModal || showInfoModal || showUpdatedDateModal || showStatusConfirmationModal || showConfirmByModal || showStatusUpdateModal || showAllAmenitiesModal || showDescriptionModal);
 
   useEffect(() => {
     const propertyId = params.id as string;
@@ -1897,10 +1898,47 @@ export default function PropertyDetailsPage() {
       {/* Property Description Section */}
       {property && property.description && property.description.trim() && (
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setShowDescriptionModal(true)}
+          >
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Description</h2>
             <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
               {property.description}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Description Modal */}
+      {showDescriptionModal && property?.description && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{
+            touchAction: 'none',
+            minHeight: '100vh',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}
+          onClick={() => setShowDescriptionModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center items-center mb-4">
+              <h3 className="text-xl font-semibold text-black">Property Description</h3>
+            </div>
+            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {property.description}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
