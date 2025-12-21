@@ -996,6 +996,19 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
 
+        {/* Description Text - Right below the hero image */}
+        {property && property.description && property.description.trim().length > 0 && (
+          <div className="mt-2 pl-2 pr-2 sm:pl-4 sm:pr-4 lg:pl-6 lg:pr-6">
+            <div className="flex justify-end">
+              <span
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer underline"
+                onClick={() => setShowDescriptionModal(true)}
+              >
+                Description
+              </span>
+            </div>
+          </div>
+        )}
 
       {/* Image Lightbox */}
       {isLightboxOpen && property.images && property.images.length > 0 && (
