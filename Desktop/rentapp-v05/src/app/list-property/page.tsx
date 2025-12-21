@@ -863,7 +863,7 @@ export default function ListPropertyPage() {
          </div>
 
             {/* Pricing Card */}
-            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto relative">
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-2 max-w-sm mx-auto">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
@@ -901,41 +901,42 @@ export default function ListPropertyPage() {
                     <option value="flexible">Flexible</option>
                   </select>
                 </div>
-              </div>
 
-              {/* Rental Rate Element - Absolutely positioned to fit content */}
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 w-fit px-1 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
-                    style={{ backgroundColor: 'transparent' }}
-                    onClick={(e) => {
-                      const select = e.currentTarget.nextElementSibling as HTMLSelectElement;
-                      if (select) select.click();
-                    }}
-                  >
-                    <span>Rental rate</span>
-                    <ChevronRight
-                      size={16}
-                      className="text-white"
-                    />
-                  </button>
-                  <select
-                    value={rentalRateValue}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setRentalRateValue(value);
-                      handleInputChange('pricingUnit', value || 'month'); // Default to month if empty
-                    }}
-                    className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
-                  >
-                    <option value="" className="text-gray-800">---</option>
-                    <option value="price-month" className="text-gray-800">Price/month</option>
-                    <option value="price-night" className="text-gray-800">Price/night</option>
-                    <option value="price-hour" className="text-gray-800">Price/hour</option>
-                    <option value="price-day" className="text-gray-800">Price/day</option>
-                  </select>
+                {/* Pricing Details Dropdown */}
+                <div className="col-span-2 flex justify-end">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 w-fit px-1 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
+                      style={{ backgroundColor: 'transparent' }}
+                      onClick={(e) => {
+                        const select = e.currentTarget.nextElementSibling as HTMLSelectElement;
+                        if (select) select.click();
+                      }}
+                    >
+                      <span>Rental rate</span>
+                      <ChevronRight
+                        size={16}
+                        className="text-white"
+                      />
+                    </button>
+                    <select
+                      value={rentalRateValue}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setRentalRateValue(value);
+                        handleInputChange('pricingUnit', value || 'month'); // Default to month if empty
+                      }}
+                      className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
+                    >
+                      <option value="" className="text-gray-800">---</option>
+                      <option value="price-month" className="text-gray-800">Price/month</option>
+                      <option value="price-night" className="text-gray-800">Price/night</option>
+                      <option value="price-hour" className="text-gray-800">Price/hour</option>
+                      <option value="price-day" className="text-gray-800">Price/day</option>
+                    </select>
+                  </div>
+
                 </div>
               </div>
             </div>
