@@ -1940,7 +1940,7 @@ export default function PropertyDetailsPage() {
               </div>
               );
             })()}
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex justify-center">
               <button
                 onClick={() => setShowDescriptionModal(false)}
                 className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
