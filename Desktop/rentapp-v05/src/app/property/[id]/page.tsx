@@ -867,20 +867,6 @@ export default function PropertyDetailsPage() {
               </div>
             )}
 
-            {/* Description Text - Positioned absolutely on the image */}
-            {property && property.description && property.description.trim().length > 0 && (
-              <div className="absolute bottom-2 left-2 z-20">
-                <span
-                  className="text-white text-sm xl:text-base font-medium cursor-pointer underline bg-black bg-opacity-50 px-2 py-1 rounded"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDescriptionModal(true);
-                  }}
-                >
-                  Description
-                </span>
-              </div>
-            )}
                 </div>
               </div>
             </div>
