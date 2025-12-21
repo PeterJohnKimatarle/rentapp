@@ -48,13 +48,25 @@ export default function MyPropertiesPage() {
 
       const isPageRefresh = isExplicitReload || isFastReload || isFirstLoad;
 
+      console.log('🔍 My Properties Load Detection:', {
+        isExplicitReload,
+        isFastReload,
+        isFirstLoad,
+        timeDiff,
+        navigationType: navigationType?.type,
+        isPageRefresh,
+        lastLoadTime
+      });
+
       if (isPageRefresh) {
         // Clear the active property tracker only on page refresh/first load
+        console.log('🧹 Clearing active property tracker (page refresh detected)');
         localStorage.removeItem(`rentapp_active_property_${userId}`);
         setActivePropertyId(null);
       } else {
         // Load existing tracker for navigation within the app
         const storedActivePropertyId = localStorage.getItem(`rentapp_active_property_${userId}`);
+        console.log('💾 Loading existing tracker:', storedActivePropertyId);
         if (storedActivePropertyId) {
           setActivePropertyId(storedActivePropertyId);
         }
