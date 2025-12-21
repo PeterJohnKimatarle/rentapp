@@ -474,13 +474,7 @@ export default function PropertyDetailsPage() {
           <div
             className="rounded-lg py-2 relative cursor-pointer"
             style={{ backgroundColor: '#0071c2' }}
-            onClick={() => {
-              if (property && property.description && property.description.trim()) {
-                setShowDescriptionModal(true);
-              } else {
-                alert('This property has no any description');
-              }
-            }}
+            onClick={() => setShowDescriptionModal(true)}
           >
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">
               {property.title}
@@ -1907,7 +1901,7 @@ export default function PropertyDetailsPage() {
 
 
       {/* Description Modal */}
-      {showDescriptionModal && property?.description && (
+      {showDescriptionModal && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 p-4"
           style={{
@@ -1925,9 +1919,15 @@ export default function PropertyDetailsPage() {
             <div className="flex justify-center items-center mb-4">
               <h3 className="text-xl font-semibold text-black">Property Description</h3>
             </div>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {property.description}
-            </div>
+            {property?.description && property.description.trim() ? (
+              <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {property.description}
+              </div>
+            ) : (
+              <div className="text-gray-600 text-center py-4">
+                This property has no description or extra details
+              </div>
+            )}
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setShowDescriptionModal(false)}
