@@ -471,7 +471,15 @@ export default function PropertyDetailsPage() {
       <div className="bg-gray-50">
         {/* Property Title */}
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 pb-1.5">
-          <div className="rounded-lg py-2 relative" style={{ backgroundColor: '#0071c2' }}>
+          <div
+            className="rounded-lg py-2 relative cursor-pointer"
+            style={{ backgroundColor: '#0071c2' }}
+            onClick={() => {
+              if (property && property.description && property.description.trim()) {
+                setShowDescriptionModal(true);
+              }
+            }}
+          >
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">
               {property.title}
             </h1>
