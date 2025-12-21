@@ -46,6 +46,10 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
     if (hasActiveFilters && typeof filteredCount === 'number' && typeof totalCount === 'number') {
       return `${filteredCount}/${totalCount}`;
     }
+    // Show total count for My Properties and Bookmarks pages (when no filters)
+    if ((pathname === '/my-properties' || pathname === '/bookmarks') && typeof totalCount === 'number' && !hasActiveFilters) {
+      return `${totalCount}`;
+    }
     // Show total count for admin users on homepage (only when no filters)
     if (pathname === '/' && user?.role === 'admin' && typeof totalCount === 'number') {
       return `${totalCount}`;
