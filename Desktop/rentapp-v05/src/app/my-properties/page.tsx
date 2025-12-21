@@ -32,48 +32,55 @@ export default function MyPropertiesPage() {
   // Handle active property tracker persistence vs page refresh clearing
   useEffect(() => {
     if (typeof window !== 'undefined' && userId) {
-      // Use timestamp-based detection for more reliable refresh detection
-      const now = Date.now();
-      const lastLoadTime = sessionStorage.getItem('rentapp_my_properties_load_time');
-      const timeDiff = lastLoadTime ? now - parseInt(lastLoadTime) : Infinity;
+      // Simple and reliable approach: only clear on actual page refresh
+      // Use beforeunload to detect when user leaves/refreshes the page
+      const handleBeforeUnload = () => {
+        // Clear the session flag when page unloads (refresh or navigation away)
+        sessionStorage.removeItem('rentapp_my_properties_visited');
+      };
 
-      // Consider it a refresh if:
-      // 1. No previous load time (first load ever)
-      // 2. Time difference is very small (< 100ms, indicating refresh)
-      // 3. Performance API explicitly says 'reload'
-      const navigationType = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const isExplicitReload = navigationType && navigationType.type === 'reload';
-      const isFastReload = timeDiff < 100; // Very short time = likely refresh
-      const isFirstLoad = !lastLoadTime;
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          // Page is being hidden (user switching tabs or minimizing)
+          // Don't clear tracker
+        } else {
+          // Page is becoming visible again
+          // If we don't have the visited flag, this might be a refresh
+          if (!sessionStorage.getItem('rentapp_my_properties_visited')) {
+            console.log('🔄 Page refresh detected - clearing tracker');
+            localStorage.removeItem(`rentapp_active_property_${userId}`);
+            setActivePropertyId(null);
+          }
+        }
+      };
 
-      const isPageRefresh = isExplicitReload || isFastReload || isFirstLoad;
+      // Check if this is the first visit to this page in this session
+      const hasVisitedBefore = sessionStorage.getItem('rentapp_my_properties_visited');
 
-      console.log('🔍 My Properties Load Detection:', {
-        isExplicitReload,
-        isFastReload,
-        isFirstLoad,
-        timeDiff,
-        navigationType: navigationType?.type,
-        isPageRefresh,
-        lastLoadTime
-      });
-
-      if (isPageRefresh) {
-        // Clear the active property tracker only on page refresh/first load
-        console.log('🧹 Clearing active property tracker (page refresh detected)');
+      if (!hasVisitedBefore) {
+        console.log('🏠 First visit to My Properties - clearing any stale tracker');
+        // First visit in this session - clear any stale tracker
         localStorage.removeItem(`rentapp_active_property_${userId}`);
         setActivePropertyId(null);
+        // Mark as visited
+        sessionStorage.setItem('rentapp_my_properties_visited', 'true');
       } else {
-        // Load existing tracker for navigation within the app
+        console.log('↩️ Returning to My Properties - loading existing tracker');
+        // Returning to page - load existing tracker
         const storedActivePropertyId = localStorage.getItem(`rentapp_active_property_${userId}`);
-        console.log('💾 Loading existing tracker:', storedActivePropertyId);
         if (storedActivePropertyId) {
           setActivePropertyId(storedActivePropertyId);
         }
       }
 
-      // Update load timestamp
-      sessionStorage.setItem('rentapp_my_properties_load_time', now.toString());
+      // Set up event listeners
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [userId]);
 
