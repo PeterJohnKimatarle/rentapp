@@ -897,7 +897,7 @@ export default function ListPropertyPage() {
 
                 {/* Pricing Details Dropdown */}
                 <div className="col-span-2">
-                  <div className="relative">
+                  <div className="relative flex justify-end">
                     <button
                       type="button"
                       className="flex items-center justify-end gap-2 w-fit pr-2 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
