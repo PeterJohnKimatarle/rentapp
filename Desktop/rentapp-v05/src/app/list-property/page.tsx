@@ -903,11 +903,11 @@ export default function ListPropertyPage() {
                 </div>
 
                 {/* Pricing Details Dropdown */}
-                <div className="col-span-2">
-                  <div className="relative flex justify-end">
+                <div className="col-span-2 flex justify-end">
+                  <div className="relative">
                     <button
                       type="button"
-                      className="flex items-center justify-end gap-1 w-fit px-1 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
+                      className="flex items-center gap-1 w-fit px-1 text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none"
                       style={{ backgroundColor: 'transparent' }}
                       onClick={(e) => {
                         const select = e.currentTarget.nextElementSibling as HTMLSelectElement;
