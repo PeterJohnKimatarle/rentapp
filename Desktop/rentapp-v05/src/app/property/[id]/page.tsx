@@ -1919,15 +1919,26 @@ export default function PropertyDetailsPage() {
             <div className="flex justify-center items-center mb-4">
               <h3 className="text-xl font-semibold text-black">Property Description</h3>
             </div>
-            {property?.description && property.description.trim() ? (
-              <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {property.description}
-              </div>
-            ) : (
-              <div className="text-gray-600 text-center py-4">
-                This property has no any description or extra details
-              </div>
-            )}
+            {(() => {
+              console.log('Description debug:', {
+                propertyExists: !!property,
+                descriptionValue: property?.description,
+                descriptionType: typeof property?.description,
+                hasDescription: !!(property?.description),
+                trimmedDescription: property?.description?.trim(),
+                hasTrimmedDescription: !!(property?.description?.trim()),
+                finalCondition: property?.description && property.description.trim()
+              });
+              return property?.description && property.description.trim() ? (
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {property.description}
+                </div>
+              ) : (
+                <div className="text-gray-600 text-center py-4">
+                  This property has no any description or extra details
+                </div>
+              );
+            })()}
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setShowDescriptionModal(false)}
