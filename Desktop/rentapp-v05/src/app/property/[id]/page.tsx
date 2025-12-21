@@ -25,7 +25,6 @@ export default function PropertyDetailsPage() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingModalType, setBookingModalType] = useState<'book' | 'status'>('book');
   const [isPinged, setIsPinged] = useState(false);
-  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
   const [showThreeDotsModal, setShowThreeDotsModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -46,7 +45,7 @@ export default function PropertyDetailsPage() {
   const [showDesktopMore, setShowDesktopMore] = useState(false);
 
   // Prevent body scrolling when booking modal is open
-  usePreventScroll(showBookingModal || showSharePopup || showThreeDotsModal || showNotesModal || showInfoModal || showUpdatedDateModal || showStatusConfirmationModal || showConfirmByModal || showStatusUpdateModal || showAllAmenitiesModal || showDescriptionModal);
+  usePreventScroll(showBookingModal || showSharePopup || showThreeDotsModal || showNotesModal || showInfoModal || showUpdatedDateModal || showStatusConfirmationModal || showConfirmByModal || showStatusUpdateModal || showAllAmenitiesModal);
 
   useEffect(() => {
     const propertyId = params.id as string;
@@ -996,19 +995,6 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
 
-        {/* Description Text - Right below the hero image */}
-        {property && property.description && property.description.trim().length > 0 && (
-          <div className="mt-2 pl-2 pr-2 sm:pl-4 sm:pr-4 lg:pl-6 lg:pr-6">
-            <div className="flex justify-end">
-              <span
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer underline"
-                onClick={() => setShowDescriptionModal(true)}
-              >
-                Description
-              </span>
-            </div>
-          </div>
-        )}
 
       {/* Image Lightbox */}
       {isLightboxOpen && property.images && property.images.length > 0 && (
@@ -1922,39 +1908,6 @@ export default function PropertyDetailsPage() {
         </div>
       )}
 
-      {/* Description Modal */}
-      {showDescriptionModal && property?.description && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={() => setShowDescriptionModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">Property Description</h3>
-            </div>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {property.description}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowDescriptionModal(false)}
-                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   );
 }
