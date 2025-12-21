@@ -981,8 +981,8 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
 
-        {/* Description Text */}
-        {property.description && property.description.trim() && (
+        {/* Description Text - Right below the image */}
+        {property && property.description && property.description.trim().length > 0 && (
           <div className="max-w-7xl mx-auto mt-2 pl-2 pr-2 sm:pl-4 sm:pr-4 lg:pl-6 lg:pr-6">
             <div className="flex justify-end">
               <span
