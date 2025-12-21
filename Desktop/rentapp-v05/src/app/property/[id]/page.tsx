@@ -449,43 +449,6 @@ export default function PropertyDetailsPage() {
           </button>
         </div>
       </div>
-
-      {/* Description Modal - Positioned near blue header */}
-      {showDescriptionModal && property?.description && (
-        <div
-          className="fixed inset-0 z-50 p-4"
-          style={{
-            touchAction: 'none',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            paddingTop: '120px' // Position near the blue header
-          }}
-          onClick={() => setShowDescriptionModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[60vh] overflow-y-auto shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center items-center mb-4">
-              <h3 className="text-xl font-semibold text-black">Property Description</h3>
-            </div>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {property.description}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowDescriptionModal(false)}
-                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       </Layout>
     );
   }
@@ -543,7 +506,6 @@ export default function PropertyDetailsPage() {
             )}
           </div>
         </div>
-
 
         {/* Hero Image Section */}
         {mainImage && (
@@ -1941,32 +1903,40 @@ export default function PropertyDetailsPage() {
         </div>
       )}
 
-      {/* Property Description Section */}
-      {property && property.description && property.description.trim() && (
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
-          <div className="flex justify-center">
-            <span
-              className="text-blue-600 text-base md:text-lg font-normal cursor-pointer underline relative"
-              style={{
-                paddingLeft: '8px',
-                paddingRight: '8px',
-                textDecoration: 'none'
-              }}
-              onClick={() => setShowDescriptionModal(true)}
-            >
-              Description
-              <span
-                className="absolute bottom-0 left-0 right-0 bg-blue-600"
-                style={{
-                  width: '100%',
-                  height: '1.7px'
-                }}
-              ></span>
-            </span>
+
+      {/* Description Modal */}
+      {showDescriptionModal && property?.description && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{
+            touchAction: 'none',
+            minHeight: '100vh',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}
+          onClick={() => setShowDescriptionModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center items-center mb-4">
+              <h3 className="text-xl font-semibold text-black">Property Description</h3>
+            </div>
+            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {property.description}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
-
 
     </Layout>
   );
