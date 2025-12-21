@@ -114,7 +114,7 @@ export default function ListPropertyPage() {
 
 
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
-  const [rentalRateValue, setRentalRateValue] = useState('price-month');
+  const [rentalRateValue, setRentalRateValue] = useState('');
   
 
   
@@ -861,7 +861,7 @@ export default function ListPropertyPage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-base font-bold text-white mb-2 text-center">
-                    Price/{rentalRateValue.replace('price-', '').charAt(0).toUpperCase() + rentalRateValue.replace('price-', '').slice(1)} (Tsh)
+                    Price{rentalRateValue ? '/' + rentalRateValue.replace('price-', '').charAt(0).toUpperCase() + rentalRateValue.replace('price-', '').slice(1) : ''} (Tsh)
                   </label>
                   <input
                     type="text"
@@ -917,12 +917,15 @@ export default function ListPropertyPage() {
                     <select
                       value={rentalRateValue}
                       onChange={(e) => {
-                        const value = e.target.value as 'month' | 'night' | 'day' | 'hour';
+                        const value = e.target.value;
                         setRentalRateValue(value);
-                        handleInputChange('pricingUnit', value);
+                        // Update the pricingUnit in the form data (empty string for no selection)
+                        const pricingUnit = value ? value.replace('price-', '') as 'month' | 'night' | 'day' | 'hour' : '';
+                        handleInputChange('pricingUnit' as keyof typeof formData, pricingUnit);
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     >
+                      <option value="" className="text-gray-800">---</option>
                       <option value="price-month" className="text-gray-800">Price/month</option>
                       <option value="price-night" className="text-gray-800">Price/night</option>
                       <option value="price-hour" className="text-gray-800">Price/hour</option>
