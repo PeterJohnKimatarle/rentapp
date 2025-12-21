@@ -32,12 +32,24 @@ export default function MyPropertiesPage() {
   // Handle active property tracker persistence vs page refresh clearing
   useEffect(() => {
     if (typeof window !== 'undefined' && userId) {
-      // Use Performance API to detect if this is a page refresh/reload
+      // Use timestamp-based detection for more reliable refresh detection
+      const now = Date.now();
+      const lastLoadTime = sessionStorage.getItem('rentapp_my_properties_load_time');
+      const timeDiff = lastLoadTime ? now - parseInt(lastLoadTime) : Infinity;
+
+      // Consider it a refresh if:
+      // 1. No previous load time (first load ever)
+      // 2. Time difference is very small (< 100ms, indicating refresh)
+      // 3. Performance API explicitly says 'reload'
       const navigationType = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const isPageRefresh = navigationType && navigationType.type === 'reload';
+      const isExplicitReload = navigationType && navigationType.type === 'reload';
+      const isFastReload = timeDiff < 100; // Very short time = likely refresh
+      const isFirstLoad = !lastLoadTime;
+
+      const isPageRefresh = isExplicitReload || isFastReload || isFirstLoad;
 
       if (isPageRefresh) {
-        // Clear the active property tracker only on page refresh
+        // Clear the active property tracker only on page refresh/first load
         localStorage.removeItem(`rentapp_active_property_${userId}`);
         setActivePropertyId(null);
       } else {
@@ -47,6 +59,9 @@ export default function MyPropertiesPage() {
           setActivePropertyId(storedActivePropertyId);
         }
       }
+
+      // Update load timestamp
+      sessionStorage.setItem('rentapp_my_properties_load_time', now.toString());
     }
   }, [userId]);
 
