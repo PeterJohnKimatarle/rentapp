@@ -457,6 +457,7 @@ export default function ListPropertyPage() {
       bathrooms: formData.bathrooms || undefined,
       area: formData.area || undefined,
       propertyTitle: formData.propertyTitle || undefined,
+      description: formData.description || undefined,
       pricingUnit: formData.pricingUnit
     };
 
