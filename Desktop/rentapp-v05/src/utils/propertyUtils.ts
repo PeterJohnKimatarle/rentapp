@@ -85,8 +85,8 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
   // Parse property type to get display label
   const propertyTypeDisplay = getPropertyTypeDisplayLabel(formData.propertyType || '');
   
-  // Generate title from property type
-  const title = formData.title || propertyTypeDisplay;
+  // Generate title from property type or custom title
+  const title = formData.propertyTitle || propertyTypeDisplay;
   
   // Generate description from property details
   const description = formData.description || `A ${propertyTypeDisplay} located in ${String(formData.ward || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}, ${String(formData.region || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}.`;
