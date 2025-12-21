@@ -29,12 +29,25 @@ export default function MyPropertiesPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
-  // Clear active property ID on page refresh (yellow dot tracker should hide)
+  // Handle active property tracker persistence vs page refresh clearing
   useEffect(() => {
     if (typeof window !== 'undefined' && userId) {
-      // Clear the active property tracker on page refresh
-      localStorage.removeItem(`rentapp_active_property_${userId}`);
-      setActivePropertyId(null);
+      // Check if this is a page refresh (vs navigation)
+      const isPageRefresh = !sessionStorage.getItem('rentapp_page_loaded');
+
+      if (isPageRefresh) {
+        // Clear the active property tracker only on page refresh
+        localStorage.removeItem(`rentapp_active_property_${userId}`);
+        setActivePropertyId(null);
+        // Mark that page has been loaded
+        sessionStorage.setItem('rentapp_page_loaded', 'true');
+      } else {
+        // Load existing tracker for navigation within the app
+        const storedActivePropertyId = localStorage.getItem(`rentapp_active_property_${userId}`);
+        if (storedActivePropertyId) {
+          setActivePropertyId(storedActivePropertyId);
+        }
+      }
     }
   }, [userId]);
 
