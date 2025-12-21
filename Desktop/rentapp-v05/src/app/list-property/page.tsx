@@ -86,7 +86,7 @@ interface Property {
   bathrooms?: string;
   area?: string;
   propertyTitle?: string;
-  pricingUnit?: 'month' | 'night' | 'day' | 'hour';
+  pricingUnit?: 'month' | 'night' | 'day' | 'hour' | '';
 }
 
 export default function ListPropertyPage() {

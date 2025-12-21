@@ -68,6 +68,7 @@ export interface DisplayProperty {
   contactPhone?: string;
   contactEmail?: string;
   uploaderType?: 'Broker' | 'Owner';
+  propertyTitle?: string;
   petPolicy?: string;
   parking?: string;
   furnishing?: string;
@@ -135,6 +136,7 @@ export const convertFormDataToDisplayProperty = (formData: PropertyFormData): Di
     contactPhone: formData.contactPhone,
     contactEmail: formData.contactEmail,
     uploaderType: formData.uploaderType,
+    propertyTitle: formData.propertyTitle,
     petPolicy: formData.petPolicy,
     parking: formData.parking,
     furnishing: formData.furnishing,
