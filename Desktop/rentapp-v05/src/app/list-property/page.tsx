@@ -116,15 +116,6 @@ export default function ListPropertyPage() {
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
   const [rentalRateValue, setRentalRateValue] = useState('');
 
-  // Sync rentalRateValue with formData.pricingUnit
-  useEffect(() => {
-    if (formData.pricingUnit) {
-      setRentalRateValue(`price-${formData.pricingUnit}`);
-    } else {
-      setRentalRateValue('');
-    }
-  }, [formData.pricingUnit]);
-
   // Form state
   const [formData, setFormData] = useState({
     propertyType: '',
@@ -143,6 +134,15 @@ export default function ListPropertyPage() {
     area: '',
     pricingUnit: '' as 'month' | 'night' | 'day' | 'hour' | ''
   });
+
+  // Sync rentalRateValue with formData.pricingUnit
+  useEffect(() => {
+    if (formData.pricingUnit) {
+      setRentalRateValue(`price-${formData.pricingUnit}`);
+    } else {
+      setRentalRateValue('');
+    }
+  }, [formData.pricingUnit]);
 
   // Collapsible section state
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
