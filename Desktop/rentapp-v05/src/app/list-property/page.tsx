@@ -927,7 +927,7 @@ export default function ListPropertyPage() {
                         setRentalRateValue(value);
                         handleInputChange('pricingUnit', value || 'month'); // Default to month if empty
                       }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
                     >
                       <option value="" className="text-gray-800">---</option>
                       <option value="price-month" className="text-gray-800">Price/month</option>
