@@ -1916,7 +1916,7 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-2">
+            <div className="flex justify-center items-center mb-1">
               <h3 className="text-xl font-semibold text-black">Property Description</h3>
             </div>
             {(() => {
@@ -1940,7 +1940,7 @@ export default function PropertyDetailsPage() {
                 </div>
               );
             })()}
-            <div className="mt-6 flex justify-end">
+            <div className="mt-3 flex justify-end">
               <button
                 onClick={() => setShowDescriptionModal(false)}
                 className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
