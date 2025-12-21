@@ -311,25 +311,25 @@ export default function PropertyDetailsPage() {
         return;
       }
 
+      const amenitiesContainer = document.querySelector('.amenities-desktop') as HTMLElement;
       const moreBtn = document.querySelector('.amenities-more-desktop') as HTMLElement;
-      if (!moreBtn) return;
 
-      // Estimate if amenities will overflow 2 lines based on count and average length
-      const amenities = property.amenities || [];
-      const totalChars = amenities.reduce((sum, amenity) => sum + amenity.length, 0);
-      const avgCharsPerAmenity = totalChars / amenities.length;
+      if (!amenitiesContainer || !moreBtn) return;
 
-      // Rough heuristic: if we have more than 8 amenities OR
-      // if we have more than 6 amenities with long names (avg > 10 chars)
-      const willOverflow = amenities.length > 8 ||
-                          (amenities.length > 6 && avgCharsPerAmenity > 10);
+      // Check if the amenities container actually overflows its allocated height
+      const containerHeight = amenitiesContainer.offsetHeight;
+      const scrollHeight = amenitiesContainer.scrollHeight;
+      const clientHeight = amenitiesContainer.clientHeight;
 
-      setShowDesktopMore(willOverflow);
-      moreBtn.style.display = willOverflow ? 'inline-block' : 'none';
+      // If content height exceeds container height, it overflows
+      const isOverflowing = scrollHeight > clientHeight || containerHeight < scrollHeight;
+
+      setShowDesktopMore(isOverflowing);
+      moreBtn.style.display = isOverflowing ? 'inline-block' : 'none';
     };
 
-    // Check after DOM renders
-    setTimeout(checkOverflow, 100);
+    // Check after DOM renders and images load
+    setTimeout(checkOverflow, 200);
   }, [property?.amenities]);
 
   const handleBookmarkClick = () => {
