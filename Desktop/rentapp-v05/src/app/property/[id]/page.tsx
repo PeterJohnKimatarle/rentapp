@@ -477,6 +477,8 @@ export default function PropertyDetailsPage() {
             onClick={() => {
               if (property && property.description && property.description.trim()) {
                 setShowDescriptionModal(true);
+              } else {
+                alert('This property has no any description');
               }
             }}
           >
