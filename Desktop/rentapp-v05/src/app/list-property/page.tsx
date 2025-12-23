@@ -706,9 +706,11 @@ export default function ListPropertyPage() {
                        className={`text-white transition-transform duration-200 ${showPropertyDetails ? 'rotate-90' : ''}`}
                      />
                    </button>
+                 </div>
 
-                   {/* Collapsible Content */}
-                   {showPropertyDetails && (
+                 {/* Collapsible Content - Separate from button container to prevent layout shift */}
+                 {showPropertyDetails && (
+                   <div className="col-span-4">
                      <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
                        <div>
                          <label className="block text-base font-bold text-white mb-2 text-center">
@@ -745,8 +747,8 @@ export default function ListPropertyPage() {
                          />
                        </div>
                      </div>
-                   )}
-                 </div>
+                   </div>
+                 )}
 
                  {/* Status Row */}
                  <div className="col-span-4">
