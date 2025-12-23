@@ -1944,6 +1944,13 @@ export default function PropertyDetailsPage() {
             ) : (
               (() => {
                 const parsedType = parsePropertyType(property?.propertyType || '');
+                console.log('Property category debug:', {
+                  propertyId: property?.id,
+                  propertyType: property?.propertyType,
+                  parsedType,
+                  parent: parsedType?.parent,
+                  child: parsedType?.child
+                });
                 return parsedType ? (
                   <div className="py-2">
                     <div className="space-y-3">
@@ -1951,7 +1958,7 @@ export default function PropertyDetailsPage() {
                       <div className="text-left">
                         <h4 className="text-lg font-semibold text-gray-800 mb-1">Property type</h4>
                         <div className="text-gray-700">
-                          {parsedType?.parent || getPropertyTypeDisplayLabel(property.propertyType || '')}
+                          {parsedType?.parent || property?.propertyType || 'Unknown'}
                         </div>
                       </div>
 

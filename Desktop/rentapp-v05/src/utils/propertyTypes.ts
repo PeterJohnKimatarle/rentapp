@@ -109,32 +109,56 @@ export const getAllPropertyTypes = (): string[] => {
  * @param propertyType - The property type string
  * @returns Object with parent and child, or null if invalid
  */
+// Legacy property type mapping for backward compatibility
+const LEGACY_PROPERTY_TYPE_MAPPING: Record<string, string> = {
+  '1-bdrm-apartment': 'Apartment|1 Bdrm Apartment',
+  '2-bdrm-apartment': 'Apartment|2 Bdrm Apartment',
+  '3-bdrm-apartment': 'Apartment|3 Bdrm Apartment',
+  '4-bdrm-apartment': 'Apartment|4 Bdrm Apartment',
+  '5-bdrm-apartment': 'Apartment|5 Bdrm Apartment',
+  'studio-apartment': 'Apartment|Studio Apartment',
+  '1-bdrm-house': 'House|1 Bdrm House',
+  '2-bdrm-house': 'House|2 Bdrm House',
+  '3-bdrm-house': 'House|3 Bdrm House',
+  '4-bdrm-house': 'House|4 Bdrm House',
+  '5-bdrm-house': 'House|5 Bdrm House',
+  'commercial-building-frame': 'Commercial Property|Shop (Frame)',
+  // Add more legacy mappings as needed
+};
+
 export const parsePropertyType = (propertyType: string): { parent: string; child: string | null } | null => {
   if (!propertyType) return null;
-  
+
   // Check if it's a direct select category
   if (DIRECT_SELECT_CATEGORIES.includes(propertyType)) {
     return { parent: propertyType, child: null };
   }
-  
+
   // Check if it's in format "parent|child"
   if (propertyType.includes('|')) {
     const [parent, child] = propertyType.split('|');
     return { parent: parent.trim(), child: child.trim() };
   }
-  
+
+  // Check for legacy property type format
+  if (LEGACY_PROPERTY_TYPE_MAPPING[propertyType]) {
+    const mappedType = LEGACY_PROPERTY_TYPE_MAPPING[propertyType];
+    const [parent, child] = mappedType.split('|');
+    return { parent: parent.trim(), child: child ? child.trim() : null };
+  }
+
   // Try to find parent category
   for (const [parent, children] of Object.entries(PROPERTY_TYPE_CATEGORIES)) {
     if (children.includes(propertyType)) {
       return { parent, child: propertyType };
     }
   }
-  
+
   // Check if it's a direct category name
   if (ALL_PROPERTY_CATEGORIES.includes(propertyType)) {
     return { parent: propertyType, child: null };
   }
-  
+
   return null;
 };
 
