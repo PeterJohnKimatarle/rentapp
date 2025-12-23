@@ -3,7 +3,6 @@
 import Layout from '@/components/Layout';
 import PropertyCard from '@/components/PropertyCard';
 import { getAllProperties } from '@/utils/propertyUtils';
-import { parsePropertyType } from '@/utils/propertyTypes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type SearchFilters = {
@@ -54,11 +53,9 @@ export default function Home() {
       const normalise = (value?: string) => value?.toLowerCase().trim();
 
       return items.filter((property) => {
-        const matchesPropertyType = filters.propertyType ? (() => {
-          const parsed = parsePropertyType(property.propertyType || '');
-          // Match if the selected category matches the parent category
-          return parsed?.parent === filters.propertyType;
-        })() : true;
+        const matchesPropertyType = filters.propertyType
+          ? normalise(property.propertyType) === normalise(filters.propertyType)
+          : true;
 
         const matchesStatus = filters.status ? property.status === filters.status : true;
 

@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  getAllPropertyTypes,
-  getPropertyTypeChildren,
+import { 
+  getAllPropertyTypes, 
+  getPropertyTypeChildren, 
   hasSubCategories,
-  formatPropertyType,
-  getPropertyTypeDisplayLabel
+  formatPropertyType
 } from '@/utils/propertyTypes';
 
 // Ward data organized by region (exact match from listing page)
@@ -252,11 +251,12 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               onChange={(e) => setPropertyType(e.target.value)}
             >
               <option value="" style={{ color: '#6b7280' }}>---</option>
-              {getAllPropertyTypes().map((category) => (
-                <option key={category} value={category} style={{ color: '#111827' }}>
-                  {category}
-                </option>
-              ))}
+              <option value="1-bdrm-apartment" style={{ color: '#111827' }}>1 Bdrm apartment</option>
+              <option value="2-bdrm-apartment" style={{ color: '#111827' }}>2 Bdrm apartment</option>
+              <option value="3-bdrm-apartment" style={{ color: '#111827' }}>3 Bdrm apartment</option>
+              <option value="4-bdrm-apartment" style={{ color: '#111827' }}>4 Bdrm apartment</option>
+              <option value="5-bdrm-apartment" style={{ color: '#111827' }}>5 Bdrm apartment</option>
+              <option value="commercial-building-frame" style={{ color: '#111827' }}>Commercial building (Frame)</option>
             </select>
           </div>
 
