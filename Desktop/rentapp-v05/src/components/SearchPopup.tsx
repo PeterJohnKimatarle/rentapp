@@ -60,6 +60,10 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const [status, setStatus] = useState('');
   const [selectedProfile, setSelectedProfile] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
+  const [price, setPrice] = useState('');
+  const [paymentPlan, setPaymentPlan] = useState('');
+  const [uploaderType, setUploaderType] = useState('');
 
   // Clear profile when property type changes
   useEffect(() => {
@@ -130,7 +134,11 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       profile: selectedProfile || undefined,
       status: status || undefined,
       region: selectedRegion || undefined,
-      ward: selectedWard || undefined
+      ward: selectedWard || undefined,
+      // Advanced filters from extra info tab
+      minPrice: price ? parseInt(price.replace(/,/g, '')) : undefined,
+      paymentPlan: paymentPlan || undefined,
+      uploaderType: uploaderType || undefined
     };
 
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
@@ -161,6 +169,9 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setSelectedRegion('');
     setSelectedWard('');
     setSelectedProfile('');
+    setPrice('');
+    setPaymentPlan('');
+    setUploaderType('');
     
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
     const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
@@ -244,150 +255,287 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
           </h1>
         </div>
 
-        {/* Search Form - Matching List Page Grid Layout */}
-        <div className="grid grid-cols-4 gap-2 mb-5">
-          {/* Property Type and Profile Row - Side by Side */}
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Property Type
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
+        {/* Tab Navigation - Mobile Only */}
+        <div className="border-b-[3px] border-transparent max-w-sm mx-auto mb-4">
+          <div className="flex">
+            <button
+              type="button"
+              onClick={() => setActiveTab('basic')}
+              className={`flex-1 px-4 py-2 font-semibold text-base transition-colors relative cursor-pointer ${
+                activeTab === 'basic'
+                  ? 'text-blue-500'
+                  : 'text-gray-500'
+              }`}
             >
-              <option value="" className="text-gray-400">---</option>
-              {getAllPropertyTypes().map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Profile
-            </label>
-            {propertyType && hasSubCategories(propertyType) ? (
-              <select
-                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-                value={selectedProfile}
-                onChange={(e) => setSelectedProfile(e.target.value)}
-              >
-                <option value="" className="text-gray-400">---</option>
-                {getPropertyTypeChildren(propertyType)?.map((profile) => (
-                  <option key={profile} value={profile}>
-                    {profile}
-                  </option>
-                ))}
-              </select>
-            ) : propertyType ? (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-700 text-sm">{propertyType}</span>
-              </div>
-            ) : (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Select type</span>
-              </div>
-            )}
-          </div>
-
-          {/* Status - Full Width */}
-          <div className="col-span-4">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Status
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              Basic info
+              {activeTab === 'basic' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500"></span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('details')}
+              className={`flex-1 px-4 py-2 font-semibold text-base transition-colors relative cursor-pointer ${
+                activeTab === 'details'
+                  ? 'text-blue-500'
+                  : 'text-gray-500'
+              }`}
             >
-              <option value="" className="text-gray-400">---</option>
-              <option value="available">Available</option>
-              <option value="occupied">Occupied</option>
-            </select>
-          </div>
-
-          {/* Region and Ward Row - Side by Side */}
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Region
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-              value={selectedRegion}
-              onChange={(e) => {
-                setSelectedRegion(e.target.value);
-                setSelectedWard(''); // Reset ward when region changes
-              }}
-            >
-              <option value="" className="text-gray-400">---</option>
-              <option value="arusha">Arusha</option>
-              <option value="dar-es-salaam">Dar es Salaam</option>
-              <option value="dodoma">Dodoma</option>
-              <option value="geita">Geita</option>
-              <option value="iringa">Iringa</option>
-              <option value="kagera">Kagera</option>
-              <option value="katavi">Katavi</option>
-              <option value="kigoma">Kigoma</option>
-              <option value="kilimanjaro">Kilimanjaro</option>
-              <option value="lindi">Lindi</option>
-              <option value="manyara">Manyara</option>
-              <option value="mara">Mara</option>
-              <option value="mbeya">Mbeya</option>
-              <option value="morogoro">Morogoro</option>
-              <option value="mtwara">Mtwara</option>
-              <option value="mwanza">Mwanza</option>
-              <option value="njombe">Njombe</option>
-              <option value="pwani">Pwani</option>
-              <option value="rukwa">Rukwa</option>
-              <option value="ruvuma">Ruvuma</option>
-              <option value="shinyanga">Shinyanga</option>
-              <option value="simiyu">Simiyu</option>
-              <option value="singida">Singida</option>
-              <option value="songwe">Songwe</option>
-              <option value="tabora">Tabora</option>
-              <option value="tanga">Tanga</option>
-              <option value="unguja-north">Unguja North</option>
-              <option value="unguja-south">Unguja South</option>
-              <option value="urban-west">Urban West</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Ward
-            </label>
-            {selectedRegion ? (
-              <select
-                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-                value={selectedWard}
-                onChange={(e) => {
-                  if (e.target.value === 'other') {
-                    setShowWardPopup(true);
-                    setSelectedWard('');
-                  } else {
-                    setSelectedWard(e.target.value);
-                    setCustomWard('');
-                  }
-                }}
-              >
-                <option value="" className="text-gray-400">---</option>
-                {wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
-                  <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
-                    {ward}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Select region</span>
-              </div>
-            )}
+              Extra info
+              {activeTab === 'details' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500"></span>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Action Buttons - Matching List Page Style */}
+        {/* Tab 1: Basic Information */}
+        {activeTab === 'basic' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+            {/* Basic Information Section */}
+            <div className="text-center mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+                Basic Information
+              </h2>
+            </div>
+
+            {/* Basic Information Card */}
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-4 max-w-md mx-auto">
+              <div className="grid grid-cols-4 gap-2">
+                {/* Property Type and Profile Row - Side by Side */}
+                <div className="col-span-2">
+                  <label className="block text-base font-bold text-white mb-2 text-center">
+                    Property Type
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                    value={propertyType}
+                    onChange={(e) => setPropertyType(e.target.value)}
+                  >
+                    <option value="" className="text-gray-400">---</option>
+                    {getAllPropertyTypes().map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-base font-bold text-white mb-2 text-center">
+                    Profile
+                  </label>
+                  {propertyType && hasSubCategories(propertyType) ? (
+                    <select
+                      className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                      value={selectedProfile}
+                      onChange={(e) => setSelectedProfile(e.target.value)}
+                    >
+                      <option value="" className="text-gray-400">---</option>
+                      {getPropertyTypeChildren(propertyType)?.map((profile) => (
+                        <option key={profile} value={profile}>
+                          {profile}
+                        </option>
+                      ))}
+                    </select>
+                  ) : propertyType ? (
+                    <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-700 text-sm">{propertyType}</span>
+                    </div>
+                  ) : (
+                    <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">Select type</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status - Full Width */}
+                <div className="col-span-4">
+                  <label className="block text-base font-bold text-white mb-2 text-center">
+                    Status
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <option value="" className="text-gray-400">---</option>
+                    <option value="available">Available</option>
+                    <option value="occupied">Occupied</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Location Section */}
+            <div className="text-center mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+                Location
+              </h2>
+            </div>
+
+            {/* Location Card */}
+            <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-4 max-w-md mx-auto">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-base font-bold text-white mb-2 text-center">
+                    Region
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                    value={selectedRegion}
+                    onChange={(e) => {
+                      setSelectedRegion(e.target.value);
+                      setSelectedWard(''); // Reset ward when region changes
+                    }}
+                  >
+                    <option value="" className="text-gray-400">---</option>
+                    <option value="arusha">Arusha</option>
+                    <option value="dar-es-salaam">Dar es Salaam</option>
+                    <option value="dodoma">Dodoma</option>
+                    <option value="geita">Geita</option>
+                    <option value="iringa">Iringa</option>
+                    <option value="kagera">Kagera</option>
+                    <option value="katavi">Katavi</option>
+                    <option value="kigoma">Kigoma</option>
+                    <option value="kilimanjaro">Kilimanjaro</option>
+                    <option value="lindi">Lindi</option>
+                    <option value="manyara">Manyara</option>
+                    <option value="mara">Mara</option>
+                    <option value="mbeya">Mbeya</option>
+                    <option value="morogoro">Morogoro</option>
+                    <option value="mtwara">Mtwara</option>
+                    <option value="mwanza">Mwanza</option>
+                    <option value="njombe">Njombe</option>
+                    <option value="pwani">Pwani</option>
+                    <option value="rukwa">Rukwa</option>
+                    <option value="ruvuma">Ruvuma</option>
+                    <option value="shinyanga">Shinyanga</option>
+                    <option value="simiyu">Simiyu</option>
+                    <option value="singida">Singida</option>
+                    <option value="songwe">Songwe</option>
+                    <option value="tabora">Tabora</option>
+                    <option value="tanga">Tanga</option>
+                    <option value="unguja-north">Unguja North</option>
+                    <option value="unguja-south">Unguja South</option>
+                    <option value="urban-west">Urban West</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-base font-bold text-white mb-2 text-center">
+                    Ward
+                  </label>
+                  {selectedRegion ? (
+                    <select
+                      className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                      value={selectedWard}
+                      onChange={(e) => {
+                        if (e.target.value === 'other') {
+                          setShowWardPopup(true);
+                          setSelectedWard('');
+                        } else {
+                          setSelectedWard(e.target.value);
+                          setCustomWard('');
+                        }
+                      }}
+                    >
+                      <option value="" className="text-gray-400">---</option>
+                      {wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
+                        <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
+                          {ward}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">Select region</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+    )}
+
+    {/* Tab 2: Extra Information */}
+    {activeTab === 'details' && (
+      <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        {/* Pricing & Terms Section */}
+        <div className="text-center mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+            Pricing & Terms
+          </h2>
+        </div>
+
+        {/* Pricing & Terms Card */}
+        <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-4 max-w-md mx-auto">
+          <div className="grid grid-cols-4 gap-2">
+            {/* Price and Payment Plan Row - Side by Side */}
+            <div className="col-span-2">
+              <label className="block text-base font-bold text-white mb-2 text-center">
+                Price
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                placeholder="---"
+                value={price}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/[^\d]/g, '');
+                  if (value) {
+                    value = parseInt(value).toLocaleString();
+                  }
+                  setPrice(value);
+                }}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-base font-bold text-white mb-2 text-center">
+                Payment Plan
+              </label>
+              <select
+                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                value={paymentPlan}
+                onChange={(e) => setPaymentPlan(e.target.value)}
+              >
+                <option value="" className="text-gray-400">---</option>
+                <option value="3+">3+ Months</option>
+                <option value="6+">6+ Months</option>
+                <option value="12+">12+ Months</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Property Ownership Section */}
+        <div className="text-center mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-yellow-600">
+            Property ownership
+          </h2>
+        </div>
+
+        {/* Property Ownership Card */}
+        <div className="bg-blue-500 rounded-lg p-2 sm:p-3 mb-4 max-w-md mx-auto">
+          <div>
+            <label className="block text-base font-bold text-white mb-2 text-center">
+              Ownership Type
+            </label>
+            <select
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+              value={uploaderType}
+              onChange={(e) => setUploaderType(e.target.value)}
+            >
+              <option value="" className="text-gray-400">---</option>
+              <option value="Owner">I own this property (Owner)</option>
+              <option value="Broker">I do not own this property (Broker)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Action Buttons - Matching List Page Style */}
         <div className="col-span-4">
           <div className="flex gap-3 justify-center mt-4">
             <button

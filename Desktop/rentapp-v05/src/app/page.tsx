@@ -13,12 +13,15 @@ type SearchFilters = {
   region?: string;
   ward?: string;
   // Advanced filters
-  minPrice?: string;
+  minPrice?: string | number;
   maxPrice?: string;
   bedrooms?: string;
   bathrooms?: string;
   amenities?: string[];
   datePosted?: string;
+  // Additional search filters
+  paymentPlan?: string;
+  uploaderType?: string;
 };
 
 export default function Home() {
@@ -74,6 +77,18 @@ export default function Home() {
           return parsed?.child === filters.profile;
         })() : true;
 
+        const matchesPrice = filters.minPrice
+          ? property.price >= (typeof filters.minPrice === 'string' ? parseInt(filters.minPrice.replace(/,/g, '')) : filters.minPrice)
+          : true;
+
+        const matchesPaymentPlan = filters.paymentPlan
+          ? property.plan === filters.paymentPlan
+          : true;
+
+        const matchesUploaderType = filters.uploaderType
+          ? property.uploaderType === filters.uploaderType
+          : true;
+
         const matchesStatus = filters.status ? property.status === filters.status : true;
 
         const matchesRegion = filters.region
@@ -82,7 +97,8 @@ export default function Home() {
 
         const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
 
-        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard;
+        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard &&
+               matchesProfile && matchesPrice && matchesPaymentPlan && matchesUploaderType;
       });
     },
     []
