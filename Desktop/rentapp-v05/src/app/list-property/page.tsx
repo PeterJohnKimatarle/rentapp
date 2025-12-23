@@ -150,7 +150,7 @@ export default function ListPropertyPage() {
   // Touch gesture handling for tab switching across entire page
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchEndRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const minSwipeDistance = 0; // Minimum horizontal distance for swipe recognition
+  const minSwipeDistance = 100; // Minimum horizontal distance for swipe recognition (increased for better control)
   const maxVerticalThreshold = 30; // Maximum vertical movement allowed for horizontal swipe
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
