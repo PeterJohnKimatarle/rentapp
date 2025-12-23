@@ -151,8 +151,8 @@ export default function ListPropertyPage() {
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchEndRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const minSwipeDistance = 30; // Minimum horizontal distance for swipe recognition (30px for deliberate gestures)
-  // Angle-based gesture detection: allows gestures up to 85° from horizontal
-  // This means very diagonal swipes (almost vertical) are still considered horizontal swipes
+  // Angle-based gesture detection: allows gestures up to 45° from horizontal
+  // This means moderately diagonal swipes are accepted, but mostly vertical gestures are rejected
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.targetTouches[0];
@@ -199,9 +199,9 @@ export default function ListPropertyPage() {
     if (absDeltaX < minSwipeDistance) return; // Not far enough horizontally
 
     // Angle-based filtering: calculate gesture angle from horizontal
-    // Allow gestures up to 85° from horizontal (close to vertical)
+    // Allow gestures up to 45° from horizontal (moderately diagonal)
     const angle = Math.abs(Math.atan2(absDeltaY, absDeltaX) * 180 / Math.PI);
-    if (angle > 85) return; // Gesture too close to vertical (over 85° from horizontal)
+    if (angle > 45) return; // Gesture too diagonal (over 45° from horizontal)
 
     // Handle tab switching based on current tab and horizontal swipe direction
     if (activeTab === 'basic' && deltaX > 0) {
