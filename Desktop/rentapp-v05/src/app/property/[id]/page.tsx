@@ -1945,21 +1945,33 @@ export default function PropertyDetailsPage() {
             ) : (
               (() => {
                 const parsedType = parsePropertyType(property?.propertyType || '');
-                console.log('Property category debug:', {
-                  propertyId: property?.id,
-                  propertyType: property?.propertyType,
-                  parsedType,
-                  parent: parsedType?.parent,
-                  child: parsedType?.child
-                });
+                // Temporary debug display in UI
+                const debugInfo = `DEBUG - Raw: "${property?.propertyType}", Parsed: ${parsedType ? `"${parsedType.parent}"` : 'FAILED'}`;
                 return parsedType ? (
                   <div className="py-2">
+                    {/* DEBUG INFO - Remove after fixing */}
+                    <div className="text-xs text-red-600 mb-2 p-1 bg-red-50 rounded">
+                      DEBUG - Raw: "{property?.propertyType}", Parsed: {parsedType ? `"${parsedType.parent}"` : 'FAILED'}
+                    </div>
                     <div className="space-y-3">
                       {/* Property Type Section */}
                       <div className="text-left">
                         <h4 className="text-lg font-semibold text-gray-800 mb-1">Property type</h4>
                         <div className="text-gray-700">
-                          {parsedType?.parent || 'Unknown'}
+                          {(() => {
+                            if (parsedType?.parent) return parsedType.parent;
+
+                            // Try some common fallbacks for unmapped types
+                            const rawType = property?.propertyType?.toLowerCase() || '';
+                            if (rawType.includes('office')) return 'Commercial Property';
+                            if (rawType.includes('shop') || rawType.includes('commercial')) return 'Commercial Property';
+                            if (rawType.includes('hotel') || rawType.includes('lodge')) return 'Short Stay/Hospitality';
+                            if (rawType.includes('villa')) return 'Villa';
+                            if (rawType.includes('land') || rawType.includes('parking')) return 'Land & Outdoor';
+                            if (rawType.includes('event') || rawType.includes('hall')) return 'Event Hall';
+
+                            return 'Unknown';
+                          })()}
                         </div>
                       </div>
 
