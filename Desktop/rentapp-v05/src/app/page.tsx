@@ -8,9 +8,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type SearchFilters = {
   propertyType?: string;
+  profile?: string; // Sub-type within selected property type
   status?: string;
   region?: string;
   ward?: string;
+  // Advanced filters
+  minPrice?: string;
+  maxPrice?: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  amenities?: string[];
+  datePosted?: string;
 };
 
 export default function Home() {
@@ -58,6 +66,12 @@ export default function Home() {
           const parsed = parsePropertyType(property.propertyType || '');
           // Match if the selected category matches the parent category
           return parsed?.parent === filters.propertyType;
+        })() : true;
+
+        const matchesProfile = filters.profile ? (() => {
+          const parsed = parsePropertyType(property.propertyType || '');
+          // Match if the selected profile matches the child sub-type
+          return parsed?.child === filters.profile;
         })() : true;
 
         const matchesStatus = filters.status ? property.status === filters.status : true;
