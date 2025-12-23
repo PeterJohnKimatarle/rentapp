@@ -269,7 +269,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
           </div>
 
           {/* Profile/Sub-type - Only show when property type has sub-types */}
-          {propertyType && hasSubCategories(propertyType) && (
+          {/* TEMP: Always show for debugging */}
+          {propertyType && (
             <div className="text-center">
               <label className="block text-base text-white mb-2">
                 Profile
