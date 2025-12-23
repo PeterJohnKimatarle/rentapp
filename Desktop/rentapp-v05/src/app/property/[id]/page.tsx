@@ -1974,10 +1974,6 @@ export default function PropertyDetailsPage() {
 
                 return (
                   <div className="py-2">
-                    {/* DEBUG INFO - Remove after fixing */}
-                    <div className="text-xs text-red-600 mb-2 p-1 bg-red-50 rounded">
-                      DEBUG - Raw: "{property?.propertyType}", Parsed: {parsedType ? `"${parsedType.parent}"` : 'FAILED'}, Display: "{displayParent}"
-                    </div>
                     <div className="space-y-3">
                       {/* Property Type Section */}
                       <div className="text-left">
