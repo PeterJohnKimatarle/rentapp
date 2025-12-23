@@ -222,9 +222,9 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div
-        className="rounded-xl max-w-md w-full py-4 px-3 shadow-lg overflow-hidden"
-         style={{
+      <div 
+        className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
+         style={{ 
            backgroundColor: '#0071c2',
            pointerEvents: 'auto',
            ...(shouldPositionBelow && searchBarPosition ? {
@@ -244,61 +244,61 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
           </h1>
         </div>
 
-        {/* Search Form - Matching List Page Grid Layout */}
-        <div className="grid grid-cols-4 gap-2 mb-5">
-          {/* Property Type and Profile Row - Side by Side */}
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
+        {/* Search Form - Stacked Vertically */}
+        <div className="space-y-3 mb-5">
+          {/* Property Type */}
+          <div className="text-center">
+            <label className="block text-base text-white mb-2">
               Property Type
             </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+            <select 
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+              style={{ 
+                color: '#111827'
+              }}
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
             >
-              <option value="" className="text-gray-400">---</option>
+              <option value="" style={{ color: '#6b7280' }}>---</option>
               {getAllPropertyTypes().map((category) => (
-                <option key={category} value={category}>
+                <option key={category} value={category} style={{ color: '#111827' }}>
                   {category}
                 </option>
               ))}
             </select>
           </div>
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Profile
-            </label>
-            {propertyType && hasSubCategories(propertyType) ? (
+
+          {/* Profile/Sub-type - Only show when property type has sub-types */}
+          {propertyType && hasSubCategories(propertyType) && (
+            <div className="text-center">
+              <label className="block text-base text-white mb-2">
+                Profile
+              </label>
               <select
-                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                style={{
+                  color: '#111827'
+                }}
                 value={selectedProfile}
                 onChange={(e) => setSelectedProfile(e.target.value)}
               >
-                <option value="" className="text-gray-400">---</option>
+                <option value="" style={{ color: '#6b7280' }}>---</option>
                 {getPropertyTypeChildren(propertyType)?.map((profile) => (
-                  <option key={profile} value={profile}>
+                  <option key={profile} value={profile} style={{ color: '#111827' }}>
                     {profile}
                   </option>
                 ))}
               </select>
-            ) : propertyType ? (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-700 text-sm">{propertyType}</span>
-              </div>
-            ) : (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Select type</span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Status - Full Width */}
-          <div className="col-span-4">
-            <label className="block text-base font-bold text-white mb-2 text-center">
+          {/* Status */}
+          <div className="text-center">
+            <label className="block text-base text-white mb-2">
               Status
             </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+            <select 
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
@@ -308,13 +308,13 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
             </select>
           </div>
 
-          {/* Region and Ward Row - Side by Side */}
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
+          {/* Region */}
+          <div className="text-center">
+            <label className="block text-base text-white mb-2">
               Region
             </label>
-            <select
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+            <select 
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
               value={selectedRegion}
               onChange={(e) => {
                 setSelectedRegion(e.target.value);
@@ -354,59 +354,53 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               <option value="other">Other</option>
             </select>
           </div>
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
+
+          {/* Ward */}
+          <div className="text-center">
+            <label className="block text-base text-white mb-2">
               Ward
             </label>
-            {selectedRegion ? (
-              <select
-                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-                value={selectedWard}
-                onChange={(e) => {
-                  if (e.target.value === 'other') {
-                    setShowWardPopup(true);
-                    setSelectedWard('');
-                  } else {
-                    setSelectedWard(e.target.value);
-                    setCustomWard('');
-                  }
-                }}
-              >
-                <option value="" className="text-gray-400">---</option>
-                {wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
-                  <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
-                    {ward}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Select region</span>
-              </div>
-            )}
+            <select 
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+              disabled={!selectedRegion}
+              value={selectedWard}
+              onChange={(e) => {
+                if (e.target.value === 'other') {
+                  setShowWardPopup(true);
+                  setSelectedWard('');
+                } else {
+                  setSelectedWard(e.target.value);
+                  setCustomWard('');
+                }
+              }}
+            >
+              <option value="" className="text-gray-400">---</option>
+              {selectedRegion && wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
+                <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
+                  {ward}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Action Buttons - Matching List Page Style */}
-        <div className="col-span-4">
-          <div className="flex gap-3 justify-center mt-4">
-            <button
-              onClick={handleSearch}
-              className="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-semibold transition-colors"
-            >
-              Search
-            </button>
+        <div className="w-full mb-3 space-y-3">
+          <button
+            onClick={handleSearch}
+            className="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-semibold transition-colors text-center"
+          >
+            Search
+          </button>
+          <div className="flex gap-3 justify-center">
             <button
               onClick={handleClearFilters}
-              className="flex-1 px-4 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors text-center"
             >
               Clear
             </button>
-          </div>
-          <div className="flex justify-center mt-3">
             <button
               onClick={onClose}
-              className="px-6 py-2 text-white rounded-lg font-medium transition-colors"
+              className="flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors text-center"
               style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
               onMouseEnter={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 1)'}
               onMouseLeave={(e: React.MouseEvent) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(239, 68, 68, 0.8)'}
