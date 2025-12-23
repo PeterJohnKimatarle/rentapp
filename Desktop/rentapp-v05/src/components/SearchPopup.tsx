@@ -60,7 +60,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedProfile, setSelectedProfile] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
-  const [price, setPrice] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   // Clear profile when property type changes
   useEffect(() => {
@@ -131,7 +132,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       status: status || undefined,
       region: selectedRegion || undefined,
       ward: selectedWard || undefined,
-      minPrice: price ? parseInt(price.replace(/,/g, '')) : undefined
+      minPrice: minPrice ? parseInt(minPrice.replace(/,/g, '')) : undefined,
+      maxPrice: maxPrice ? parseInt(maxPrice.replace(/,/g, '')) : undefined
     };
 
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
@@ -162,7 +164,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setSelectedRegion('');
     setSelectedWard('');
     setSelectedProfile('');
-    setPrice('');
+    setMinPrice('');
+    setMaxPrice('');
     
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
     const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
@@ -294,25 +297,40 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
             </div>
           )}
 
-          {/* Price */}
-          <div className="text-center">
-            <label className="block text-base text-white mb-2">
-              Minimum Price
+          {/* Price Range - Min and Max */}
+          <div className="col-span-2">
+            <label className="block text-base font-bold text-white mb-2 text-center">
+              Min Price
             </label>
             <input
               type="text"
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-              style={{
-                color: '#111827'
-              }}
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
               placeholder="---"
-              value={price}
+              value={minPrice}
               onChange={(e) => {
                 let value = e.target.value.replace(/[^\d]/g, '');
                 if (value) {
                   value = parseInt(value).toLocaleString();
                 }
-                setPrice(value);
+                setMinPrice(value);
+              }}
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-base font-bold text-white mb-2 text-center">
+              Max Price
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+              placeholder="---"
+              value={maxPrice}
+              onChange={(e) => {
+                let value = e.target.value.replace(/[^\d]/g, '');
+                if (value) {
+                  value = parseInt(value).toLocaleString();
+                }
+                setMaxPrice(value);
               }}
             />
           </div>

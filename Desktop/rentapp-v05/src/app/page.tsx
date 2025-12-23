@@ -13,6 +13,7 @@ type SearchFilters = {
   region?: string;
   ward?: string;
   minPrice?: number; // Minimum price filter
+  maxPrice?: number; // Maximum price filter
 };
 
 export default function Home() {
@@ -68,8 +69,12 @@ export default function Home() {
           return parsed?.child === filters.profile;
         })() : true;
 
-        const matchesPrice = filters.minPrice
+        const matchesMinPrice = filters.minPrice
           ? property.price >= filters.minPrice
+          : true;
+
+        const matchesMaxPrice = filters.maxPrice
+          ? property.price <= filters.maxPrice
           : true;
 
         const matchesStatus = filters.status ? property.status === filters.status : true;
@@ -80,7 +85,7 @@ export default function Home() {
 
         const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
 
-        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard && matchesProfile && matchesPrice;
+        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard && matchesProfile && matchesMinPrice && matchesMaxPrice;
       });
     },
     []
