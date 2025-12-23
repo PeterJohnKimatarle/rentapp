@@ -519,7 +519,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
               >
                 Basic info
                 {activeTab === 'basic' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600"></span>
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500"></span>
                 )}
               </button>
               <button
@@ -533,7 +533,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
               >
                 Extra info
                 {activeTab === 'details' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600"></span>
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500"></span>
                 )}
               </button>
             </div>
