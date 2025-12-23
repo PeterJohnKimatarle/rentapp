@@ -548,7 +548,7 @@ export default function PropertyDetailsPage() {
             
             {/* Status Badge */}
             <div 
-              className={`absolute top-3 left-2 z-30 ${((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? 'cursor-pointer' : ''}`}
+              className={`absolute top-3 left-2 z-20 ${((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') ? 'cursor-pointer' : ''}`}
               onClick={(e) => {
                 if ((user?.role === 'staff' && user?.isApproved) || user?.role === 'admin') {
                   e.stopPropagation();
