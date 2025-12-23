@@ -622,12 +622,13 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
                   </div>
                 )}
               </div>
-              {/* Property Details Dropdown */}
-              <div className="col-span-4">
+              {/* Property Details Dropdown - DO NOT CHANGE: flex justify-end needed for button alignment */}
+              {/* IMPORTANT: Button MUST stay in its own col-span-4 container. DO NOT merge with collapsible content below! */}
+              <div className="col-span-4 flex justify-end">
                 <button
                   type="button"
                   onClick={() => setShowPropertyDetails(!showPropertyDetails)}
-                  className="flex items-center justify-end gap-2 w-full pr-2 text-sm font-medium text-white cursor-pointer"
+                  className="flex items-center gap-2 w-fit text-sm font-medium text-white cursor-pointer ml-auto" // DO NOT CHANGE: w-fit for content sizing, ml-auto for right alignment
                 >
                   <span>Extra details</span>
                   <ChevronRight
@@ -635,9 +636,12 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
                     className={`text-white transition-transform duration-200 ${showPropertyDetails ? 'rotate-90' : ''}`}
                   />
                 </button>
+              </div>
 
-                {/* Collapsible Content */}
-                {showPropertyDetails && (
+              {/* Collapsible Content - CRITICAL: Must be in SEPARATE col-span-4 container to prevent button layout shift */}
+              {/* NEVER merge this back into the button container above! Keep them separate! */}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showPropertyDetails ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="col-span-4">
                   <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
                     <div>
                       <label className="block text-base font-bold text-white mb-2 text-center">
@@ -674,7 +678,7 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
                       />
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="col-span-4">
