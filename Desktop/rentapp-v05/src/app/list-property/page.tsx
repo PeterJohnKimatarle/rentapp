@@ -693,12 +693,12 @@ export default function ListPropertyPage() {
                    )}
                  </div>
 
-                 {/* Property Details Dropdown */}
-                 <div className="col-span-4">
+                 {/* Property Details Dropdown - DO NOT CHANGE: flex justify-end needed for button alignment */}
+                 <div className="col-span-4 flex justify-end">
                    <button
                      type="button"
                      onClick={() => setShowPropertyDetails(!showPropertyDetails)}
-                     className="flex items-center gap-2 w-fit text-sm font-medium text-white cursor-pointer ml-auto"
+                     className="flex items-center gap-2 w-fit text-sm font-medium text-white cursor-pointer ml-auto" // DO NOT CHANGE: w-fit for content sizing, ml-auto for right alignment
                    >
                      <span>Extra details</span>
                      <ChevronRight
@@ -903,12 +903,12 @@ export default function ListPropertyPage() {
                   </select>
                 </div>
 
-                {/* Pricing Details Dropdown */}
+                {/* Pricing Details Dropdown - DO NOT CHANGE: flex justify-end needed for button alignment */}
                 <div className="col-span-2 flex justify-end">
                   <div className="relative">
                     <button
                       type="button"
-                      className="flex items-center gap-2 w-fit text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none ml-auto"
+                      className="flex items-center gap-2 w-fit text-sm font-medium text-white cursor-pointer bg-transparent border-none outline-none ml-auto" // DO NOT CHANGE: w-fit for content sizing, ml-auto for right alignment
                       style={{ backgroundColor: 'transparent' }}
                       onClick={(e) => {
                         const select = e.currentTarget.nextElementSibling as HTMLSelectElement;
@@ -930,7 +930,7 @@ export default function ListPropertyPage() {
                         const pricingUnit = value ? value.replace('price-', '') as 'month' | 'night' | 'day' | 'hour' : '';
                         handleInputChange('pricingUnit' as keyof typeof formData, pricingUnit);
                       }}
-                      className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer"
+                      className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer" // DO NOT CHANGE: w-fit to match button content width
                     >
                       <option value="" className="text-gray-800">---</option>
                       <option value="price-month" className="text-gray-800">Price/month</option>
