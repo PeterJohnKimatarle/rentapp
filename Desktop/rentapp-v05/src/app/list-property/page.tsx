@@ -114,7 +114,7 @@ export default function ListPropertyPage() {
 
 
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
-  const [rentalRateValue, setRentalRateValue] = useState('');
+  const [rentalRateValue, setRentalRateValue] = useState('price-month');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -132,15 +132,13 @@ export default function ListPropertyPage() {
     description: '',
     bathrooms: '',
     area: '',
-    pricingUnit: '' as 'month' | 'night' | 'day' | 'hour' | ''
+    pricingUnit: 'month' as 'month' | 'night' | 'day' | 'hour' | ''
   });
 
   // Sync rentalRateValue with formData.pricingUnit
   useEffect(() => {
     if (formData.pricingUnit) {
       setRentalRateValue(`price-${formData.pricingUnit}`);
-    } else {
-      setRentalRateValue('');
     }
   }, [formData.pricingUnit]);
 
@@ -424,6 +422,11 @@ export default function ListPropertyPage() {
 
     if (!selectedWard && !customWard) {
       alert('Choose ward.');
+      return;
+    }
+
+    if (!formData.pricingUnit) {
+      alert('Please select a rental rate (Price/month, Price/night, etc.).');
       return;
     }
 
@@ -934,13 +937,12 @@ export default function ListPropertyPage() {
                       onChange={(e) => {
                         const value = e.target.value;
                         setRentalRateValue(value);
-                        // Update the pricingUnit in the form data (empty string for no selection)
-                        const pricingUnit = value ? value.replace('price-', '') as 'month' | 'night' | 'day' | 'hour' : '';
+                        const pricingUnit = value.replace('price-', '') as 'month' | 'night' | 'day' | 'hour';
                         handleInputChange('pricingUnit' as keyof typeof formData, pricingUnit);
                       }}
+                      required
                       className="absolute inset-0 w-fit h-full opacity-0 cursor-pointer" // DO NOT CHANGE: w-fit to match button content width
                     >
-                      <option value="" className="text-gray-800">---</option>
                       <option value="price-month" className="text-gray-800">Price/month</option>
                       <option value="price-night" className="text-gray-800">Price/night</option>
                       <option value="price-hour" className="text-gray-800">Price/hour</option>
