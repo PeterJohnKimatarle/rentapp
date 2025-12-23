@@ -1921,34 +1921,18 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center items-center mb-4">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-black">
                 {descriptionModalView === 'description' ? 'Property Description' : 'Property Category'}
               </h3>
-            </div>
-
-            {/* Toggle Buttons */}
-            <div className="flex justify-center gap-2 mb-4">
-              <button
-                onClick={() => setDescriptionModalView('description')}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                  descriptionModalView === 'description'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Description
-              </button>
-              <button
-                onClick={() => setDescriptionModalView('category')}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                  descriptionModalView === 'category'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Category
-              </button>
+              {descriptionModalView === 'description' && (
+                <button
+                  onClick={() => setDescriptionModalView('category')}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+                >
+                  Property Category
+                </button>
+              )}
             </div>
             {descriptionModalView === 'description' ? (
               (() => {
@@ -2011,10 +1995,18 @@ export default function PropertyDetailsPage() {
                 )}
               </div>
             )}
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex justify-between">
+              {descriptionModalView === 'category' && (
+                <button
+                  onClick={() => setDescriptionModalView('description')}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Back to Description
+                </button>
+              )}
               <button
                 onClick={() => setShowDescriptionModal(false)}
-                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none ml-auto"
               >
                 Close
               </button>
