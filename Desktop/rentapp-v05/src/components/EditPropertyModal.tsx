@@ -150,9 +150,11 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
 
   // Swipe gesture handling for tab navigation
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const touchEndRef = useRef<{ x: number; y: number } | null>(null);
-  const minSwipeDistance = 50;
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const touchEndRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const minSwipeDistance = 30; // Minimum horizontal distance for swipe recognition (30px for deliberate gestures)
+  // Angle-based gesture detection: allows gestures up to 45° from horizontal
+  // This means moderately diagonal swipes are accepted, but mostly vertical gestures are rejected
 
   // Keyboard navigation for tabs (desktop only)
   useEffect(() => {
@@ -182,50 +184,56 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
     touchStartRef.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
+      time: Date.now()
     };
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+
     touchEndRef.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
+      time: Date.now()
     };
   }, []);
 
   const onTouchEnd = useCallback(() => {
+    if (!touchStartRef.current || !touchEndRef.current) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+
     const touchStart = touchStartRef.current;
     const touchEnd = touchEndRef.current;
 
-    if (!touchStart || !touchEnd) {
-      touchStartRef.current = null;
-      touchEndRef.current = null;
-      return;
-    }
+    // Calculate gesture properties
+    const deltaX = touchStart.x - touchEnd.x;
+    const deltaY = touchStart.y - touchEnd.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
 
-    const distanceX = touchStart.x - touchEnd.x;
-    const distanceY = touchStart.y - touchEnd.y;
-    const isLeftSwipe = distanceX > minSwipeDistance;
-    const isRightSwipe = distanceX < -minSwipeDistance;
-    const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
-
-    // Only handle horizontal swipes
-    if (isVerticalSwipe) {
-      touchStartRef.current = null;
-      touchEndRef.current = null;
-      return;
-    }
-
-    // Handle tab switching based on current tab and swipe direction
-    if (activeTab === 'basic' && isLeftSwipe) {
-      // Swipe left on "Basic Info" → switch to "Extra Info"
-      setActiveTab('details');
-    } else if (activeTab === 'details' && isRightSwipe) {
-      // Swipe right on "Extra Info" → switch to "Basic Info"
-      setActiveTab('basic');
-    }
-
+    // Reset touch refs
     touchStartRef.current = null;
     touchEndRef.current = null;
+
+    // Filter out gestures that don't meet criteria
+    if (absDeltaX < minSwipeDistance) return; // Not far enough horizontally
+
+    // Angle-based filtering: calculate gesture angle from horizontal
+    // Allow gestures up to 45° from horizontal (moderately diagonal)
+    const angle = Math.abs(Math.atan2(absDeltaY, absDeltaX) * 180 / Math.PI);
+    if (angle > 45) return; // Gesture too diagonal (over 45° from horizontal)
+
+    // Handle tab switching based on current tab and horizontal swipe direction
+    if (activeTab === 'basic' && deltaX > 0) {
+      // On Basic Info: left-to-right swipe → switch to Extra Info
+      setActiveTab('details');
+    } else if (activeTab === 'details' && deltaX < 0) {
+      // On Extra Info: right-to-left swipe → switch to Basic Info
+      setActiveTab('basic');
+    }
   }, [activeTab, minSwipeDistance]);
 
   // Initialize form data when property changes
