@@ -1925,14 +1925,14 @@ export default function PropertyDetailsPage() {
               <h3 className="text-xl font-semibold text-black">
                 Property description
               </h3>
-              {descriptionModalView === 'description' && (
-                <button
-                  onClick={() => setDescriptionModalView('category')}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
-                >
-                  Property Category
-                </button>
-              )}
+              <button
+                onClick={() => setDescriptionModalView(
+                  descriptionModalView === 'description' ? 'category' : 'description'
+                )}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+              >
+                {descriptionModalView === 'description' ? 'Property category' : 'Property description'}
+              </button>
             </div>
             {descriptionModalView === 'description' ? (
               (() => {
@@ -1995,18 +1995,10 @@ export default function PropertyDetailsPage() {
                 )}
               </div>
             )}
-            <div className="mt-3 flex justify-between">
-              {descriptionModalView === 'category' && (
-                <button
-                  onClick={() => setDescriptionModalView('description')}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-                >
-                  Back to Description
-                </button>
-              )}
+            <div className="mt-3 flex justify-end">
               <button
                 onClick={() => setShowDescriptionModal(false)}
-                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none ml-auto"
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
               >
                 Close
               </button>
