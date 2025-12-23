@@ -150,7 +150,7 @@ export default function ListPropertyPage() {
   // Touch gesture handling for tab switching across entire page
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchEndRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const minSwipeDistance = 0; // Minimum horizontal distance for swipe recognition
+  const minSwipeDistance = 30; // Minimum horizontal distance for swipe recognition (30px for deliberate gestures)
   // Angle-based gesture detection: allows gestures up to 85° from horizontal
   // This means very diagonal swipes (almost vertical) are still considered horizontal swipes
 
