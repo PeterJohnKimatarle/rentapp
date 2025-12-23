@@ -1947,31 +1947,43 @@ export default function PropertyDetailsPage() {
                 const parsedType = parsePropertyType(property?.propertyType || '');
                 // Temporary debug display in UI
                 const debugInfo = `DEBUG - Raw: "${property?.propertyType}", Parsed: ${parsedType ? `"${parsedType.parent}"` : 'FAILED'}`;
-                return parsedType ? (
+                // Always try to show something useful, even if parsing fails
+                const displayParent = (() => {
+                  if (parsedType?.parent) return parsedType.parent;
+
+                  // Try some common fallbacks for unmapped types
+                  const rawType = property?.propertyType?.toLowerCase() || '';
+                  if (rawType.includes('office')) return 'Commercial Property';
+                  if (rawType.includes('shop') || rawType.includes('commercial')) return 'Commercial Property';
+                  if (rawType.includes('hotel') || rawType.includes('lodge')) return 'Short Stay/Hospitality';
+                  if (rawType.includes('villa')) return 'Villa';
+                  if (rawType.includes('land') || rawType.includes('parking')) return 'Land & Outdoor';
+                  if (rawType.includes('event') || rawType.includes('hall')) return 'Event Hall';
+
+                  // Last resort: try to extract something meaningful from the raw type
+                  if (property?.propertyType) {
+                    // Capitalize first letter and clean up underscores/dashes
+                    return property.propertyType
+                      .split(/[-_]/)
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
+                  }
+
+                  return 'Unknown Property Type';
+                })();
+
+                return (
                   <div className="py-2">
                     {/* DEBUG INFO - Remove after fixing */}
                     <div className="text-xs text-red-600 mb-2 p-1 bg-red-50 rounded">
-                      DEBUG - Raw: "{property?.propertyType}", Parsed: {parsedType ? `"${parsedType.parent}"` : 'FAILED'}
+                      DEBUG - Raw: "{property?.propertyType}", Parsed: {parsedType ? `"${parsedType.parent}"` : 'FAILED'}, Display: "{displayParent}"
                     </div>
                     <div className="space-y-3">
                       {/* Property Type Section */}
                       <div className="text-left">
                         <h4 className="text-lg font-semibold text-gray-800 mb-1">Property type</h4>
                         <div className="text-gray-700">
-                          {(() => {
-                            if (parsedType?.parent) return parsedType.parent;
-
-                            // Try some common fallbacks for unmapped types
-                            const rawType = property?.propertyType?.toLowerCase() || '';
-                            if (rawType.includes('office')) return 'Commercial Property';
-                            if (rawType.includes('shop') || rawType.includes('commercial')) return 'Commercial Property';
-                            if (rawType.includes('hotel') || rawType.includes('lodge')) return 'Short Stay/Hospitality';
-                            if (rawType.includes('villa')) return 'Villa';
-                            if (rawType.includes('land') || rawType.includes('parking')) return 'Land & Outdoor';
-                            if (rawType.includes('event') || rawType.includes('hall')) return 'Event Hall';
-
-                            return 'Unknown';
-                          })()}
+                          {displayParent}
                         </div>
                       </div>
 
@@ -1989,10 +2001,6 @@ export default function PropertyDetailsPage() {
                         )}
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-gray-600 text-center py-4">
-                    Property type information not available
                   </div>
                 );
               })()
