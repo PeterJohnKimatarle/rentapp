@@ -1923,7 +1923,7 @@ export default function PropertyDetailsPage() {
           >
             <div className="flex justify-center items-center mb-4">
               <h3 className="text-xl font-semibold text-black">
-                Property description
+                {descriptionModalView === 'description' ? 'Property description' : 'Property category'}
               </h3>
             </div>
             {descriptionModalView === 'description' ? (
@@ -1946,27 +1946,27 @@ export default function PropertyDetailsPage() {
                 const parsedType = parsePropertyType(property?.propertyType || '');
                 return parsedType ? (
                   <div className="py-2">
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-semibold text-lg">
+                    <div className="space-y-3">
+                      {/* Property Type Section */}
+                      <div className="text-left">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-1">Property type</h4>
+                        <div className="text-gray-700">
                           {parsedType?.parent || getPropertyTypeDisplayLabel(property.propertyType || '')}
                         </div>
                       </div>
 
-                      {parsedType?.child && (
-                        <div className="text-center">
-                          <div className="text-gray-600 text-sm mb-2">Specific Type:</div>
-                          <div className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-md font-medium">
+                      {/* Profile Section */}
+                      <div className="text-left">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-1">Profile</h4>
+                        {parsedType?.child ? (
+                          <div className="text-gray-700">
                             {parsedType.child}
                           </div>
-                        </div>
-                      )}
-
-                      <div className="text-center text-gray-600 text-sm">
-                        <div className="mb-2">Property Classification:</div>
-                        <div className="bg-gray-50 px-3 py-2 rounded-md inline-block">
-                          {parsedType?.child ? `${parsedType.parent} → ${parsedType.child}` : parsedType?.parent || 'Standard Property'}
-                        </div>
+                        ) : (
+                          <div className="text-gray-600">
+                            No Profile available
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1982,7 +1982,7 @@ export default function PropertyDetailsPage() {
                 onClick={() => setDescriptionModalView(
                   descriptionModalView === 'description' ? 'category' : 'description'
                 )}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+                className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700"
               >
                 {descriptionModalView === 'description' ? 'Property category' : 'Property description'}
               </button>
