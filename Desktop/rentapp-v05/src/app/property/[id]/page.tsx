@@ -1945,6 +1945,13 @@ export default function PropertyDetailsPage() {
             ) : (
               (() => {
                 const parsedType = parsePropertyType(property?.propertyType || '');
+                console.log('Property category debug:', {
+                  propertyId: property?.id,
+                  propertyType: property?.propertyType,
+                  parsedType,
+                  parent: parsedType?.parent,
+                  child: parsedType?.child
+                });
                 return parsedType ? (
                   <div className="py-2">
                     <div className="space-y-3">

@@ -111,18 +111,56 @@ export const getAllPropertyTypes = (): string[] => {
  */
 // Legacy property type mapping for backward compatibility
 const LEGACY_PROPERTY_TYPE_MAPPING: Record<string, string> = {
+  // Apartments
   '1-bdrm-apartment': 'Apartment|1 Bdrm Apartment',
   '2-bdrm-apartment': 'Apartment|2 Bdrm Apartment',
   '3-bdrm-apartment': 'Apartment|3 Bdrm Apartment',
   '4-bdrm-apartment': 'Apartment|4 Bdrm Apartment',
   '5-bdrm-apartment': 'Apartment|5 Bdrm Apartment',
+  '5+-bdrm-apartment': 'Apartment|5+ Bdrm Apartment',
   'studio-apartment': 'Apartment|Studio Apartment',
+
+  // Houses
   '1-bdrm-house': 'House|1 Bdrm House',
   '2-bdrm-house': 'House|2 Bdrm House',
   '3-bdrm-house': 'House|3 Bdrm House',
   '4-bdrm-house': 'House|4 Bdrm House',
   '5-bdrm-house': 'House|5 Bdrm House',
+  '5+-bdrm-house': 'House|5+ Bdrm House',
+
+  // Commercial Properties
   'commercial-building-frame': 'Commercial Property|Shop (Frame)',
+  'office-space': 'Commercial Property|Office Space',
+  'co-working-space': 'Commercial Property|Co-Working Space',
+  'warehouse-godown': 'Commercial Property|Warehouse/Godown',
+  'shop': 'Commercial Property|Shop (Frame)',
+
+  // Short Stay/Hospitality
+  'hotel-room': 'Short Stay/Hospitality|Hotel Room',
+  'lodge': 'Short Stay/Hospitality|Lodge',
+  'hostel': 'Short Stay/Hospitality|Hostel (travelers)',
+  'guest-house': 'Short Stay/Hospitality|Guest House',
+
+  // Land & Outdoor
+  'parking-yard': 'Land & Outdoor|Parking Yard',
+  'farm-house': 'Land & Outdoor|Farm House (Agricultural)',
+  'open-space': 'Land & Outdoor|Open Space',
+
+  // Villas
+  'luxury-villa': 'Villa|Luxury Villa',
+  'beach-villa': 'Villa|Beach Villa',
+
+  // Event Halls
+  'conference-center': 'Event Hall|Conference Center',
+  'wedding-hall': 'Event Hall|Wedding Hall',
+  'banquet-hall': 'Event Hall|Banquet Hall',
+
+  // Other common legacy formats
+  'apartment': 'Apartment|1 Bdrm Apartment',
+  'house': 'House|1 Bdrm House',
+  'commercial': 'Commercial Property|Office Space',
+  'office': 'Commercial Property|Office Space',
+
   // Add more legacy mappings as needed
 };
 
