@@ -1921,18 +1921,10 @@ export default function PropertyDetailsPage() {
             className="bg-white rounded-xl px-4 py-3 sm:px-6 sm:pt-2 sm:pb-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-center items-center mb-4">
               <h3 className="text-xl font-semibold text-black">
                 Property description
               </h3>
-              <button
-                onClick={() => setDescriptionModalView(
-                  descriptionModalView === 'description' ? 'category' : 'description'
-                )}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
-              >
-                {descriptionModalView === 'description' ? 'Property category' : 'Property description'}
-              </button>
             </div>
             {descriptionModalView === 'description' ? (
               (() => {
@@ -1985,7 +1977,15 @@ export default function PropertyDetailsPage() {
                 );
               })()
             )}
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex justify-between">
+              <button
+                onClick={() => setDescriptionModalView(
+                  descriptionModalView === 'description' ? 'category' : 'description'
+                )}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+              >
+                {descriptionModalView === 'description' ? 'Property category' : 'Property description'}
+              </button>
               <button
                 onClick={() => setShowDescriptionModal(false)}
                 className="px-4 py-2 rounded-lg font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 select-none"
