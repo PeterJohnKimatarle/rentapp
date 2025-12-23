@@ -1923,7 +1923,7 @@ export default function PropertyDetailsPage() {
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-black">
-                {descriptionModalView === 'description' ? 'Property Description' : 'Property Category'}
+                Property description
               </h3>
               {descriptionModalView === 'description' && (
                 <button
