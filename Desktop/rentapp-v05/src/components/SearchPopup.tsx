@@ -60,6 +60,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedProfile, setSelectedProfile] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
+  const [price, setPrice] = useState('');
 
   // Clear profile when property type changes
   useEffect(() => {
@@ -129,7 +130,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       profile: selectedProfile || undefined,
       status: status || undefined,
       region: selectedRegion || undefined,
-      ward: selectedWard || undefined
+      ward: selectedWard || undefined,
+      minPrice: price ? parseInt(price.replace(/,/g, '')) : undefined
     };
 
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
@@ -160,6 +162,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setSelectedRegion('');
     setSelectedWard('');
     setSelectedProfile('');
+    setPrice('');
     
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
     const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
@@ -290,6 +293,29 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               </select>
             </div>
           )}
+
+          {/* Price */}
+          <div className="text-center">
+            <label className="block text-base text-white mb-2">
+              Minimum Price
+            </label>
+            <input
+              type="text"
+              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+              style={{
+                color: '#111827'
+              }}
+              placeholder="---"
+              value={price}
+              onChange={(e) => {
+                let value = e.target.value.replace(/[^\d]/g, '');
+                if (value) {
+                  value = parseInt(value).toLocaleString();
+                }
+                setPrice(value);
+              }}
+            />
+          </div>
 
           {/* Status */}
           <div className="text-center">

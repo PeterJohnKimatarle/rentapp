@@ -12,6 +12,7 @@ type SearchFilters = {
   status?: string;
   region?: string;
   ward?: string;
+  minPrice?: number; // Minimum price filter
 };
 
 export default function Home() {
@@ -67,6 +68,10 @@ export default function Home() {
           return parsed?.child === filters.profile;
         })() : true;
 
+        const matchesPrice = filters.minPrice
+          ? property.price >= filters.minPrice
+          : true;
+
         const matchesStatus = filters.status ? property.status === filters.status : true;
 
         const matchesRegion = filters.region
@@ -75,7 +80,7 @@ export default function Home() {
 
         const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
 
-        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard && matchesProfile;
+        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard && matchesProfile && matchesPrice;
       });
     },
     []
