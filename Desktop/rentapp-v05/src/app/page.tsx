@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type SearchFilters = {
   propertyType?: string;
+  profile?: string; // Sub-type within selected property type
   status?: string;
   region?: string;
   ward?: string;
@@ -60,6 +61,12 @@ export default function Home() {
           return parsed?.parent === filters.propertyType;
         })() : true;
 
+        const matchesProfile = filters.profile ? (() => {
+          const parsed = parsePropertyType(property.propertyType || '');
+          // Match if the selected profile matches the child sub-type
+          return parsed?.child === filters.profile;
+        })() : true;
+
         const matchesStatus = filters.status ? property.status === filters.status : true;
 
         const matchesRegion = filters.region
@@ -68,7 +75,7 @@ export default function Home() {
 
         const matchesWard = filters.ward ? normalise(property.ward) === normalise(filters.ward) : true;
 
-        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard;
+        return matchesPropertyType && matchesStatus && matchesRegion && matchesWard && matchesProfile;
       });
     },
     []

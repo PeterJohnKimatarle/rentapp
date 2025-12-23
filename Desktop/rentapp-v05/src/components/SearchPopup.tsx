@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   getAllPropertyTypes, 
@@ -58,7 +58,13 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const [selectedPropertySubType, setSelectedPropertySubType] = useState('');
   const [status, setStatus] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedProfile, setSelectedProfile] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
+
+  // Clear profile when property type changes
+  useEffect(() => {
+    setSelectedProfile('');
+  }, [propertyType]);
   const [customWard, setCustomWard] = useState('');
   const [showWardPopup, setShowWardPopup] = useState(false);
   
@@ -120,6 +126,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const handleSearch = () => {
     const filters = {
       propertyType: propertyType || undefined,
+      profile: selectedProfile || undefined,
       status: status || undefined,
       region: selectedRegion || undefined,
       ward: selectedWard || undefined
@@ -152,6 +159,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     setStatus('');
     setSelectedRegion('');
     setSelectedWard('');
+    setSelectedProfile('');
     
     // Check if current page is homepage, bookmarks, my-properties, or recently-removed-bookmarks
     const allowedPages = ['/', '/bookmarks', '/my-properties', '/recently-removed-bookmarks'];
@@ -258,6 +266,30 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               ))}
             </select>
           </div>
+
+          {/* Profile/Sub-type - Only show when property type has sub-types */}
+          {propertyType && hasSubCategories(propertyType) && (
+            <div className="text-center">
+              <label className="block text-base text-white mb-2">
+                Profile
+              </label>
+              <select
+                className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                style={{
+                  color: '#111827'
+                }}
+                value={selectedProfile}
+                onChange={(e) => setSelectedProfile(e.target.value)}
+              >
+                <option value="" style={{ color: '#6b7280' }}>---</option>
+                {getPropertyTypeChildren(propertyType)?.map((profile) => (
+                  <option key={profile} value={profile} style={{ color: '#111827' }}>
+                    {profile}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Status */}
           <div className="text-center">
