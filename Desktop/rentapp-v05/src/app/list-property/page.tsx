@@ -694,6 +694,7 @@ export default function ListPropertyPage() {
                  </div>
 
                  {/* Property Details Dropdown - DO NOT CHANGE: flex justify-end needed for button alignment */}
+                 {/* IMPORTANT: Button MUST stay in its own col-span-4 container. DO NOT merge with collapsible content below! */}
                  <div className="col-span-4 flex justify-end">
                    <button
                      type="button"
@@ -708,7 +709,8 @@ export default function ListPropertyPage() {
                    </button>
                  </div>
 
-                 {/* Collapsible Content - Separate from button container to prevent layout shift */}
+                 {/* Collapsible Content - CRITICAL: Must be in SEPARATE col-span-4 container to prevent button layout shift */}
+                 {/* NEVER merge this back into the button container above! Keep them separate! */}
                  {showPropertyDetails && (
                    <div className="col-span-4">
                      <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
