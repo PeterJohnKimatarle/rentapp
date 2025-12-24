@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import GoogleSignIn from './GoogleSignIn';
-import AppleSignIn from './AppleSignIn';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -135,26 +134,16 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           className="p-4 overflow-y-auto flex-1"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
-          {/* Social Sign In - Only show when email login is closed */}
+          {/* Google Sign In - Only show when email login is closed */}
           {!showEmailLogin && (
-            <>
-              <div className="mb-1">
-                <GoogleSignIn
-                  onClick={() => {
-                    // UI-only: Logic will be implemented later
-                    console.log('Google sign-in clicked - logic to be implemented')
-                  }}
-                />
-              </div>
-              <div className="mb-1">
-                <AppleSignIn
-                  onClick={() => {
-                    // UI-only: Logic will be implemented later
-                    console.log('Apple sign-in clicked - logic to be implemented')
-                  }}
-                />
-              </div>
-            </>
+            <div className="mb-1">
+              <GoogleSignIn
+                onClick={() => {
+                  // UI-only: Logic will be implemented later
+                  console.log('Google sign-in clicked - logic to be implemented')
+                }}
+              />
+            </div>
           )}
 
           {/* Login with Email Link - Only show when Google button is visible */}

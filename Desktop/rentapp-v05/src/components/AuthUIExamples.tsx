@@ -1,7 +1,6 @@
 'use client'
 
 import GoogleSignIn from './GoogleSignIn'
-import AppleSignIn from './AppleSignIn'
 
 // Showcase component for different authentication UI patterns
 export default function AuthUIExamples() {
@@ -59,8 +58,7 @@ export default function AuthUIExamples() {
           <h3 className="text-lg font-semibold text-center mb-6">Google First Layout</h3>
           <div className="space-y-1">
             <GoogleSignIn />
-            <AppleSignIn />
-            <p className="text-center text-xs text-gray-500 mt-1">(Shows Google and Apple login options)</p>
+            <p className="text-center text-xs text-gray-500 mt-1">(Shows "Login with Google")</p>
             <div className="text-right pr-2 mt-2">
               <button className="text-blue-500 hover:text-blue-600 font-medium transition-colors">
                 Login with Email
@@ -159,7 +157,6 @@ export default function AuthUIExamples() {
           <h3 className="text-lg font-semibold text-center mb-6">Multiple Sign-in Options</h3>
           <div className="space-y-3">
             <GoogleSignIn />
-            <AppleSignIn />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
