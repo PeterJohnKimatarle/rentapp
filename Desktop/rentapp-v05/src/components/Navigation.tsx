@@ -53,12 +53,17 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   // Detect if PWA is installed
   useEffect(() => {
     const checkIfInstalled = () => {
-      // Check if running in standalone mode (installed PWA)
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      // Also check for iOS Safari specific indicators
+      // Check if PWA was ever installed on this device/browser (stored in localStorage)
+      const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
+
+      // Also check current display mode for immediate detection
+      const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebAppiOS = (window.navigator as any).standalone === true;
 
-      setIsAppInstalled(isStandalone || isInWebAppiOS);
+      // App is considered installed if it was ever installed OR is currently running standalone
+      const isInstalled = wasEverInstalled || isCurrentlyStandalone || isInWebAppiOS;
+
+      setIsAppInstalled(isInstalled);
     };
 
     // Check immediately
@@ -66,10 +71,19 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     // Listen for app installation event
     const handleAppInstalled = () => {
+      // Store installation flag in localStorage for future detection
+      localStorage.setItem('rentapp_pwa_installed', 'true');
       setIsAppInstalled(true);
     };
 
+    // Listen for beforeinstallprompt to know when installation becomes available
+    const handleBeforeInstallPrompt = () => {
+      // If beforeinstallprompt fires, it means the app is not yet installed
+      // But we don't change state here as the user might choose not to install
+    };
+
     window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // Also listen for display mode changes
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
@@ -77,6 +91,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     return () => {
       window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       mediaQuery.removeEventListener('change', checkIfInstalled);
     };
   }, []);
