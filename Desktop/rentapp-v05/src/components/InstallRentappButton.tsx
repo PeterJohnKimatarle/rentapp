@@ -12,6 +12,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [isAndroidMobile, setIsAndroidMobile] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   // Check if device is Android mobile
@@ -47,11 +48,20 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       setCanInstall(true);
     };
 
+    // Listen for successful installation
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setCanInstall(false);
+      setDeferredPrompt(null);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       mediaQuery.removeEventListener('change', checkStandalone);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [isAndroidMobile]);
 
@@ -66,7 +76,10 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       return;
     }
 
-    if (canInstall && deferredPrompt) {
+    if (isInstalled) {
+      // Open installed app
+      window.open('/', '_blank');
+    } else if (canInstall && deferredPrompt) {
       // Show install prompt
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -74,9 +87,6 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         setCanInstall(false);
         setDeferredPrompt(null);
       }
-    } else if (!canInstall) {
-      // Open installed app
-      window.open('/', '_blank');
     }
   };
 
@@ -89,10 +99,13 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const getButtonConfig = () => {
     if (isStandalone) {
       return { text: 'App Installed', disabled: true };
+    } else if (isInstalled) {
+      return { text: 'Open in App', disabled: false };
     } else if (canInstall) {
       return { text: 'Install Rentapp', disabled: false };
     } else {
-      return { text: 'Open in App', disabled: false };
+      // Default to Install Rentapp if we can't determine the state yet
+      return { text: 'Install Rentapp', disabled: false };
     }
   };
 
