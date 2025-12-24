@@ -146,16 +146,18 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Login with Email Link */}
-          <div className="text-right pr-2 mb-6">
-            <button
-              type="button"
-              onClick={() => setShowEmailLogin(!showEmailLogin)}
-              className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
-            >
-              {showEmailLogin ? 'Continue with Google' : 'Login with Email'}
-            </button>
-          </div>
+          {/* Login with Email Link - Only show when Google button is visible */}
+          {!showEmailLogin && (
+            <div className="text-right pr-2 mb-6">
+              <button
+                type="button"
+                onClick={() => setShowEmailLogin(!showEmailLogin)}
+                className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
+              >
+                Login with Email
+              </button>
+            </div>
+          )}
 
           {/* Email/Password Form - Only show when toggled */}
           {showEmailLogin && (
@@ -231,6 +233,19 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           </form>
               </>
             )}
+
+          {/* Continue with Google Link - Only show when email form is visible */}
+          {showEmailLogin && (
+            <div className="text-right pr-2 mt-4 mb-6">
+              <button
+                type="button"
+                onClick={() => setShowEmailLogin(false)}
+                className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
+              >
+                Continue with Google
+              </button>
+            </div>
+          )}
 
           {/* Registration Prompt - Always visible */}
           <div className="mt-4 text-center">

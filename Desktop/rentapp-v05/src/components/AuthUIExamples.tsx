@@ -103,7 +103,6 @@ export default function AuthUIExamples() {
         <div className="bg-white rounded-xl shadow-lg p-6 max-w-md">
           <h3 className="text-lg font-semibold text-center mb-6">Toggle Pattern Layout</h3>
           <div className="space-y-2">
-            {/* Google button hidden when email form is shown */}
             <GoogleSignIn />
             <div className="text-right pr-2">
               <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors">
@@ -111,8 +110,28 @@ export default function AuthUIExamples() {
               </button>
             </div>
             {/* Email form would appear here, Google button would be hidden */}
-            <div className="text-center text-sm text-gray-500 mt-2">
-              (Click "Login with Email" to hide Google button and show form)
+            <div className="border-t border-gray-200 pt-4 space-y-3 opacity-50">
+              <p className="text-center text-sm text-gray-500 mb-3">Email form + "Continue with Google" below:</p>
+              <input
+                type="email"
+                placeholder="Email address"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              />
+              <button className="w-full bg-blue-500 text-white py-3 rounded-lg" disabled>
+                Sign In
+              </button>
+              <div className="text-right pr-2">
+                <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors opacity-50">
+                  Continue with Google
+                </button>
+              </div>
             </div>
           </div>
         </div>
