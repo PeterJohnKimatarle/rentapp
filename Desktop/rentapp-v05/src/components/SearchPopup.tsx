@@ -227,9 +227,9 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div 
-        className="rounded-xl max-w-xs w-full py-4 px-3 shadow-lg overflow-hidden"
-         style={{ 
+      <div
+        className={`rounded-xl max-w-xs w-full py-4 px-3 shadow-lg ${shouldPositionBelow ? 'max-h-[calc(100vh-80px)] overflow-y-auto' : 'overflow-hidden'}`}
+         style={{
            backgroundColor: '#0071c2',
            pointerEvents: 'auto',
            ...(shouldPositionBelow && searchBarPosition ? {
@@ -256,8 +256,8 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
             <label className="block text-base text-white mb-2">
               Property Type
             </label>
-            <select 
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+            <select
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
               style={{ 
                 color: '#111827'
               }}
@@ -273,75 +273,54 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
             </select>
           </div>
 
-          {/* Profile/Sub-type - Only show when property type has sub-types */}
-          {propertyType && hasSubCategories(propertyType) && (
-            <div className="text-center">
-              <label className="block text-base text-white mb-2">
-                Profile
-              </label>
-              <select
-                className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                style={{
-                  color: '#111827'
-                }}
-                value={selectedProfile}
-                onChange={(e) => setSelectedProfile(e.target.value)}
-              >
-                <option value="" style={{ color: '#6b7280' }}>---</option>
-                {getPropertyTypeChildren(propertyType)?.map((profile) => (
-                  <option key={profile} value={profile} style={{ color: '#111827' }}>
-                    {profile}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Price Range - Min and Max */}
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Min Price
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-              placeholder="---"
-              value={minPrice}
-              onChange={(e) => {
-                let value = e.target.value.replace(/[^\d]/g, '');
-                if (value) {
-                  value = parseInt(value).toLocaleString();
-                }
-                setMinPrice(value);
-              }}
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-base font-bold text-white mb-2 text-center">
-              Max Price
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
-              placeholder="---"
-              value={maxPrice}
-              onChange={(e) => {
-                let value = e.target.value.replace(/[^\d]/g, '');
-                if (value) {
-                  value = parseInt(value).toLocaleString();
-                }
-                setMaxPrice(value);
-              }}
-            />
-          </div>
-
-          {/* Status */}
+          {/* Profile/Sub-type - Always visible, disabled when no property type selected */}
           <div className="text-center">
             <label className="block text-base text-white mb-2">
+              Profile
+            </label>
+              {propertyType ? (
+                hasSubCategories(propertyType) ? (
+                  <select
+                    className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                    style={{
+                      color: '#111827'
+                    }}
+                    value={selectedProfile}
+                    onChange={(e) => setSelectedProfile(e.target.value)}
+                  >
+                    <option value="" style={{ color: '#6b7280' }}>---</option>
+                    {getPropertyTypeChildren(propertyType)?.map((profile) => (
+                      <option key={profile} value={profile} style={{ color: '#111827' }}>
+                        {profile}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">No Profiles available</span>
+                  </div>
+                )
+              ) : (
+                <select
+                  className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-300 cursor-not-allowed"
+                  style={{
+                    color: '#9ca3af'
+                  }}
+                  disabled
+                  value=""
+                >
+                  <option value="" style={{ color: '#9ca3af' }}>Select type</option>
+                </select>
+              )}
+          </div>
+
+          {/* Status - Full Width */}
+          <div className="col-span-4">
+            <label className="block text-base text-white mb-2 text-center">
               Status
             </label>
-            <select 
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+            <select
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
@@ -351,13 +330,14 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
             </select>
           </div>
 
-          {/* Region */}
-          <div className="text-center">
-            <label className="block text-base text-white mb-2">
-              Region
-            </label>
-            <select 
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+          {/* Region and Ward - Facing each other */}
+          <div className="col-span-4 flex justify-between items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-base text-white mb-2 text-center">
+                Region
+              </label>
+            <select
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
               value={selectedRegion}
               onChange={(e) => {
                 setSelectedRegion(e.target.value);
@@ -396,34 +376,78 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               <option value="urban-west">Urban West</option>
               <option value="other">Other</option>
             </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-base text-white mb-2 text-center">
+                Ward
+              </label>
+            {selectedRegion ? (
+              <select
+                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                value={selectedWard}
+                onChange={(e) => {
+                  if (e.target.value === 'other') {
+                    setShowWardPopup(true);
+                    setSelectedWard('');
+                  } else {
+                    setSelectedWard(e.target.value);
+                    setCustomWard('');
+                  }
+                }}
+              >
+                <option value="" className="text-gray-400">---</option>
+                {wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
+                  <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
+                    {ward}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Select region</span>
+              </div>
+            )}
+            </div>
           </div>
 
-          {/* Ward */}
-          <div className="text-center">
-            <label className="block text-base text-white mb-2">
-              Ward
-            </label>
-            <select 
-              className="w-5/6 mx-auto px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-              disabled={!selectedRegion}
-              value={selectedWard}
-              onChange={(e) => {
-                if (e.target.value === 'other') {
-                  setShowWardPopup(true);
-                  setSelectedWard('');
-                } else {
-                  setSelectedWard(e.target.value);
-                  setCustomWard('');
-                }
-              }}
-            >
-              <option value="" className="text-gray-400">---</option>
-              {selectedRegion && wardsByRegion[selectedRegion as keyof typeof wardsByRegion]?.map((ward) => (
-                <option key={ward} value={ward.toLowerCase().replace(/\s+/g, '-')}>
-                  {ward}
-                </option>
-              ))}
-            </select>
+          {/* Price Range - Min and Max facing each other */}
+          <div className="col-span-4 flex justify-between items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-base text-white mb-2 text-center">
+                Min Price
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                placeholder="---"
+                value={minPrice}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/[^\d]/g, '');
+                  if (value) {
+                    value = parseInt(value).toLocaleString();
+                  }
+                  setMinPrice(value);
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-base text-white mb-2 text-center">
+                Max Price
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100 text-gray-900"
+                placeholder="---"
+                value={maxPrice}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/[^\d]/g, '');
+                  if (value) {
+                    value = parseInt(value).toLocaleString();
+                  }
+                  setMaxPrice(value);
+                }}
+              />
+            </div>
           </div>
         </div>
 
