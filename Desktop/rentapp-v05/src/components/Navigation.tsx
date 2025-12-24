@@ -63,6 +63,8 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
   // Detect if PWA is installed
   useEffect(() => {
+    console.log('🔍 PWA Detection: Starting installation check...');
+
     const checkIfInstalled = async () => {
       // Check if PWA was ever installed on this device/browser (stored in localStorage)
       const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
@@ -107,11 +109,22 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
       // Aggressive cleanup: if no service workers at all, clear installation flag
       if (wasEverInstalled && !hasActiveServiceWorker && !isCurrentlyStandalone && !isInWebAppiOS) {
-        console.log('Aggressive cleanup: No service workers or standalone mode detected, clearing installation flag');
+        console.log('🧹 Aggressive cleanup: No service workers or standalone mode detected, clearing installation flag');
         localStorage.removeItem('rentapp_pwa_installed');
         // Force re-evaluation
         setIsAppInstalled(false);
         setIsRunningStandalone(false);
+      }
+
+      // Get service worker count for logging
+      let serviceWorkerCount = 0;
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          serviceWorkerCount = registrations.length;
+        }
+      } catch (error) {
+        console.log('Error getting service worker count:', error);
       }
 
       console.log('PWA Detection Debug:', {
@@ -119,7 +132,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         hasActiveServiceWorker,
         isCurrentlyStandalone,
         isInWebAppiOS,
-        allRegistrations: 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistrations().then(r => r.length) : 0,
+        serviceWorkerCount,
         userAgent: navigator.userAgent
       });
 
