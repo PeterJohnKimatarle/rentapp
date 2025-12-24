@@ -57,15 +57,38 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       // Check if PWA was ever installed on this device/browser (stored in localStorage)
       const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
 
-      // Check for service worker registration (indicates PWA installation)
-      let hasServiceWorker = false;
+      // Check for active service worker (indicates PWA installation)
+      let hasActiveServiceWorker = false;
       try {
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
-          hasServiceWorker = registrations.length > 0;
+          // Check if we have registrations and if any are actually active
+          if (registrations.length > 0) {
+            // Try to find our specific service worker
+            const rentappSW = registrations.find(reg =>
+              reg.scope.includes('rentapp') ||
+              reg.scope.includes(window.location.origin)
+            );
+
+            if (rentappSW) {
+              // Check if the service worker is in an active state
+              hasActiveServiceWorker = rentappSW.active !== null;
+
+              // If service worker exists but isn't active, it might be uninstalling
+              // Clear the localStorage flag to allow re-detection
+              if (!hasActiveServiceWorker && wasEverInstalled) {
+                console.log('Service worker found but not active - clearing installation flag');
+                localStorage.removeItem('rentapp_pwa_installed');
+              }
+            }
+          }
         }
       } catch (error) {
         console.log('Service worker check failed:', error);
+        // If we can't check service workers, clear the flag to be safe
+        if (wasEverInstalled) {
+          localStorage.removeItem('rentapp_pwa_installed');
+        }
       }
 
       // Also check current display mode for immediate detection
@@ -74,14 +97,14 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
       console.log('PWA Detection Debug:', {
         wasEverInstalled,
-        hasServiceWorker,
+        hasActiveServiceWorker,
         isCurrentlyStandalone,
         isInWebAppiOS,
         userAgent: navigator.userAgent
       });
 
-      // App is installed if: was ever installed OR has service worker OR currently running standalone
-      const isInstalled = wasEverInstalled || hasServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
+      // App is installed if: was ever installed OR has active service worker OR currently running standalone
+      const isInstalled = wasEverInstalled || hasActiveServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
 
       // Track both states
       setIsAppInstalled(isInstalled);
@@ -90,6 +113,34 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     // Check immediately
     checkIfInstalled();
+
+    // Periodic cleanup check (every 30 seconds) to clear stale installation flags
+    const cleanupInterval = setInterval(async () => {
+      try {
+        const storedFlag = localStorage.getItem('rentapp_pwa_installed');
+        if (storedFlag === 'true') {
+          // Re-check if service worker is still active
+          let stillHasActiveSW = false;
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            const rentappSW = registrations.find(reg =>
+              reg.scope.includes('rentapp') ||
+              reg.scope.includes(window.location.origin)
+            );
+            stillHasActiveSW = rentappSW ? rentappSW.active !== null : false;
+          }
+
+          // If no active service worker but flag is set, clear it
+          if (!stillHasActiveSW) {
+            console.log('Periodic cleanup: Clearing stale installation flag');
+            localStorage.removeItem('rentapp_pwa_installed');
+            checkIfInstalled(); // Re-check installation status
+          }
+        }
+      } catch (error) {
+        console.log('Periodic cleanup failed:', error);
+      }
+    }, 30000); // Check every 30 seconds
 
     // Listen for app installation event
     const handleAppInstalled = () => {
@@ -120,6 +171,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       mediaQuery.removeEventListener('change', handleDisplayModeChange);
+      clearInterval(cleanupInterval);
     };
   }, []);
 
