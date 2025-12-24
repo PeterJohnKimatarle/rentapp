@@ -147,15 +147,25 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         setIsLoading(false);
       }
     } else if (installPromptSupported) {
-      // Install prompt not ready yet - show loading and wait
-      console.log('Install prompt not ready, waiting...');
+      // Install prompt not ready yet - guide user to interact with page
+      console.log('Install prompt not ready - user needs to interact with page first');
+      alert('💡 Tip: Scroll around and interact with the page first, then try installing again. Chrome requires user engagement before showing the install prompt.\n\nAfter interacting with the page, click "Install Rentapp" again.');
       setIsLoading(true);
 
-      // Wait a bit and try again, or the beforeinstallprompt event will trigger
+      // Set up a one-time listener for when the prompt becomes available
+      const handlePromptReady = () => {
+        console.log('Prompt became available after user interaction!');
+        setIsLoading(false);
+        window.removeEventListener('beforeinstallprompt', handlePromptReady);
+      };
+
+      window.addEventListener('beforeinstallprompt', handlePromptReady);
+
+      // Timeout after 10 seconds
       setTimeout(() => {
         setIsLoading(false);
-        // If prompt became available during the wait, it will be handled by the event listener
-      }, 2000);
+        window.removeEventListener('beforeinstallprompt', handlePromptReady);
+      }, 10000);
     } else {
       // Install prompt not supported on this browser/device
       console.log('Install prompt not supported on this browser/device');
