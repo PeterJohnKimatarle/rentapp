@@ -51,18 +51,22 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isRunningStandalone, setIsRunningStandalone] = useState(false);
 
-  // Debug function to manually set installation flag (remove in production)
-  const debugSetInstalled = () => {
-    localStorage.setItem('rentapp_pwa_installed', 'true');
-    setIsAppInstalled(true);
-    console.log('Debug: Manually set PWA as installed');
-  };
-
   // Detect if PWA is installed
   useEffect(() => {
-    const checkIfInstalled = () => {
+    const checkIfInstalled = async () => {
       // Check if PWA was ever installed on this device/browser (stored in localStorage)
       const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
+
+      // Check for service worker registration (indicates PWA installation)
+      let hasServiceWorker = false;
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          hasServiceWorker = registrations.length > 0;
+        }
+      } catch (error) {
+        console.log('Service worker check failed:', error);
+      }
 
       // Also check current display mode for immediate detection
       const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -70,13 +74,17 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
       console.log('PWA Detection Debug:', {
         wasEverInstalled,
+        hasServiceWorker,
         isCurrentlyStandalone,
         isInWebAppiOS,
         userAgent: navigator.userAgent
       });
 
+      // App is installed if: was ever installed OR has service worker OR currently running standalone
+      const isInstalled = wasEverInstalled || hasServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
+
       // Track both states
-      setIsAppInstalled(wasEverInstalled || isCurrentlyStandalone || isInWebAppiOS);
+      setIsAppInstalled(isInstalled);
       setIsRunningStandalone(isCurrentlyStandalone || isInWebAppiOS);
     };
 
@@ -95,6 +103,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
     const handleBeforeInstallPrompt = () => {
       // If beforeinstallprompt fires, it means the app is not yet installed
       // But we don't change state here as the user might choose not to install
+      console.log('PWA install prompt available');
     };
 
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -102,12 +111,15 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     // Also listen for display mode changes
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    mediaQuery.addEventListener('change', checkIfInstalled);
+    const handleDisplayModeChange = () => {
+      checkIfInstalled();
+    };
+    mediaQuery.addEventListener('change', handleDisplayModeChange);
 
     return () => {
       window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      mediaQuery.removeEventListener('change', checkIfInstalled);
+      mediaQuery.removeEventListener('change', handleDisplayModeChange);
     };
   }, []);
 
@@ -670,10 +682,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
               // Install functionality here
               console.log('Install Rentapp clicked');
             }
-          }}
-          onDoubleClick={() => {
-            // Debug: Manually set as installed (for testing)
-            debugSetInstalled();
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
