@@ -215,8 +215,8 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
     const absDeltaY = Math.abs(deltaY);
 
     // Reset touch refs
-    touchStartRef.current = null;
-    touchEndRef.current = null;
+      touchStartRef.current = null;
+      touchEndRef.current = null;
 
     // Filter out gestures that don't meet criteria
     if (absDeltaX < minSwipeDistance) return; // Not far enough horizontally
@@ -641,42 +641,42 @@ export default function EditPropertyModal({ isOpen, onClose, property, onDelete,
               {/* Collapsible Content - CRITICAL: Must be in SEPARATE container to prevent button layout shift */}
               {/* NEVER merge this back into the button container above! Keep them separate! */}
               <div className={`col-span-4 overflow-hidden transition-all duration-300 ease-in-out ${showPropertyDetails ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
-                  <div>
-                    <label className="block text-base font-bold text-white mb-2 text-center">
-                      Bathrooms
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                      value={formData.bathrooms}
-                      onChange={(e) => handleInputChange('bathrooms', e.target.value)}
-                    >
-                      <option value="" className="text-gray-400">---</option>
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4+">4+</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
+                    <div>
+                      <label className="block text-base font-bold text-white mb-2 text-center">
+                        Bathrooms
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                        value={formData.bathrooms}
+                        onChange={(e) => handleInputChange('bathrooms', e.target.value)}
+                      >
+                        <option value="" className="text-gray-400">---</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4+">4+</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-base font-bold text-white mb-2 text-center">
+                        Area (sqm)
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
+                        placeholder="---"
+                        value={formData.area}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/[^\d]/g, '');
+                          if (value) {
+                            value = parseInt(value).toLocaleString();
+                          }
+                          handleInputChange('area', value);
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-base font-bold text-white mb-2 text-center">
-                      Area (sqm)
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center h-10 bg-gray-100"
-                      placeholder="---"
-                      value={formData.area}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/[^\d]/g, '');
-                        if (value) {
-                          value = parseInt(value).toLocaleString();
-                        }
-                        handleInputChange('area', value);
-                      }}
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className="col-span-4">

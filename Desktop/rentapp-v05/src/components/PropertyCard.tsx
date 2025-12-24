@@ -806,14 +806,14 @@ export default function PropertyCard({ property, onBookmarkClick, showMinusIcon 
             <div className="flex flex-col mb-2 min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-gray-900 mb-0 flex items-center gap-1 min-w-0 flex-1">
-                  <span className="truncate">{property.propertyTitle || property.title}</span>
+                  <span className="truncate">{property.title}</span>
                   {property.id === lastViewedId && (
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 flex-shrink-0"></span>
                   )}
                 </h3>
               </div>
                 <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
-                  <span className="font-bold">Price:</span> {formatPrice(property.price)}/{'pricingUnit' in property ? (property.pricingUnit?.replace('price-', '') || 'month') : 'month'}
+                  <span className="font-bold">Price:</span> {formatPrice(property.price)}/{'pricingUnit' in property ? ((property.pricingUnit?.replace('price-', '') || 'month').charAt(0).toUpperCase() + (property.pricingUnit?.replace('price-', '') || 'month').slice(1)) : 'Month'}
                 </div>
               <div className="text-base sm:text-lg text-gray-600 mb-0 truncate">
                 <span className="font-bold">Plan:</span> {property.plan === 'flexible' ? 'Flexible' : `${property.plan} Months`}

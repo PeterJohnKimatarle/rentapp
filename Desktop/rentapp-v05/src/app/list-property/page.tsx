@@ -720,7 +720,7 @@ export default function ListPropertyPage() {
 
                  {/* Collapsible Content - CRITICAL: Must be in SEPARATE col-span-4 container to prevent button layout shift */}
                  {/* NEVER merge this back into the button container above! Keep them separate! */}
-                 {showPropertyDetails && (
+                   {showPropertyDetails && (
                    <div className="col-span-4">
                      <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
                        <div>
@@ -758,7 +758,7 @@ export default function ListPropertyPage() {
                          />
                        </div>
                      </div>
-                   </div>
+                 </div>
                  )}
 
                  {/* Status Row */}

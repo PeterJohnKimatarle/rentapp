@@ -166,12 +166,12 @@ const LEGACY_PROPERTY_TYPE_MAPPING: Record<string, string> = {
 
 export const parsePropertyType = (propertyType: string): { parent: string; child: string | null } | null => {
   if (!propertyType) return null;
-
+  
   // Check if it's a direct select category
   if (DIRECT_SELECT_CATEGORIES.includes(propertyType)) {
     return { parent: propertyType, child: null };
   }
-
+  
   // Check if it's in format "parent|child"
   if (propertyType.includes('|')) {
     const [parent, child] = propertyType.split('|');
@@ -184,19 +184,19 @@ export const parsePropertyType = (propertyType: string): { parent: string; child
     const [parent, child] = mappedType.split('|');
     return { parent: parent.trim(), child: child ? child.trim() : null };
   }
-
+  
   // Try to find parent category
   for (const [parent, children] of Object.entries(PROPERTY_TYPE_CATEGORIES)) {
     if (children.includes(propertyType)) {
       return { parent, child: propertyType };
     }
   }
-
+  
   // Check if it's a direct category name
   if (ALL_PROPERTY_CATEGORIES.includes(propertyType)) {
     return { parent: propertyType, child: null };
   }
-
+  
   return null;
 };
 

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 import GoogleSignIn from './GoogleSignIn';
+import AppleSignIn from './AppleSignIn';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -134,25 +135,35 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           className="p-4 overflow-y-auto flex-1"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
-          {/* Google Sign In - Only show when email login is closed */}
+          {/* Social Sign In - Only show when email login is closed */}
           {!showEmailLogin && (
-            <div className="mb-2">
-              <GoogleSignIn
-                onClick={() => {
-                  // UI-only: Logic will be implemented later
-                  console.log('Google sign-in clicked - logic to be implemented')
-                }}
-              />
-            </div>
+            <>
+              <div className="mb-1">
+                <GoogleSignIn
+                  onClick={() => {
+                    // UI-only: Logic will be implemented later
+                    console.log('Google sign-in clicked - logic to be implemented')
+                  }}
+                />
+              </div>
+              <div className="mb-1">
+                <AppleSignIn
+                  onClick={() => {
+                    // UI-only: Logic will be implemented later
+                    console.log('Apple sign-in clicked - logic to be implemented')
+                  }}
+                />
+              </div>
+            </>
           )}
 
           {/* Login with Email Link - Only show when Google button is visible */}
           {!showEmailLogin && (
-            <div className="text-right pr-2 mb-6">
+            <div className="text-right pr-2 mt-2 mb-3">
               <button
                 type="button"
                 onClick={() => setShowEmailLogin(!showEmailLogin)}
-                className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
+                className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-200"
               >
                 Login with Email
               </button>
@@ -162,25 +173,14 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           {/* Email/Password Form - Only show when toggled */}
           {showEmailLogin && (
             <>
-              {/* Divider */}
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">or</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
+              <form onSubmit={handleSubmit} className="space-y-3">
             {/* Email Field */}
             <div>
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                  {error}
+                </div>
+              )}
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -221,7 +221,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3 pt-3">
+            <div className="flex flex-col gap-2 pt-2">
               <button
                 type="submit"
                 disabled={isLoading}
@@ -230,26 +230,24 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
                 {isLoading ? 'Logging in...' : 'Login'}
               </button>
             </div>
+
+            {/* Continue with Google Link - Below login button */}
+            <div className="text-right pr-2">
+              <button
+                type="button"
+                onClick={() => setShowEmailLogin(false)}
+                className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-200"
+              >
+                Login with Google
+              </button>
+            </div>
           </form>
               </>
             )}
 
-          {/* Continue with Google Link - Only show when email form is visible */}
-          {showEmailLogin && (
-            <div className="text-right pr-2 mt-4 mb-6">
-              <button
-                type="button"
-                onClick={() => setShowEmailLogin(false)}
-                className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
-              >
-                Continue with Google
-              </button>
-            </div>
-          )}
-
           {/* Registration Prompt - Always visible */}
           <div className="mt-4 text-center">
-            <p className="text-gray-600 text-sm mb-2">
+            <p className="text-gray-600 text-base mb-2">
               Don&apos;t have an account?
             </p>
             <Link
