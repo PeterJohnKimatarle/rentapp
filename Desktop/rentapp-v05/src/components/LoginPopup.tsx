@@ -145,7 +145,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Login with Email Link */}
-          <div className="text-center mb-6">
+          <div className="text-right mb-6">
             <button
               type="button"
               onClick={() => setShowEmailLogin(!showEmailLogin)}
