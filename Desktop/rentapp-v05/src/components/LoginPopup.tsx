@@ -134,15 +134,17 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           className="p-4 overflow-y-auto flex-1"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
-          {/* Google Sign In */}
-          <div className="mb-2">
-            <GoogleSignIn
-              onClick={() => {
-                // UI-only: Logic will be implemented later
-                console.log('Google sign-in clicked - logic to be implemented')
-              }}
-            />
-          </div>
+          {/* Google Sign In - Only show when email login is closed */}
+          {!showEmailLogin && (
+            <div className="mb-2">
+              <GoogleSignIn
+                onClick={() => {
+                  // UI-only: Logic will be implemented later
+                  console.log('Google sign-in clicked - logic to be implemented')
+                }}
+              />
+            </div>
+          )}
 
           {/* Login with Email Link */}
           <div className="text-right pr-2 mb-6">
@@ -151,7 +153,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
               onClick={() => setShowEmailLogin(!showEmailLogin)}
               className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
             >
-              {showEmailLogin ? 'Hide email login' : 'Login with Email'}
+              {showEmailLogin ? 'Continue with Google' : 'Login with Email'}
             </button>
           </div>
 
