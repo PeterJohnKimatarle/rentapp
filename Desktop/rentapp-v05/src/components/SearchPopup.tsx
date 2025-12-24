@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   getAllPropertyTypes, 
@@ -70,33 +70,43 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
   const [customWard, setCustomWard] = useState('');
   const [showWardPopup, setShowWardPopup] = useState(false);
   
-  // Swipe detection state
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
-  
+  // Touch event handlers for swipe gestures - using refs for performance (like menu modal)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchEndRef = useRef<{ x: number; y: number } | null>(null);
   const minSwipeDistance = 50;
-  
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart({
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchEndRef.current = null;
+    touchStartRef.current = {
       x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  };
-  
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
+      y: e.targetTouches[0].clientY,
+    };
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    const touchStart = touchStartRef.current;
+    const touchEnd = touchEndRef.current;
+
+    if (!touchStart || !touchEnd) {
+      touchStartRef.current = null;
+      touchEndRef.current = null;
+      return;
+    }
+
     const distanceX = touchStart.x - touchEnd.x;
     const distanceY = touchStart.y - touchEnd.y;
     const isLeftSwipe = distanceX > minSwipeDistance; // Right to left swipe
     const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
-    
+
     // Only handle horizontal left swipes to close (right to left swipe)
     if (!isVerticalSwipe && isLeftSwipe) {
       onClose();
     }
-  };
+
+    // Reset refs after handling
+    touchStartRef.current = null;
+    touchEndRef.current = null;
+  }, [onClose]);
 
   // Prevent background scroll by capturing wheel/touch on the overlay.
   const preventWheel = (e: React.WheelEvent) => {
@@ -104,14 +114,15 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
     e.stopPropagation();
   };
   // Keep tracking swipe while blocking background scroll
-  const handleOverlayTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd({
-      x: e.targetTouches[0]?.clientX ?? e.changedTouches[0]?.clientX ?? 0,
-      y: e.targetTouches[0]?.clientY ?? e.changedTouches[0]?.clientY ?? 0
-    });
+  const handleOverlayTouchMove = useCallback((e: React.TouchEvent) => {
+    // Use ref to avoid re-renders - no state updates during move
+    touchEndRef.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
     e.preventDefault();
     e.stopPropagation();
-  };
+  }, []);
 
   const dispatchSearchEvent = (filters: {
     propertyType?: string;
