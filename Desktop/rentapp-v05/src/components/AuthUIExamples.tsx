@@ -56,9 +56,9 @@ export default function AuthUIExamples() {
         {/* Example 1: Google First */}
         <div className="bg-white rounded-xl shadow-lg p-6 max-w-md">
           <h3 className="text-lg font-semibold text-center mb-6">Google First Layout</h3>
-          <div className="space-y-4">
+          <div className="space-y-2">
             <GoogleSignIn />
-            <div className="text-right">
+            <div className="text-right pr-2">
               <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors">
                 Login with Email
               </button>
@@ -102,9 +102,9 @@ export default function AuthUIExamples() {
         {/* Example 3: Toggle Pattern */}
         <div className="bg-white rounded-xl shadow-lg p-6 max-w-md">
           <h3 className="text-lg font-semibold text-center mb-6">Toggle Pattern Layout</h3>
-          <div className="space-y-4">
+          <div className="space-y-2">
             <GoogleSignIn />
-            <div className="text-right">
+            <div className="text-right pr-2">
               <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors">
                 Login with Email
               </button>

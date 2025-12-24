@@ -135,7 +135,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
           {/* Google Sign In */}
-          <div className="mb-4">
+          <div className="mb-2">
             <GoogleSignIn
               onClick={() => {
                 // UI-only: Logic will be implemented later
@@ -145,7 +145,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Login with Email Link */}
-          <div className="text-right mb-6">
+          <div className="text-right pr-2 mb-6">
             <button
               type="button"
               onClick={() => setShowEmailLogin(!showEmailLogin)}
