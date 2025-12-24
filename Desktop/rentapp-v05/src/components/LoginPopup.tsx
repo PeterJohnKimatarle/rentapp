@@ -135,11 +135,10 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           {/* Google Sign In */}
           <div className="mb-6">
             <GoogleSignIn
-              onSuccess={() => {
-                handleClose()
-                router.push('/') // Redirect to home after successful Google sign-in
+              onClick={() => {
+                // UI-only: Logic will be implemented later
+                console.log('Google sign-in clicked - logic to be implemented')
               }}
-              onError={(errorMsg) => setError(errorMsg)}
             />
           </div>
 

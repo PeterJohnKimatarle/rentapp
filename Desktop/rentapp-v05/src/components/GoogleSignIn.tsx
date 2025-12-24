@@ -1,47 +1,52 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
 interface GoogleSignInProps {
-  onSuccess?: () => void
-  onError?: (error: string) => void
+  onClick?: () => void
+  disabled?: boolean
+  variant?: 'default' | 'compact' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export default function GoogleSignIn({ onSuccess, onError }: GoogleSignInProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export default function GoogleSignIn({
+  onClick,
+  disabled = false,
+  variant = 'default',
+  size = 'md'
+}: GoogleSignInProps) {
+  const [isHovered, setIsHovered] = useState(false)
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true)
+  const sizeClasses = {
+    sm: 'px-3 py-2 text-sm',
+    md: 'px-4 py-3 text-base',
+    lg: 'px-6 py-4 text-lg'
+  }
 
-      const result = await signIn('google', {
-        callbackUrl: '/', // Redirect to home page after login
-        redirect: false, // Don't redirect automatically
-      })
-
-      if (result?.error) {
-        console.error('Google sign-in error:', result.error)
-        onError?.('Failed to sign in with Google')
-      } else if (result?.ok) {
-        onSuccess?.()
-      }
-    } catch (error) {
-      console.error('Google sign-in error:', error)
-      onError?.('An error occurred during Google sign-in')
-    } finally {
-      setIsLoading(false)
-    }
+  const variantClasses = {
+    default: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50',
+    compact: 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100',
+    outline: 'bg-transparent border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
   }
 
   return (
     <button
-      onClick={handleGoogleSignIn}
-      disabled={isLoading}
-      className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      disabled={disabled}
+      className={`
+        w-full flex items-center justify-center gap-3 rounded-lg
+        transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+        transform hover:scale-[1.02] active:scale-[0.98]
+        ${sizeClasses[size]}
+        ${variantClasses[variant]}
+        ${isHovered ? 'shadow-md' : 'shadow-sm'}
+      `}
     >
+      {/* Google Logo */}
       <svg
-        className="w-5 h-5"
+        className={`${size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'}`}
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -63,9 +68,13 @@ export default function GoogleSignIn({ onSuccess, onError }: GoogleSignInProps) 
           fill="#EA4335"
         />
       </svg>
+
+      {/* Button Text */}
       <span className="font-medium">
-        {isLoading ? 'Signing in...' : 'Continue with Google'}
+        Continue with Google
       </span>
+
+      {/* Optional loading spinner could go here */}
     </button>
   )
 }
