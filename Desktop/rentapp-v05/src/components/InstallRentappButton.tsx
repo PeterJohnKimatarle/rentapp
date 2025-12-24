@@ -15,6 +15,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [installPromptSupported, setInstallPromptSupported] = useState(false);
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -23,16 +24,32 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
     const isNotIOS = !userAgent.includes('iphone') && !userAgent.includes('ipad');
 
-    setIsAndroidMobile(isAndroid && isMobile && isNotIOS);
+    const result = isAndroid && isMobile && isNotIOS;
+    console.log('Device detection:', { userAgent, isAndroid, isMobile, isNotIOS, result });
+    setIsAndroidMobile(result);
   }, []);
 
   // Check standalone mode and setup install prompt
   useEffect(() => {
     if (!isAndroidMobile) return;
 
+    console.log('PWA setup: Android mobile detected, setting up PWA functionality');
+
+    // Check if manifest is available
+    const hasManifest = !!document.querySelector('link[rel="manifest"]');
+    console.log('Manifest check:', { hasManifest });
+
+    // Check service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        console.log('Service worker registrations:', registrations.length, registrations);
+      });
+    }
+
     // Check if running in standalone mode
     const checkStandalone = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches;
+      console.log('Standalone check:', { standalone });
       setIsStandalone(standalone);
     };
 
@@ -42,9 +59,20 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
     mediaQuery.addEventListener('change', checkStandalone);
 
+    // Check PWA capabilities
+    const capabilities = {
+      hasBeforeInstallPrompt: 'onbeforeinstallprompt' in window,
+      hasServiceWorker: 'serviceWorker' in navigator,
+      hasManifest: !!document.querySelector('link[rel="manifest"]'),
+      isSecureContext: window.isSecureContext,
+      protocol: window.location.protocol
+    };
+    console.log('PWA capabilities:', capabilities);
+    setInstallPromptSupported(capabilities.hasBeforeInstallPrompt);
+
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt event fired!');
+      console.log('🎉 beforeinstallprompt event fired! Install prompt is now available.');
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
@@ -98,7 +126,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       } finally {
         setIsLoading(false);
       }
-    } else {
+    } else if (installPromptSupported) {
       // Install prompt not ready yet - show loading and wait
       console.log('Install prompt not ready, waiting...');
       setIsLoading(true);
@@ -108,6 +136,10 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         setIsLoading(false);
         // If prompt became available during the wait, it will be handled by the event listener
       }, 2000);
+    } else {
+      // Install prompt not supported on this browser/device
+      console.log('Install prompt not supported on this browser/device');
+      alert('PWA installation is not supported on this browser. Please use Chrome on Android for the best experience.');
     }
   };
 
