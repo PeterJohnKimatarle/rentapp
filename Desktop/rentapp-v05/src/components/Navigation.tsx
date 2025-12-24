@@ -49,6 +49,14 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   const [isEndingSession, setIsEndingSession] = useState(false);
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [isRunningStandalone, setIsRunningStandalone] = useState(false);
+
+  // Debug function to manually set installation flag (remove in production)
+  const debugSetInstalled = () => {
+    localStorage.setItem('rentapp_pwa_installed', 'true');
+    setIsAppInstalled(true);
+    console.log('Debug: Manually set PWA as installed');
+  };
 
   // Detect if PWA is installed
   useEffect(() => {
@@ -60,10 +68,16 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebAppiOS = (window.navigator as any).standalone === true;
 
-      // App is considered installed if it was ever installed OR is currently running standalone
-      const isInstalled = wasEverInstalled || isCurrentlyStandalone || isInWebAppiOS;
+      console.log('PWA Detection Debug:', {
+        wasEverInstalled,
+        isCurrentlyStandalone,
+        isInWebAppiOS,
+        userAgent: navigator.userAgent
+      });
 
-      setIsAppInstalled(isInstalled);
+      // Track both states
+      setIsAppInstalled(wasEverInstalled || isCurrentlyStandalone || isInWebAppiOS);
+      setIsRunningStandalone(isCurrentlyStandalone || isInWebAppiOS);
     };
 
     // Check immediately
@@ -71,6 +85,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     // Listen for app installation event
     const handleAppInstalled = () => {
+      console.log('PWA installed event fired!');
       // Store installation flag in localStorage for future detection
       localStorage.setItem('rentapp_pwa_installed', 'true');
       setIsAppInstalled(true);
@@ -656,6 +671,10 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
               console.log('Install Rentapp clicked');
             }
           }}
+          onDoubleClick={() => {
+            // Debug: Manually set as installed (for testing)
+            debugSetInstalled();
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
@@ -677,7 +696,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         >
           <Download size={20} className="flex-shrink-0" />
           <span className="text-base font-medium">
-            {isAppInstalled ? 'Open in App' : 'Install Rentapp'}
+            {isRunningStandalone ? 'App Installed' : isAppInstalled ? 'Open in App' : 'Install Rentapp'}
           </span>
         </button>
 
