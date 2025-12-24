@@ -47,6 +47,18 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const result = isAndroid && isMobile && isNotIOS;
     console.log('Device detection:', { userAgent, isAndroid, isMobile, isNotIOS, result });
     setIsAndroidMobile(result);
+
+    // Add a global listener to catch any beforeinstallprompt events
+    const globalBeforeInstallPrompt = (e: Event) => {
+      console.log('🎯 GLOBAL: beforeinstallprompt event caught!', e);
+      // Don't prevent default here, just log
+    };
+
+    window.addEventListener('beforeinstallprompt', globalBeforeInstallPrompt, { capture: true });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', globalBeforeInstallPrompt, { capture: true });
+    };
   }, []);
 
   // Check standalone mode and setup install prompt
@@ -85,10 +97,22 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       hasServiceWorker: 'serviceWorker' in navigator,
       hasManifest: !!document.querySelector('link[rel="manifest"]'),
       isSecureContext: window.isSecureContext,
-      protocol: window.location.protocol
+      protocol: window.location.protocol,
+      isOnline: navigator.onLine,
+      hasEnoughEngagement: true // Assume true for now
     };
     console.log('PWA capabilities:', capabilities);
     setInstallPromptSupported(capabilities.hasBeforeInstallPrompt);
+
+    // Check if all PWA criteria are met
+    const allCriteriaMet = capabilities.hasBeforeInstallPrompt &&
+                          capabilities.hasServiceWorker &&
+                          capabilities.hasManifest &&
+                          capabilities.isSecureContext &&
+                          capabilities.protocol === 'https:' &&
+                          capabilities.isOnline;
+
+    console.log('All PWA criteria met:', allCriteriaMet);
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -147,29 +171,40 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         setIsLoading(false);
       }
     } else if (installPromptSupported) {
-      // Install prompt not ready yet - guide user to interact with page
-      console.log('Install prompt not ready - user needs to interact with page first');
-      alert('💡 Tip: Scroll around and interact with the page first, then try installing again. Chrome requires user engagement before showing the install prompt.\n\nAfter interacting with the page, click "Install Rentapp" again.');
-      setIsLoading(true);
+      // Install prompt not ready yet - this might be due to insufficient user engagement or other criteria
+      console.log('Install prompt not available - might need more engagement or different browser');
 
-      // Set up a one-time listener for when the prompt becomes available
-      const handlePromptReady = () => {
-        console.log('Prompt became available after user interaction!');
-        setIsLoading(false);
-        window.removeEventListener('beforeinstallprompt', handlePromptReady);
-      };
+      const message = `PWA installation prompt is not available yet. This could be because:
 
-      window.addEventListener('beforeinstallprompt', handlePromptReady);
+• Chrome requires more user interaction (scroll, click around)
+• The page needs to be visited for longer
+• Your browser/device may have restrictions
 
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        setIsLoading(false);
-        window.removeEventListener('beforeinstallprompt', handlePromptReady);
-      }, 10000);
+Try:
+1. Scroll through the entire page
+2. Click on different sections and buttons
+3. Wait 30+ seconds
+4. Try installing again
+
+Alternatively, you can manually add Rentapp to your home screen:
+• Tap the menu (⋮) in Chrome
+• Select "Add to Home screen"`;
+
+      alert(message);
     } else {
-      // Install prompt not supported on this browser/device
+      // Install prompt not supported - provide manual installation instructions
       console.log('Install prompt not supported on this browser/device');
-      alert('PWA installation is not supported on this browser. Please use Chrome on Android for the best experience.');
+
+      const manualInstructions = `PWA installation is not supported on this browser.
+
+Manual Installation (Android Chrome):
+1. Tap the menu button (⋮) in the top-right
+2. Select "Add to Home screen" or "Install app"
+3. Follow the prompts to add Rentapp
+
+If that doesn't work, try updating Chrome to the latest version.`;
+
+      alert(manualInstructions);
     }
   };
 
