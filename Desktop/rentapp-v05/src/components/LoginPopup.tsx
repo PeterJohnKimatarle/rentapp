@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
+import GoogleSignIn from './GoogleSignIn';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -131,6 +132,27 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           className="p-4 overflow-y-auto flex-1"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
+          {/* Google Sign In */}
+          <div className="mb-6">
+            <GoogleSignIn
+              onSuccess={() => {
+                handleClose()
+                router.push('/') // Redirect to home after successful Google sign-in
+              }}
+              onError={(errorMsg) => setError(errorMsg)}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">or</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
