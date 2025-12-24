@@ -641,6 +641,19 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
               console.log('Install Rentapp clicked');
             }
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if (variant === 'popup' && onItemClick) {
+                onItemClick();
+              }
+              if (isAppInstalled) {
+                console.log('Open in app clicked');
+              } else {
+                console.log('Install Rentapp clicked');
+              }
+            }
+          }}
           className={`flex items-center space-x-3 ${
             variant === 'popup'
               ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
