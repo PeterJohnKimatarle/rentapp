@@ -8,6 +8,8 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut } from 'lucide-react';
 
+import InstallRentappButton from './InstallRentappButton';
+
 import { useAuth } from '@/contexts/AuthContext';
 
 import { useState } from 'react';
@@ -596,7 +598,9 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         )}
 
-        
+        {/* Install Rentapp Button - Android Mobile Only */}
+        <InstallRentappButton variant={variant} onItemClick={onItemClick} />
+
 
         {/* Close and Home Buttons - Only in popup mode */}
 
