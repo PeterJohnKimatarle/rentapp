@@ -19,6 +19,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +92,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
     setEmail('');
     setPassword('');
     setError('');
+    setShowEmailLogin(false);
     onClose();
   };
 
@@ -133,7 +135,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: keyboardInset || 16 }}
         >
           {/* Google Sign In */}
-          <div className="mb-6">
+          <div className="mb-4">
             <GoogleSignIn
               onClick={() => {
                 // UI-only: Logic will be implemented later
@@ -142,17 +144,31 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Divider */}
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
-            </div>
+          {/* Login with Email Link */}
+          <div className="text-center mb-6">
+            <button
+              type="button"
+              onClick={() => setShowEmailLogin(!showEmailLogin)}
+              className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors duration-200"
+            >
+              {showEmailLogin ? 'Hide email login' : 'Login with Email'}
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email/Password Form - Only show when toggled */}
+          {showEmailLogin && (
+            <>
+              {/* Divider */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">or</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
@@ -211,14 +227,16 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           </form>
+              </>
+            )}
 
-          {/* Registration Prompt */}
+          {/* Registration Prompt - Always visible */}
           <div className="mt-4 text-center">
             <p className="text-gray-600 text-sm mb-2">
               Don&apos;t have an account?
             </p>
-            <Link 
-              href="/register" 
+            <Link
+              href="/register"
               onClick={onClose}
               className="text-blue-500 hover:text-blue-600 font-medium underline"
             >

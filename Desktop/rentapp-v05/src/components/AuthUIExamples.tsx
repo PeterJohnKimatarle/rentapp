@@ -58,28 +58,14 @@ export default function AuthUIExamples() {
           <h3 className="text-lg font-semibold text-center mb-6">Google First Layout</h3>
           <div className="space-y-4">
             <GoogleSignIn />
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <input
-                type="email"
-                placeholder="Email address"
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                Sign In
+            <div className="text-center">
+              <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors">
+                Login with Email
               </button>
+            </div>
+            {/* Email form would appear here when clicked */}
+            <div className="text-center text-sm text-gray-500 mt-2">
+              (Click "Login with Email" to see form)
             </div>
           </div>
         </div>
@@ -113,7 +99,39 @@ export default function AuthUIExamples() {
           </div>
         </div>
 
-        {/* Example 3: Minimal */}
+        {/* Example 3: Toggle Pattern */}
+        <div className="bg-white rounded-xl shadow-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-center mb-6">Toggle Pattern Layout</h3>
+          <div className="space-y-4">
+            <GoogleSignIn />
+            <div className="text-center">
+              <button className="text-blue-500 hover:text-blue-600 font-medium underline transition-colors">
+                Login with Email
+              </button>
+            </div>
+            {/* This would be conditionally shown */}
+            <div className="border-t border-gray-200 pt-4 space-y-3 opacity-50">
+              <p className="text-center text-sm text-gray-500 mb-3">Email form appears here:</p>
+              <input
+                type="email"
+                placeholder="Email address"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              />
+              <button className="w-full bg-blue-500 text-white py-3 rounded-lg" disabled>
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Example 4: Minimal */}
         <div className="bg-white rounded-xl shadow-lg p-6 max-w-md">
           <h3 className="text-lg font-semibold text-center mb-6">Minimal Layout</h3>
           <div className="text-center space-y-4">
