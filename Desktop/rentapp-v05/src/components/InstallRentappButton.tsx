@@ -14,6 +14,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -43,9 +44,11 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event fired!');
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
+      setIsLoading(false); // Clear loading if it was set
     };
 
     // Listen for successful installation
@@ -81,12 +84,30 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       window.open('/', '_blank');
     } else if (canInstall && deferredPrompt) {
       // Show install prompt
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setCanInstall(false);
-        setDeferredPrompt(null);
+      setIsLoading(true);
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setIsInstalled(true);
+          setCanInstall(false);
+          setDeferredPrompt(null);
+        }
+      } catch (error) {
+        console.log('Install prompt failed:', error);
+      } finally {
+        setIsLoading(false);
       }
+    } else {
+      // Install prompt not ready yet - show loading and wait
+      console.log('Install prompt not ready, waiting...');
+      setIsLoading(true);
+
+      // Wait a bit and try again, or the beforeinstallprompt event will trigger
+      setTimeout(() => {
+        setIsLoading(false);
+        // If prompt became available during the wait, it will be handled by the event listener
+      }, 2000);
     }
   };
 
@@ -101,6 +122,8 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       return { text: 'App Installed', disabled: true };
     } else if (isInstalled) {
       return { text: 'Open in App', disabled: false };
+    } else if (isLoading) {
+      return { text: 'Loading...', disabled: true };
     } else if (canInstall) {
       return { text: 'Install Rentapp', disabled: false };
     } else {
