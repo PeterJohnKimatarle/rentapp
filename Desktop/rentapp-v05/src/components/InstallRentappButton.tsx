@@ -16,6 +16,26 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [installPromptSupported, setInstallPromptSupported] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [showDebug, setShowDebug] = useState(false);
+
+  // Collect debug info
+  const collectDebugInfo = () => {
+    const info = {
+      isAndroidMobile,
+      isStandalone,
+      canInstall,
+      isInstalled,
+      isLoading,
+      installPromptSupported,
+      hasManifest: !!document.querySelector('link[rel="manifest"]'),
+      hasServiceWorker: 'serviceWorker' in navigator,
+      isSecureContext: window.isSecureContext,
+      protocol: window.location.protocol,
+      userAgent: navigator.userAgent.substring(0, 50) + '...'
+    };
+    return JSON.stringify(info, null, 2);
+  };
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -151,33 +171,56 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (isStandalone) {
-      return { text: 'App Installed', disabled: true };
+      return { text: '✅ App Installed', disabled: true };
     } else if (isInstalled) {
-      return { text: 'Open in App', disabled: false };
+      return { text: '📱 Open in App', disabled: false };
     } else if (isLoading) {
-      return { text: 'Loading...', disabled: true };
+      return { text: '⏳ Loading...', disabled: true };
     } else if (canInstall) {
-      return { text: 'Install Rentapp', disabled: false };
+      return { text: '⬇️ Install Rentapp', disabled: false };
     } else {
       // Default to Install Rentapp if we can't determine the state yet
-      return { text: 'Install Rentapp', disabled: false };
+      return { text: '❓ Install Rentapp', disabled: false };
     }
   };
 
   const { text, disabled } = getButtonConfig();
 
   return (
-    <button
-      onClick={handleInstallClick}
-      disabled={disabled}
-      className={`flex items-center space-x-3 ${
+    <>
+      {showDebug && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50" onClick={() => setShowDebug(false)}>
+          <div className="bg-white rounded-lg p-4 max-w-md max-h-96 overflow-auto text-xs font-mono">
+            <h3 className="font-bold mb-2">PWA Debug Info:</h3>
+            <pre>{collectDebugInfo()}</pre>
+          </div>
+        </div>
+      )}
+      <button
+        onClick={handleInstallClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setShowDebug(true);
+        }}
+        onTouchStart={() => {
+          // Long press detection for mobile
+          const timer = setTimeout(() => {
+            setShowDebug(true);
+          }, 1000);
+
+          const clearTimer = () => clearTimeout(timer);
+          document.addEventListener('touchend', clearTimer, { once: true });
+        }}
+        disabled={disabled}
+        className={`flex items-center space-x-3 ${
         variant === 'popup'
           ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
           : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
       }`}
-    >
-      <Download size={20} className="flex-shrink-0" />
-      <span className="text-base font-medium">{text}</span>
-    </button>
+      >
+        <Download size={20} className="flex-shrink-0" />
+        <span className="text-base font-medium">{text}</span>
+      </button>
+    </>
   );
 }
