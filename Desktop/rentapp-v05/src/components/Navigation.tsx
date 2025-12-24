@@ -6,11 +6,11 @@ import Link from 'next/link';
 
 import { usePathname, useRouter } from 'next/navigation';
 
-import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut } from 'lucide-react';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut, Download } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 
@@ -48,7 +48,38 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
   const [isEndingSession, setIsEndingSession] = useState(false);
 
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
 
+  // Detect if PWA is installed
+  useEffect(() => {
+    const checkIfInstalled = () => {
+      // Check if running in standalone mode (installed PWA)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      // Also check for iOS Safari specific indicators
+      const isInWebAppiOS = (window.navigator as any).standalone === true;
+
+      setIsAppInstalled(isStandalone || isInWebAppiOS);
+    };
+
+    // Check immediately
+    checkIfInstalled();
+
+    // Listen for app installation event
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+    };
+
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Also listen for display mode changes
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    mediaQuery.addEventListener('change', checkIfInstalled);
+
+    return () => {
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      mediaQuery.removeEventListener('change', checkIfInstalled);
+    };
+  }, []);
 
   const handleEndSession = async () => {
 
@@ -596,7 +627,32 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
         )}
 
-        
+        {/* Install Rentapp Button */}
+        <button
+          onClick={() => {
+            if (variant === 'popup' && onItemClick) {
+              onItemClick();
+            }
+            if (isAppInstalled) {
+              // Open in app - could redirect to app URL or handle differently
+              console.log('Open in app clicked');
+            } else {
+              // Install functionality here
+              console.log('Install Rentapp clicked');
+            }
+          }}
+          className={`flex items-center space-x-3 ${
+            variant === 'popup'
+              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
+              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer'
+          }`}
+        >
+          <Download size={20} className="flex-shrink-0" />
+          <span className="text-base font-medium">
+            {isAppInstalled ? 'Open in App' : 'Install Rentapp'}
+          </span>
+        </button>
+
 
         {/* Close and Home Buttons - Only in popup mode */}
 
