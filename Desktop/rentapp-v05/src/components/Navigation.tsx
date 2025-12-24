@@ -107,6 +107,10 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebAppiOS = (window.navigator as any).standalone === true;
 
+      // Additional checks for installed PWA detection
+      const isInstalledViaManifest = 'onbeforeinstallprompt' in window && 'onappinstalled' in window;
+      const hasPWAFeatures = 'serviceWorker' in navigator && 'manifest' in document;
+
       // Aggressive cleanup: if no service workers at all, clear installation flag
       if (wasEverInstalled && !hasActiveServiceWorker && !isCurrentlyStandalone && !isInWebAppiOS) {
         console.log('🧹 Aggressive cleanup: No service workers or standalone mode detected, clearing installation flag');
@@ -132,16 +136,30 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         hasActiveServiceWorker,
         isCurrentlyStandalone,
         isInWebAppiOS,
+        isInstalledViaManifest,
+        hasPWAFeatures,
         serviceWorkerCount,
-        userAgent: navigator.userAgent
+        displayMode: window.matchMedia('(display-mode: standalone)').matches,
+        userAgent: navigator.userAgent.substring(0, 50) + '...'
+      });
+
+      console.log('📱 Final button state:', {
+        isAppInstalled,
+        isRunningStandalone,
+        buttonText: isRunningStandalone ? 'App Installed' : isAppInstalled ? 'Open in App' : 'Install Rentapp'
       });
 
       // App is installed if: was ever installed OR has active service worker OR currently running standalone
       const isInstalled = wasEverInstalled || hasActiveServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
 
+      // Enhanced standalone detection for installed PWAs
+      const isRunningAsInstalledPWA = isCurrentlyStandalone ||
+                                     isInWebAppiOS ||
+                                     (hasActiveServiceWorker && !window.location.search.includes('?')); // Additional heuristic
+
       // Track both states
       setIsAppInstalled(isInstalled);
-      setIsRunningStandalone(isCurrentlyStandalone || isInWebAppiOS);
+      setIsRunningStandalone(isRunningAsInstalledPWA);
     };
 
     // Check immediately
