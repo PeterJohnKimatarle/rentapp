@@ -15,7 +15,8 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
   // Detect touch devices
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent backdrop click handler from receiving this event
     console.log('Test One button clicked - opening modal');
     setShowModal(true);
 
@@ -38,6 +39,7 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
     <>
       <button
         onClick={handleClick}
+        onTouchStart={(e) => e.stopPropagation()} // Prevent touch events from bubbling to backdrop
         className={`flex items-center space-x-3 ${
           variant === 'popup'
             ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
