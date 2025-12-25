@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface InstallRentappButtonProps {
   variant?: 'default' | 'popup';
@@ -33,9 +34,11 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   }, []);
 
   const handleInstallClick = () => {
+    console.log('Install Rentapp button clicked');
     if (variant === 'popup' && onItemClick) {
       onItemClick();
     }
+    console.log('Setting showInstallModal to true');
     setShowInstallModal(true);
   };
 
@@ -62,18 +65,19 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         <span className="text-base font-medium">Install Rentapp</span>
       </button>
 
-      {/* Install Instructions Modal */}
-      {showInstallModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={closeModal}
-        >
+      {/* Install Instructions Modal - Rendered via Portal */}
+      {showInstallModal && typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+            style={{
+              touchAction: 'none',
+              minHeight: '100vh',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={closeModal}
+          >
           <div
             className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
             onClick={(e) => e.stopPropagation()}
@@ -135,8 +139,10 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
               Got it!
             </button>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body
+        )
+      }
     </>
   );
 }
