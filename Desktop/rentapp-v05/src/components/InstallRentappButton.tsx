@@ -45,14 +45,28 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
 
   const handleInstallClick = () => {
     console.log('Install Rentapp button clicked');
+    console.log('Current state:', { showInstallModal, isMobileBrowser, variant });
+
+    // TEMP: Add alert for mobile testing
+    if (isMobileBrowser) {
+      alert('Button clicked on mobile! Check console for logs.');
+    }
+
     if (variant === 'popup' && onItemClick) {
       onItemClick();
     }
+
     console.log('Setting showInstallModal to true');
     setShowInstallModal(true);
+
+    // Force a re-render check
+    setTimeout(() => {
+      console.log('Modal state after timeout:', showInstallModal);
+    }, 100);
   };
 
   const closeModal = () => {
+    console.log('Closing modal');
     setShowInstallModal(false);
   };
 
@@ -79,6 +93,11 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       </button>
 
       {/* Install Instructions Modal - Rendered via Portal */}
+      {showInstallModal && typeof document !== 'undefined' && (
+        <>
+          {console.log('Rendering modal portal, showInstallModal:', showInstallModal)}
+        </>
+      )}
       {showInstallModal && typeof document !== 'undefined' &&
         createPortal(
           <div
@@ -89,7 +108,10 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
               height: '100%',
               backgroundColor: 'rgba(0, 0, 0, 0.5)'
             }}
-            onClick={closeModal}
+            onClick={(e) => {
+              console.log('Modal overlay clicked');
+              closeModal();
+            }}
           >
           <div
             className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
