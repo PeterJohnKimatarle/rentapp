@@ -13,6 +13,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
+  const [useManualInstall, setUseManualInstall] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showDebug, setShowDebug] = useState(false);
 
@@ -61,11 +62,24 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     // Listen for successful installation
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Fallback mechanism for when beforeinstallprompt doesn't fire
+    const enableFallbackInstall = () => {
+      // If we're on Android Chrome and no prompt after 5 seconds, enable manual install
+      setTimeout(() => {
+        if (!deferredPromptRef.current && isAndroidMobile && 'onbeforeinstallprompt' in window) {
+          console.log('Enabling manual install mode - beforeinstallprompt event not received');
+          setUseManualInstall(true);
+        }
+      }, 5000);
+    };
+
+    enableFallbackInstall();
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isAndroidMobile]);
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -162,7 +176,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       return;
     }
 
-    if (canInstall && deferredPromptRef.current) {
+    if (canInstall && deferredPromptRef.current && !useManualInstall) {
       // Show install prompt using the stored event
       try {
         console.log('Showing install prompt...');
@@ -185,9 +199,20 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       return;
     }
 
-    // If we get here, the prompt is not available
-    console.log('Install prompt not available');
-    alert('Install prompt is not yet available. Try interacting with the page more (scroll, click around) and then try again.');
+    // Manual install instructions (either fallback or direct)
+    console.log('Providing manual install instructions');
+    const instructions = `Please install Rentapp manually:
+
+📱 Android Chrome:
+1. Tap the menu button (⋮) in the top-right corner
+2. Select "Add to Home screen" or "Install app"
+3. Follow the prompts to install Rentapp
+
+This will add Rentapp to your home screen like a native app.
+
+After installing, refresh this page and the button will show "Open in App".`;
+
+    alert(instructions);
   };
 
   // Don't render if not Android mobile
@@ -201,11 +226,13 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       return { text: '✅ App Installed', disabled: true };
     } else if (isInstalled) {
       return { text: '📱 Open in App', disabled: false };
-    } else if (canInstall) {
+    } else if (canInstall && !useManualInstall) {
       return { text: '⬇️ Install Rentapp', disabled: false };
+    } else if (useManualInstall) {
+      return { text: '📋 Install Manually', disabled: false };
     } else {
       // Default to Install Rentapp if we can't determine the state yet
-      return { text: '❓ Install Rentapp', disabled: false };
+      return { text: '⏳ Preparing Install...', disabled: true };
     }
   };
 
