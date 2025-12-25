@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 
 interface InstallRentappButtonProps {
@@ -11,13 +11,13 @@ interface InstallRentappButtonProps {
 export default function InstallRentappButton({ variant = 'default', onItemClick }: InstallRentappButtonProps) {
   const [isAndroidMobile, setIsAndroidMobile] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [installPromptSupported, setInstallPromptSupported] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showDebug, setShowDebug] = useState(false);
+
+  // Use useRef to persistently store the deferred prompt
+  const deferredPromptRef = useRef<any>(null);
 
   // Collect debug info
   const collectDebugInfo = () => {
@@ -26,8 +26,8 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       isStandalone,
       canInstall,
       isInstalled,
-      isLoading,
-      installPromptSupported,
+      installPromptSupported: 'onbeforeinstallprompt' in window,
+      deferredPromptAvailable: !!deferredPromptRef.current,
       hasManifest: !!document.querySelector('link[rel="manifest"]'),
       hasServiceWorker: 'serviceWorker' in navigator,
       isSecureContext: window.isSecureContext,
@@ -36,6 +36,36 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     };
     return JSON.stringify(info, null, 2);
   };
+
+  // Set up beforeinstallprompt listener once at startup
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🎉 beforeinstallprompt event fired at startup');
+      // Prevent Chrome from auto-showing the prompt
+      e.preventDefault();
+      // Store the event persistently
+      deferredPromptRef.current = e;
+      setCanInstall(true);
+      console.log('Install prompt stored and ready');
+    };
+
+    const handleAppInstalled = () => {
+      console.log('PWA installed successfully');
+      setIsInstalled(true);
+      setCanInstall(false);
+      deferredPromptRef.current = null;
+    };
+
+    // Listen for install prompt
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    // Listen for successful installation
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -47,18 +77,6 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const result = isAndroid && isMobile && isNotIOS;
     console.log('Device detection:', { userAgent, isAndroid, isMobile, isNotIOS, result });
     setIsAndroidMobile(result);
-
-    // Add a global listener to catch any beforeinstallprompt events
-    const globalBeforeInstallPrompt = (e: Event) => {
-      console.log('🎯 GLOBAL: beforeinstallprompt event caught!', e);
-      // Don't prevent default here, just log
-    };
-
-    window.addEventListener('beforeinstallprompt', globalBeforeInstallPrompt, { capture: true });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', globalBeforeInstallPrompt, { capture: true });
-    };
   }, []);
 
   // Check standalone mode and setup install prompt
@@ -91,43 +109,30 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
     mediaQuery.addEventListener('change', checkStandalone);
 
-    // Check PWA capabilities
+    // Check PWA capabilities for debugging
     const capabilities = {
       hasBeforeInstallPrompt: 'onbeforeinstallprompt' in window,
       hasServiceWorker: 'serviceWorker' in navigator,
       hasManifest: !!document.querySelector('link[rel="manifest"]'),
       isSecureContext: window.isSecureContext,
-      protocol: window.location.protocol,
-      isOnline: navigator.onLine,
-      hasEnoughEngagement: true // Assume true for now
+      protocol: window.location.protocol
     };
     console.log('PWA capabilities:', capabilities);
-    setInstallPromptSupported(capabilities.hasBeforeInstallPrompt);
-
-    // Check if all PWA criteria are met
-    const allCriteriaMet = capabilities.hasBeforeInstallPrompt &&
-                          capabilities.hasServiceWorker &&
-                          capabilities.hasManifest &&
-                          capabilities.isSecureContext &&
-                          capabilities.protocol === 'https:' &&
-                          capabilities.isOnline;
-
-    console.log('All PWA criteria met:', allCriteriaMet);
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('🎉 beforeinstallprompt event fired! Install prompt is now available.');
       e.preventDefault();
-      setDeferredPrompt(e);
+      deferredPromptRef.current = e;
       setCanInstall(true);
-      setIsLoading(false); // Clear loading if it was set
     };
 
     // Listen for successful installation
     const handleAppInstalled = () => {
+      console.log('PWA installed successfully');
       setIsInstalled(true);
       setCanInstall(false);
-      setDeferredPrompt(null);
+      deferredPromptRef.current = null;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -154,58 +159,35 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     if (isInstalled) {
       // Open installed app
       window.open('/', '_blank');
-    } else if (canInstall && deferredPrompt) {
-      // Show install prompt
-      setIsLoading(true);
+      return;
+    }
+
+    if (canInstall && deferredPromptRef.current) {
+      // Show install prompt using the stored event
       try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        console.log('Showing install prompt...');
+        deferredPromptRef.current.prompt();
+        const { outcome } = await deferredPromptRef.current.userChoice;
+        console.log('Install prompt outcome:', outcome);
+
         if (outcome === 'accepted') {
           setIsInstalled(true);
-          setCanInstall(false);
-          setDeferredPrompt(null);
         }
+
+        // Clear the stored prompt after use
+        setCanInstall(false);
+        deferredPromptRef.current = null;
       } catch (error) {
         console.log('Install prompt failed:', error);
-      } finally {
-        setIsLoading(false);
+        setCanInstall(false);
+        deferredPromptRef.current = null;
       }
-    } else if (installPromptSupported) {
-      // Install prompt not ready yet - this might be due to insufficient user engagement or other criteria
-      console.log('Install prompt not available - might need more engagement or different browser');
-
-      const message = `PWA installation prompt is not available yet. This could be because:
-
-• Chrome requires more user interaction (scroll, click around)
-• The page needs to be visited for longer
-• Your browser/device may have restrictions
-
-Try:
-1. Scroll through the entire page
-2. Click on different sections and buttons
-3. Wait 30+ seconds
-4. Try installing again
-
-Alternatively, you can manually add Rentapp to your home screen:
-• Tap the menu (⋮) in Chrome
-• Select "Add to Home screen"`;
-
-      alert(message);
-    } else {
-      // Install prompt not supported - provide manual installation instructions
-      console.log('Install prompt not supported on this browser/device');
-
-      const manualInstructions = `PWA installation is not supported on this browser.
-
-Manual Installation (Android Chrome):
-1. Tap the menu button (⋮) in the top-right
-2. Select "Add to Home screen" or "Install app"
-3. Follow the prompts to add Rentapp
-
-If that doesn't work, try updating Chrome to the latest version.`;
-
-      alert(manualInstructions);
+      return;
     }
+
+    // If we get here, the prompt is not available
+    console.log('Install prompt not available');
+    alert('Install prompt is not yet available. Try interacting with the page more (scroll, click around) and then try again.');
   };
 
   // Don't render if not Android mobile
@@ -219,8 +201,6 @@ If that doesn't work, try updating Chrome to the latest version.`;
       return { text: '✅ App Installed', disabled: true };
     } else if (isInstalled) {
       return { text: '📱 Open in App', disabled: false };
-    } else if (isLoading) {
-      return { text: '⏳ Loading...', disabled: true };
     } else if (canInstall) {
       return { text: '⬇️ Install Rentapp', disabled: false };
     } else {
