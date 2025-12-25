@@ -11,18 +11,21 @@ interface TestOneButtonProps {
 export default function TestOneButton({ variant = 'default', onItemClick }: TestOneButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
+  // Detect touch devices
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
   const handleClick = () => {
     console.log('Test One button clicked - opening modal');
-
-    // Open the testament modal first
     setShowModal(true);
 
-    // Then close the menu modal after using requestAnimationFrame
-    // This ensures the second modal opens before the first one closes
     if (variant === 'popup' && onItemClick) {
-      requestAnimationFrame(() => {
+      if (isTouchDevice) {
+        // On mobile: delay closing menu modal by 150ms to prevent flashing
+        setTimeout(onItemClick, 150);
+      } else {
+        // On desktop: close menu modal immediately (existing behavior)
         onItemClick();
-      });
+      }
     }
   };
 
@@ -34,11 +37,6 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
     <>
       <button
         onClick={handleClick}
-        style={{
-          pointerEvents: 'auto',
-          touchAction: 'manipulation',
-          WebkitTapHighlightColor: 'transparent'
-        }}
         className={`flex items-center space-x-3 ${
           variant === 'popup'
             ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
@@ -101,10 +99,7 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
                 borderRadius: '0.5rem',
                 border: 'none',
                 fontWeight: '500',
-                cursor: 'pointer',
-                pointerEvents: 'auto',
-                touchAction: 'manipulation',
-                WebkitTapHighlightColor: 'transparent'
+                cursor: 'pointer'
               }}
             >
               Close
