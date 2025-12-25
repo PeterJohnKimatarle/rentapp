@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { TestTube } from 'lucide-react';
 
 interface TestOneButtonProps {
@@ -16,6 +15,7 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
     if (variant === 'popup' && onItemClick) {
       onItemClick();
     }
+    console.log('Test One button clicked - opening modal');
     setShowModal(true);
   };
 
@@ -38,35 +38,65 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
       </button>
 
       {/* Testament Modal */}
-      {showModal && typeof document !== 'undefined' &&
-        createPortal(
-          <div
-            className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
-            style={{
-              touchAction: 'none',
-              minHeight: '100vh',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
-            }}
-            onClick={closeModal}
-          >
-            <div
-              className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
-              onClick={(e) => e.stopPropagation()}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            maxWidth: '24rem',
+            width: '100%',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              color: '#1f2937',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              testament
+            </h3>
+            <p style={{
+              color: '#6b7280',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              This is the testament modal content
+            </p>
+            <button
+              onClick={() => {
+                console.log('Close button clicked');
+                closeModal();
+              }}
+              style={{
+                width: '100%',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                padding: '0.75rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
             >
-              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">testament</h3>
-              <p className="text-gray-600 mb-6 text-center">This is the testament modal content</p>
-              <button
-                onClick={closeModal}
-                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>,
-          document.body
-        )
-      }
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
