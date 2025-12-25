@@ -12,8 +12,7 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   const [isAndroidMobile, setIsAndroidMobile] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
-  const [useManualInstall, setUseManualInstall] = useState(false);
+  const [hasInstallPrompt, setHasInstallPrompt] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showDebug, setShowDebug] = useState(false);
 
@@ -25,10 +24,10 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     const info = {
       isAndroidMobile,
       isStandalone,
-      canInstall,
+      hasInstallPrompt,
       isInstalled,
-      installPromptSupported: 'onbeforeinstallprompt' in window,
       deferredPromptAvailable: !!deferredPromptRef.current,
+      installPromptSupported: 'onbeforeinstallprompt' in window,
       hasManifest: !!document.querySelector('link[rel="manifest"]'),
       hasServiceWorker: 'serviceWorker' in navigator,
       isSecureContext: window.isSecureContext,
@@ -41,45 +40,31 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
   // Set up beforeinstallprompt listener once at startup
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('🎉 beforeinstallprompt event fired at startup');
+      console.log('🎉 beforeinstallprompt event fired');
       // Prevent Chrome from auto-showing the prompt
       e.preventDefault();
       // Store the event persistently
       deferredPromptRef.current = e;
-      setCanInstall(true);
-      console.log('Install prompt stored and ready');
+      setHasInstallPrompt(true);
     };
 
     const handleAppInstalled = () => {
       console.log('PWA installed successfully');
       setIsInstalled(true);
-      setCanInstall(false);
+      setHasInstallPrompt(false);
       deferredPromptRef.current = null;
     };
 
-    // Listen for install prompt
+    // Listen for install prompt (optional - may not fire)
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     // Listen for successful installation
     window.addEventListener('appinstalled', handleAppInstalled);
-
-    // Fallback mechanism for when beforeinstallprompt doesn't fire
-    const enableFallbackInstall = () => {
-      // If we're on Android Chrome and no prompt after 5 seconds, enable manual install
-      setTimeout(() => {
-        if (!deferredPromptRef.current && isAndroidMobile && 'onbeforeinstallprompt' in window) {
-          console.log('Enabling manual install mode - beforeinstallprompt event not received');
-          setUseManualInstall(true);
-        }
-      }, 5000);
-    };
-
-    enableFallbackInstall();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [isAndroidMobile]);
+  }, []);
 
   // Check if device is Android mobile
   useEffect(() => {
@@ -138,14 +123,14 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       console.log('🎉 beforeinstallprompt event fired! Install prompt is now available.');
       e.preventDefault();
       deferredPromptRef.current = e;
-      setCanInstall(true);
+      setHasInstallPrompt(true);
     };
 
     // Listen for successful installation
     const handleAppInstalled = () => {
       console.log('PWA installed successfully');
       setIsInstalled(true);
-      setCanInstall(false);
+      setHasInstallPrompt(false);
       deferredPromptRef.current = null;
     };
 
@@ -165,54 +150,25 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       onItemClick();
     }
 
-    if (isStandalone) {
-      // Already installed - do nothing
-      return;
-    }
-
     if (isInstalled) {
       // Open installed app
       window.open('/', '_blank');
       return;
     }
 
-    if (canInstall && deferredPromptRef.current && !useManualInstall) {
+    if (hasInstallPrompt && deferredPromptRef.current) {
       // Show install prompt using the stored event
-      try {
-        console.log('Showing install prompt...');
-        deferredPromptRef.current.prompt();
-        const { outcome } = await deferredPromptRef.current.userChoice;
-        console.log('Install prompt outcome:', outcome);
+      deferredPromptRef.current.prompt();
+      const { outcome } = await deferredPromptRef.current.userChoice;
 
-        if (outcome === 'accepted') {
-          setIsInstalled(true);
-        }
-
-        // Clear the stored prompt after use
-        setCanInstall(false);
-        deferredPromptRef.current = null;
-      } catch (error) {
-        console.log('Install prompt failed:', error);
-        setCanInstall(false);
-        deferredPromptRef.current = null;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
       }
-      return;
+
+      // Clear the stored prompt after use
+      setHasInstallPrompt(false);
+      deferredPromptRef.current = null;
     }
-
-    // Manual install instructions (either fallback or direct)
-    console.log('Providing manual install instructions');
-    const instructions = `Please install Rentapp manually:
-
-📱 Android Chrome:
-1. Tap the menu button (⋮) in the top-right corner
-2. Select "Add to Home screen" or "Install app"
-3. Follow the prompts to install Rentapp
-
-This will add Rentapp to your home screen like a native app.
-
-After installing, refresh this page and the button will show "Open in App".`;
-
-    alert(instructions);
   };
 
   // Don't render if not Android mobile
@@ -223,20 +179,28 @@ After installing, refresh this page and the button will show "Open in App".`;
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (isStandalone) {
-      return { text: '✅ App Installed', disabled: true };
+      return { text: 'App Installed', disabled: true };
     } else if (isInstalled) {
-      return { text: '📱 Open in App', disabled: false };
-    } else if (canInstall && !useManualInstall) {
-      return { text: '⬇️ Install Rentapp', disabled: false };
-    } else if (useManualInstall) {
-      return { text: '📋 Install Manually', disabled: false };
+      return { text: 'Open in App', disabled: false };
+    } else if (hasInstallPrompt) {
+      return { text: 'Install Rentapp', disabled: false };
+    } else if (isAndroidMobile) {
+      // Android mobile but no install prompt available yet
+      return { text: 'Install via browser menu', disabled: true };
     } else {
-      // Default to Install Rentapp if we can't determine the state yet
-      return { text: '⏳ Preparing Install...', disabled: true };
+      // Not Android mobile - don't show button
+      return null;
     }
   };
 
-  const { text, disabled } = getButtonConfig();
+  const buttonConfig = getButtonConfig();
+
+  // Don't render anything if not applicable
+  if (!buttonConfig) {
+    return null;
+  }
+
+  const { text, disabled } = buttonConfig;
 
   return (
     <>
