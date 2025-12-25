@@ -59,10 +59,18 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     console.log('Setting showInstallModal to true');
     setShowInstallModal(true);
 
+    // Visual debugging for mobile
+    if (isMobileBrowser) {
+      alert('Modal state set to: true\nNow checking if modal renders...');
+    }
+
     // Force a re-render check
     setTimeout(() => {
       console.log('Modal state after timeout:', showInstallModal);
-    }, 100);
+      if (isMobileBrowser && showInstallModal) {
+        alert('Modal should be visible now. If you don\'t see it, there\'s a rendering issue.');
+      }
+    }, 500);
   };
 
   const closeModal = () => {
@@ -92,92 +100,61 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         <span className="text-base font-medium">Install Rentapp</span>
       </button>
 
-      {/* Install Instructions Modal - Rendered via Portal */}
-      {showInstallModal && typeof document !== 'undefined' && (
+      {/* Install Instructions Modal */}
+      {showInstallModal && (
         <>
-          {console.log('Rendering modal portal, showInstallModal:', showInstallModal)}
-        </>
-      )}
-      {showInstallModal && typeof document !== 'undefined' &&
-        createPortal(
+          {console.log('Rendering modal, showInstallModal:', showInstallModal)}
+          {/* Mobile: Render inline with highly visible styling */}
           <div
-            className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+            className="fixed inset-0 z-[9999]"
             style={{
-              touchAction: 'none',
-              minHeight: '100vh',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'red',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
             }}
             onClick={(e) => {
-              console.log('Modal overlay clicked');
+              console.log('Mobile modal overlay clicked');
               closeModal();
             }}
           >
-          <div
-            className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Download size={32} className="text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">Install Rentapp</h3>
-              <p className="text-gray-600 mt-2">Add Rentapp to your home screen</p>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">1</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Tap the browser menu</p>
-                  <p className="text-gray-600 text-sm">(⋮ on Android Chrome, Share icon on iOS Safari)</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">2</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Select "Add to Home screen"</p>
-                  <p className="text-gray-600 text-sm">or "Install app"</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">3</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Confirm to add Rentapp</p>
-                  <p className="text-gray-600 text-sm">to your home screen</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">4</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Open from home screen</p>
-                  <p className="text-gray-600 text-sm">like a normal app</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={closeModal}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            <div
+              className="w-full max-w-sm p-6 rounded-lg shadow-lg"
+              style={{
+                backgroundColor: 'yellow',
+                border: '5px solid black',
+                maxWidth: '300px'
+              }}
+              onClick={(e) => e.stopPropagation()}
             >
-              Got it!
-            </button>
+              <div className="text-center mb-4">
+                <h3 className="text-2xl font-bold text-black">📱 MOBILE MODAL TEST</h3>
+                <p className="text-black font-bold">If you see this yellow box with red background,</p>
+                <p className="text-black font-bold">the modal rendering works on mobile!</p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="w-full py-3 font-bold text-lg"
+                style={{
+                  backgroundColor: 'black',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px'
+                }}
+              >
+                CLOSE TEST MODAL
+              </button>
+            </div>
           </div>
-        </div>,
-          document.body
-        )
-      }
+        </>
+      )}
     </>
   );
 }
