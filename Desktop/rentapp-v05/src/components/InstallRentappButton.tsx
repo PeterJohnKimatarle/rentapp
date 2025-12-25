@@ -36,77 +36,17 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         <span className="text-base font-medium">Install Rentapp</span>
       </button>
 
-      {/* Installation Instructions Modal */}
+      {/* Simple Modal */}
       {showModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
-          style={{
-            touchAction: 'none',
-            minHeight: '100vh',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={closeModal}
-        >
-          <div
-            className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Download size={32} className="text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">Install Rentapp</h3>
-              <p className="text-gray-600 mt-2">Add Rentapp to your home screen</p>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">1</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Tap the browser menu</p>
-                  <p className="text-gray-600 text-sm">(⋮ on Android Chrome, Share on iOS Safari)</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">2</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Select "Add to Home screen"</p>
-                  <p className="text-gray-600 text-sm">or "Install app"</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">3</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Confirm to add Rentapp</p>
-                  <p className="text-gray-600 text-sm">to your home screen</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 font-bold text-sm">4</span>
-                </div>
-                <div>
-                  <p className="text-gray-800 font-medium">Open from home screen</p>
-                  <p className="text-gray-600 text-sm">like a normal app</p>
-                </div>
-              </div>
-            </div>
-
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4 text-center">Install Rentapp</h3>
+            <p className="text-gray-600 mb-4 text-center">Installation instructions go here</p>
             <button
               onClick={closeModal}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
             >
-              Got it!
+              Close
             </button>
           </div>
         </div>
