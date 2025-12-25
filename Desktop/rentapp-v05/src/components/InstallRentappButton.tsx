@@ -101,60 +101,116 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       </button>
 
       {/* Install Instructions Modal */}
-      {showInstallModal && (
-        <>
-          {console.log('Rendering modal, showInstallModal:', showInstallModal)}
-          {/* Mobile: Render inline with highly visible styling */}
-          <div
-            className="fixed inset-0 z-[9999]"
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'red',
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px'
-            }}
-            onClick={(e) => {
-              console.log('Mobile modal overlay clicked');
-              closeModal();
-            }}
-          >
-            <div
-              className="w-full max-w-sm p-6 rounded-lg shadow-lg"
-              style={{
-                backgroundColor: 'yellow',
-                border: '5px solid black',
-                maxWidth: '300px'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-black">📱 MOBILE MODAL TEST</h3>
-                <p className="text-black font-bold">If you see this yellow box with red background,</p>
-                <p className="text-black font-bold">the modal rendering works on mobile!</p>
+      {(() => {
+        console.log('Modal conditional check - showInstallModal:', showInstallModal, 'isMobileBrowser:', isMobileBrowser);
+
+        if (showInstallModal) {
+          console.log('🎯 EXECUTING MODAL RENDER CODE');
+
+          // Force DOM manipulation for mobile testing
+          if (isMobileBrowser && typeof document !== 'undefined') {
+            console.log('Creating mobile test element...');
+            const testDiv = document.createElement('div');
+            testDiv.innerHTML = `
+              <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: red;
+                z-index: 99999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: white;
+                font-weight: bold;
+              ">
+                <div style="
+                  background: yellow;
+                  padding: 20px;
+                  border: 5px solid black;
+                  max-width: 300px;
+                  text-align: center;
+                ">
+                  📱 FORCE DOM MODAL<br>
+                  If you see this, DOM manipulation works!<br>
+                  <button style="
+                    background: black;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    margin-top: 10px;
+                    font-size: 18px;
+                    cursor: pointer;
+                  " onclick="this.parentElement.parentElement.remove()">CLOSE</button>
+                </div>
               </div>
-              <button
-                onClick={closeModal}
-                className="w-full py-3 font-bold text-lg"
+            `;
+            document.body.appendChild(testDiv);
+            console.log('Force DOM element added to body');
+
+            // Also try the React approach
+            return (
+              <div
                 style={{
-                  backgroundColor: 'black',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px'
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'blue',
+                  zIndex: 99998,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}
+                onClick={(e) => {
+                  console.log('React modal overlay clicked');
+                  closeModal();
                 }}
               >
-                CLOSE TEST MODAL
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+                <div
+                  style={{
+                    backgroundColor: 'white',
+                    border: '5px solid green',
+                    padding: '20px',
+                    maxWidth: '300px',
+                    textAlign: 'center'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 style={{ color: 'black', fontSize: '24px' }}>⚛️ REACT MODAL TEST</h3>
+                  <p style={{ color: 'black', fontWeight: 'bold' }}>
+                    If you see this white box with blue background,
+                    React rendering works on mobile!
+                  </p>
+                  <button
+                    onClick={closeModal}
+                    style={{
+                      backgroundColor: 'green',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      marginTop: '10px',
+                      fontSize: '16px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    CLOSE REACT MODAL
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return null;
+        }
+
+        return null;
+      })()}
     </>
   );
 }
