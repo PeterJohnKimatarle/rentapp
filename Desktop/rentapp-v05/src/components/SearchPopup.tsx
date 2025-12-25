@@ -414,9 +414,16 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
                 ))}
               </select>
             ) : (
-              <div className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Select region</span>
-              </div>
+              <select
+                className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-300 cursor-not-allowed"
+                style={{
+                  color: '#9ca3af'
+                }}
+                disabled
+                value=""
+              >
+                <option value="" style={{ color: '#9ca3af' }}>Select region</option>
+              </select>
             )}
             </div>
           </div>
