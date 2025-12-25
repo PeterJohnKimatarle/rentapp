@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { usePathname, useRouter } from 'next/navigation';
 
-import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut, Download } from 'lucide-react';
+import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User, LogIn, ShieldCheck, LogOut } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -47,81 +47,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
   const isAdmin = user?.role === 'admin';
 
   const [isEndingSession, setIsEndingSession] = useState(false);
-
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [isRunningStandalone, setIsRunningStandalone] = useState(false);
-
-  // Detect if PWA is installed
-  useEffect(() => {
-    const checkIfInstalled = async () => {
-      // Check if PWA was ever installed on this device/browser (stored in localStorage)
-      const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
-
-      // Check for service worker registration (indicates PWA installation)
-      let hasServiceWorker = false;
-      try {
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          hasServiceWorker = registrations.length > 0;
-        }
-      } catch (error) {
-        console.log('Service worker check failed:', error);
-      }
-
-      // Also check current display mode for immediate detection
-      const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isInWebAppiOS = (window.navigator as any).standalone === true;
-
-      console.log('PWA Detection Debug:', {
-        wasEverInstalled,
-        hasServiceWorker,
-        isCurrentlyStandalone,
-        isInWebAppiOS,
-        userAgent: navigator.userAgent
-      });
-
-      // App is installed if: was ever installed OR has service worker OR currently running standalone
-      const isInstalled = wasEverInstalled || hasServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
-
-      // Track both states
-      setIsAppInstalled(isInstalled);
-      setIsRunningStandalone(isCurrentlyStandalone || isInWebAppiOS);
-    };
-
-    // Check immediately
-    checkIfInstalled();
-
-    // Listen for app installation event
-    const handleAppInstalled = () => {
-      console.log('PWA installed event fired!');
-      // Store installation flag in localStorage for future detection
-      localStorage.setItem('rentapp_pwa_installed', 'true');
-      setIsAppInstalled(true);
-    };
-
-    // Listen for beforeinstallprompt to know when installation becomes available
-    const handleBeforeInstallPrompt = () => {
-      // If beforeinstallprompt fires, it means the app is not yet installed
-      // But we don't change state here as the user might choose not to install
-      console.log('PWA install prompt available');
-    };
-
-    window.addEventListener('appinstalled', handleAppInstalled);
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Also listen for display mode changes
-    const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    const handleDisplayModeChange = () => {
-      checkIfInstalled();
-    };
-    mediaQuery.addEventListener('change', handleDisplayModeChange);
-
-    return () => {
-      window.removeEventListener('appinstalled', handleAppInstalled);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      mediaQuery.removeEventListener('change', handleDisplayModeChange);
-    };
-  }, []);
 
   const handleEndSession = async () => {
 
@@ -668,45 +593,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           </button>
 
         )}
-
-        {/* Install Rentapp Button */}
-        <button
-          onClick={() => {
-            if (variant === 'popup' && onItemClick) {
-              onItemClick();
-            }
-            if (isAppInstalled) {
-              // Open in app - could redirect to app URL or handle differently
-              console.log('Open in app clicked');
-            } else {
-              // Install functionality here
-              console.log('Install Rentapp clicked');
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              if (variant === 'popup' && onItemClick) {
-                onItemClick();
-              }
-              if (isAppInstalled) {
-                console.log('Open in app clicked');
-              } else {
-                console.log('Install Rentapp clicked');
-              }
-            }
-          }}
-          className={`flex items-center space-x-3 ${
-            variant === 'popup'
-              ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
-              : 'text-gray-700 hover:text-black hover:bg-yellow-500 rounded-lg px-3 py-2 w-full cursor-pointer'
-          }`}
-        >
-          <Download size={20} className="flex-shrink-0" />
-          <span className="text-base font-medium">
-            {isRunningStandalone ? 'App Installed' : isAppInstalled ? 'Open in App' : 'Install Rentapp'}
-          </span>
-        </button>
 
 
         {/* Close and Home Buttons - Only in popup mode */}
