@@ -26,6 +26,8 @@ interface NavigationProps {
 
   onLoginClick?: () => void;
 
+  onTestamentClick?: () => void;
+
   onLogoutClick?: () => void;
 
   onHomeClick?: () => void;
@@ -34,7 +36,7 @@ interface NavigationProps {
 
 
 
-export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onLogoutClick, onHomeClick }: NavigationProps) {
+export default function Navigation({ variant = 'default', onItemClick, onSearchClick, onLoginClick, onTestamentClick, onLogoutClick, onHomeClick }: NavigationProps) {
 
   const pathname = usePathname();
 
@@ -597,7 +599,7 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         )}
 
         {/* Test One Button */}
-        <TestOneButton variant={variant} onItemClick={onItemClick} />
+        <TestOneButton variant={variant} onItemClick={onItemClick} onTestamentClick={onTestamentClick} />
 
 
         {/* Close and Home Buttons - Only in popup mode */}

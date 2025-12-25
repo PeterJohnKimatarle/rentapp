@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import NextImage from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import Navigation from './Navigation';
@@ -24,6 +25,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isTestamentModalOpen, setIsTestamentModalOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -223,7 +225,7 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
   };
 
   // Prevent body scroll when menu is open
-  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen || isUserMenuOpen || showLogoutConfirm);
+  usePreventScroll(isMobileMenuOpen || isSearchPopupOpen || isUserMenuOpen || showLogoutConfirm || isTestamentModalOpen);
 
   const updateAnchorPosition = useCallback((element: HTMLElement | null) => {
     if (!element) {
@@ -491,11 +493,12 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
-              <Navigation 
-                variant="popup" 
-                onItemClick={() => setIsMobileMenuOpen(false)} 
-                onSearchClick={handleSearchClick} 
+              <Navigation
+                variant="popup"
+                onItemClick={() => setIsMobileMenuOpen(false)}
+                onSearchClick={handleSearchClick}
                 onLoginClick={() => setIsLoginPopupOpen(true)}
+                onTestamentClick={() => setIsTestamentModalOpen(true)}
                 onLogoutClick={() => setShowLogoutConfirm(true)}
                 onHomeClick={() => {
                   setIsMobileMenuOpen(false);
@@ -669,6 +672,70 @@ export default function Layout({ children, totalCount, filteredCount, hasActiveF
         isOpen={isLoginPopupOpen}
         onClose={() => setIsLoginPopupOpen(false)}
       />
+
+      {/* Testament Modal */}
+      {isTestamentModalOpen && typeof document !== 'undefined' &&
+        createPortal(
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '0.5rem',
+              padding: '1.5rem',
+              maxWidth: '24rem',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                color: '#1f2937',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                testament
+              </h3>
+              <p style={{
+                color: '#6b7280',
+                marginBottom: '1.5rem',
+                textAlign: 'center'
+              }}>
+                This is the testament modal content
+              </p>
+              <button
+                onClick={() => {
+                  console.log('Close button clicked');
+                  setIsTestamentModalOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      }
 
       {/* Logout Confirmation Popup */}
       {showLogoutConfirm && (
