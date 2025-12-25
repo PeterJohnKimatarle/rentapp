@@ -24,8 +24,18 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = isIOS && (window.navigator as any).standalone === true;
 
-      // Only show if mobile AND not standalone
-      const shouldShow = isMobile && !isStandalone && !isIOSStandalone;
+      // TEMP: Show on both mobile and desktop for testing
+      const shouldShow = !isStandalone && !isIOSStandalone;
+
+      console.log('InstallRentappButton - Device detection:', {
+        userAgent: navigator.userAgent.toLowerCase(),
+        isMobile,
+        isIOS,
+        isStandalone,
+        isIOSStandalone,
+        shouldShow,
+        componentWillRender: shouldShow
+      });
 
       setIsMobileBrowser(shouldShow);
     };
@@ -48,8 +58,11 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
 
   // Don't render if not mobile browser
   if (!isMobileBrowser) {
+    console.log('InstallRentappButton - Not rendering (not mobile browser or in standalone mode)');
     return null;
   }
+
+  console.log('InstallRentappButton - Rendering button');
 
   return (
     <>
