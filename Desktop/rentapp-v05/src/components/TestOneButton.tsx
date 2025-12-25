@@ -12,11 +12,18 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
   const [showModal, setShowModal] = useState(false);
 
   const handleClick = () => {
-    if (variant === 'popup' && onItemClick) {
-      onItemClick();
-    }
     console.log('Test One button clicked - opening modal');
+
+    // Open the testament modal first
     setShowModal(true);
+
+    // Then close the menu modal after using requestAnimationFrame
+    // This ensures the second modal opens before the first one closes
+    if (variant === 'popup' && onItemClick) {
+      requestAnimationFrame(() => {
+        onItemClick();
+      });
+    }
   };
 
   const closeModal = () => {
@@ -27,6 +34,11 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
     <>
       <button
         onClick={handleClick}
+        style={{
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent'
+        }}
         className={`flex items-center space-x-3 ${
           variant === 'popup'
             ? 'text-gray-800 hover:text-black px-4 py-2 rounded-lg hover:bg-yellow-500 w-full justify-start h-10 border border-white border-opacity-30 bg-blue-100 cursor-pointer'
@@ -89,7 +101,10 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
                 borderRadius: '0.5rem',
                 border: 'none',
                 fontWeight: '500',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                pointerEvents: 'auto',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent'
               }}
             >
               Close
