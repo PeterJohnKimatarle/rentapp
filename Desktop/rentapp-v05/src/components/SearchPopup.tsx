@@ -313,14 +313,11 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
                 )
               ) : (
                 <select
-                  className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-300 cursor-not-allowed"
-                  style={{
-                    color: '#9ca3af'
-                  }}
+                  className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 cursor-not-allowed text-gray-400 text-sm"
                   disabled
                   value=""
                 >
-                  <option value="" style={{ color: '#9ca3af' }}>Select type</option>
+                  <option value="">Select type</option>
                 </select>
               )}
           </div>
@@ -415,7 +412,7 @@ export default function SearchPopup({ isOpen, onClose, searchBarPosition }: Sear
               </select>
             ) : (
               <select
-                className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-300 cursor-not-allowed text-gray-400 text-sm"
+                className="w-full px-3 py-2 rounded-lg text-center h-10 bg-gray-200 cursor-not-allowed text-gray-400 text-sm"
                 disabled
                 value=""
               >
