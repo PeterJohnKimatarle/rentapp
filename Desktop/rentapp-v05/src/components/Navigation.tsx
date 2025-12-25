@@ -10,6 +10,8 @@ import { Home, Search, Settings, Phone, Info, PlusCircle, Heart, Building, User,
 
 import { useAuth } from '@/contexts/AuthContext';
 
+import InstallRentappButton from './InstallRentappButton';
+
 import { useState, useEffect } from 'react';
 
 
@@ -593,6 +595,9 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
           </button>
 
         )}
+
+        {/* Install Rentapp Button */}
+        <InstallRentappButton variant={variant} onItemClick={onItemClick} />
 
 
         {/* Close and Home Buttons - Only in popup mode */}
