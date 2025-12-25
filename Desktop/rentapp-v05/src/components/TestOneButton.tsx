@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { TestTube } from 'lucide-react';
 
 interface TestOneButtonProps {
@@ -37,20 +38,35 @@ export default function TestOneButton({ variant = 'default', onItemClick }: Test
       </button>
 
       {/* Testament Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4 text-center">testament</h3>
-            <p className="text-gray-600 mb-4 text-center">This is the testament modal content</p>
-            <button
-              onClick={closeModal}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+      {showModal && typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+            style={{
+              touchAction: 'none',
+              minHeight: '100vh',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={closeModal}
+          >
+            <div
+              className="rounded-xl p-6 w-full max-w-sm shadow-2xl overflow-hidden bg-white"
+              onClick={(e) => e.stopPropagation()}
             >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">testament</h3>
+              <p className="text-gray-600 mb-6 text-center">This is the testament modal content</p>
+              <button
+                onClick={closeModal}
+                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      }
     </>
   );
 }
