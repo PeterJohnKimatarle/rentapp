@@ -24,8 +24,8 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = isIOS && (window.navigator as any).standalone === true;
 
-      // TEMP: Show on both mobile and desktop for testing
-      const shouldShow = !isStandalone && !isIOSStandalone;
+      // Only show if mobile AND not standalone
+      const shouldShow = isMobile && !isStandalone && !isIOSStandalone;
 
       console.log('InstallRentappButton - Device detection:', {
         userAgent: navigator.userAgent.toLowerCase(),
@@ -37,6 +37,11 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
         componentWillRender: shouldShow
       });
 
+      // Remove the mobile alert since we only want mobile-specific debugging now
+      if (isMobileBrowser) {
+        // Keep mobile-specific alerts for testing
+      }
+
       setIsMobileBrowser(shouldShow);
     };
 
@@ -47,9 +52,9 @@ export default function InstallRentappButton({ variant = 'default', onItemClick 
     console.log('Install Rentapp button clicked');
     console.log('Current state:', { showInstallModal, isMobileBrowser, variant });
 
-    // TEMP: Add alert for mobile testing
+    // Debug alert for mobile testing
     if (isMobileBrowser) {
-      alert('Button clicked on mobile! Check console for logs.');
+      alert('Button clicked on mobile! Check for test modals.');
     }
 
     if (variant === 'popup' && onItemClick) {
