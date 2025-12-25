@@ -50,94 +50,38 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isRunningStandalone, setIsRunningStandalone] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
-
-  // Debug function to manually clear installation flags
-  const debugClearInstalled = () => {
-    localStorage.removeItem('rentapp_pwa_installed');
-    setIsAppInstalled(false);
-    setIsRunningStandalone(false);
-    console.log('Debug: Manually cleared PWA installation flags');
-    setClickCount(0);
-  };
 
   // Detect if PWA is installed
   useEffect(() => {
-    console.log('🔍 PWA Detection: Starting installation check...');
-
     const checkIfInstalled = async () => {
       // Check if PWA was ever installed on this device/browser (stored in localStorage)
       const wasEverInstalled = localStorage.getItem('rentapp_pwa_installed') === 'true';
 
-      // Check for active service worker (indicates PWA installation)
-      let hasActiveServiceWorker = false;
+      // Check for service worker registration (indicates PWA installation)
+      let hasServiceWorker = false;
       try {
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
-          // Check if we have registrations and if any are actually active
-          if (registrations.length > 0) {
-            // Try to find our specific service worker
-            const rentappSW = registrations.find(reg =>
-              reg.scope.includes('rentapp') ||
-              reg.scope.includes(window.location.origin)
-            );
-
-            if (rentappSW) {
-              // Check if the service worker is in an active state
-              hasActiveServiceWorker = rentappSW.active !== null;
-
-              // If service worker exists but isn't active, it might be uninstalling
-              // Clear the localStorage flag to allow re-detection
-              if (!hasActiveServiceWorker && wasEverInstalled) {
-                console.log('Service worker found but not active - clearing installation flag');
-                localStorage.removeItem('rentapp_pwa_installed');
-              }
-            }
-          }
+          hasServiceWorker = registrations.length > 0;
         }
       } catch (error) {
         console.log('Service worker check failed:', error);
-        // If we can't check service workers, clear the flag to be safe
-        if (wasEverInstalled) {
-          localStorage.removeItem('rentapp_pwa_installed');
-        }
       }
 
       // Also check current display mode for immediate detection
       const isCurrentlyStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebAppiOS = (window.navigator as any).standalone === true;
 
-      // Aggressive cleanup: if no service workers at all, clear installation flag
-      if (wasEverInstalled && !hasActiveServiceWorker && !isCurrentlyStandalone && !isInWebAppiOS) {
-        console.log('🧹 Aggressive cleanup: No service workers or standalone mode detected, clearing installation flag');
-        localStorage.removeItem('rentapp_pwa_installed');
-        // Force re-evaluation
-        setIsAppInstalled(false);
-        setIsRunningStandalone(false);
-      }
-
-      // Get service worker count for logging
-      let serviceWorkerCount = 0;
-      try {
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          serviceWorkerCount = registrations.length;
-        }
-      } catch (error) {
-        console.log('Error getting service worker count:', error);
-      }
-
       console.log('PWA Detection Debug:', {
         wasEverInstalled,
-        hasActiveServiceWorker,
+        hasServiceWorker,
         isCurrentlyStandalone,
         isInWebAppiOS,
-        serviceWorkerCount,
         userAgent: navigator.userAgent
       });
 
-      // App is installed if: was ever installed OR has active service worker OR currently running standalone
-      const isInstalled = wasEverInstalled || hasActiveServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
+      // App is installed if: was ever installed OR has service worker OR currently running standalone
+      const isInstalled = wasEverInstalled || hasServiceWorker || isCurrentlyStandalone || isInWebAppiOS;
 
       // Track both states
       setIsAppInstalled(isInstalled);
@@ -146,57 +90,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
 
     // Check immediately
     checkIfInstalled();
-
-    // Run cleanup immediately on load
-    const runImmediateCleanup = async () => {
-      try {
-        const storedFlag = localStorage.getItem('rentapp_pwa_installed');
-        if (storedFlag === 'true') {
-          let stillHasActiveSW = false;
-          if ('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            stillHasActiveSW = registrations.length > 0;
-          }
-
-          if (!stillHasActiveSW) {
-            console.log('Immediate cleanup: No service workers found, clearing installation flag');
-            localStorage.removeItem('rentapp_pwa_installed');
-            checkIfInstalled();
-          }
-        }
-      } catch (error) {
-        console.log('Immediate cleanup failed:', error);
-      }
-    };
-    runImmediateCleanup();
-
-    // Periodic cleanup check (every 10 seconds) to clear stale installation flags
-    const cleanupInterval = setInterval(async () => {
-      try {
-        const storedFlag = localStorage.getItem('rentapp_pwa_installed');
-        if (storedFlag === 'true') {
-          // Re-check if service worker is still active
-          let stillHasActiveSW = false;
-          if ('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            const rentappSW = registrations.find(reg =>
-              reg.scope.includes('rentapp') ||
-              reg.scope.includes(window.location.origin)
-            );
-            stillHasActiveSW = rentappSW ? rentappSW.active !== null : false;
-          }
-
-          // If no active service worker but flag is set, clear it
-          if (!stillHasActiveSW) {
-            console.log('Periodic cleanup: Clearing stale installation flag');
-            localStorage.removeItem('rentapp_pwa_installed');
-            checkIfInstalled(); // Re-check installation status
-          }
-        }
-      } catch (error) {
-        console.log('Periodic cleanup failed:', error);
-      }
-    }, 30000); // Check every 30 seconds
 
     // Listen for app installation event
     const handleAppInstalled = () => {
@@ -227,7 +120,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
       window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       mediaQuery.removeEventListener('change', handleDisplayModeChange);
-      clearInterval(cleanupInterval);
     };
   }, []);
 
@@ -780,18 +672,6 @@ export default function Navigation({ variant = 'default', onItemClick, onSearchC
         {/* Install Rentapp Button */}
         <button
           onClick={() => {
-            // Triple-click debug: clear installation flags
-            setClickCount(prev => {
-              const newCount = prev + 1;
-              if (newCount === 3) {
-                debugClearInstalled();
-                return 0;
-              }
-              // Reset count after 2 seconds
-              setTimeout(() => setClickCount(0), 2000);
-              return newCount;
-            });
-
             if (variant === 'popup' && onItemClick) {
               onItemClick();
             }
